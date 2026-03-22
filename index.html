@@ -1236,8 +1236,11 @@ function renderSavings(){
     {name:'Resy Credit', card:'Amex Gold', annual:100, note:'$50 per half-year'},
     {name:'Hotel Collection', card:'Amex Gold', annual:100, note:'2+ night stays'},
     {name:'Instacart+', card:'United Explorer', annual:120, note:'$10/mo'},
+    {name:'Rideshare Credit', card:'United Explorer', annual:60, note:'$5/mo'},
+    {name:'United Hotels', card:'United Explorer', annual:100, note:'$50 x 2 stays'},
     {name:'JSX Credit', card:'United Explorer', annual:100, note:'Semi-private flights'},
-    {name:'Avis/Budget', card:'United Explorer', annual:50, note:'TravelBank credit'},
+    {name:'Avis/Budget', card:'United Explorer', annual:50, note:'$25 x 2 rentals'},
+    {name:'TravelBank ($10K spend)', card:'United Explorer', annual:100, note:'After $10K annual spend'},
     {name:'Global Entry/TSA Pre', card:'United Explorer', annual:30, note:'$120 every 4 years'},
   ];
   const totalCredits = creditLines.reduce((s,c) => s + c.annual, 0) * (m / 12);
@@ -1468,8 +1471,8 @@ const aiRules=[
   {keys:['gas','gas station','fuel','shell','chevron','exxon','mobil','bp','conoco','circle k','costco gas','sams gas','pump','fill up','fillup','gasoline','petrol'],
     card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Amazon card only gets 2%. Robinhood Gold wins. Check Mystery Box for a boost before filling up!'},
   {keys:['netflix','hulu','spotify','disney','hbo','max','youtube','apple tv','peacock','paramount','streaming','subscription','subscriptions','crunchyroll','audible'],
-    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'No other card in your stack beats 1% on streaming.'},
-  {keys:['uber','lyft','rideshare','ride share','taxi','cab'],card:'Amazon Prime Visa',rate:'2%',color:'#232F3E',tip:'Use your Amex Gold $10/mo Uber Cash first! Check Tracker.'},
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Robinhood Gold 3% beats United Explorer 2x miles (~2-2.4 cents) on streaming since 3% cash is guaranteed value.'},
+  {keys:['ride'],card:'United Explorer',rate:'2x',color:'#0033A0',tip:'United Explorer earns 2x on rideshare. Check for $5/mo rideshare credit and Uber Cash first.'},
   {keys:['united','united airlines','united flight'],card:'United Explorer',rate:'7x',color:'#0033A0',tip:'Must pay with Explorer for free checked bag + priority boarding.'},
   {keys:['instacart'],card:'United Explorer',rate:'$10/mo credit',color:'#0033A0',tip:'Use the $10/mo credit first (expires monthly, through 12/31/27).'},
   {keys:['flight','airline','plane','travel','vacation','trip','booking','delta','southwest','american airlines','jetblue','spirit','frontier','alaska airlines'],
@@ -1538,17 +1541,38 @@ function getAIResponse(query){
     return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip};
   }
 
-  // Uber/Lyft → Amex $10/mo Uber Cash first
-  if(q.match(/uber|lyft|rideshare|ride share|taxi|cab/)){
-    const c=checkCredit('amex-uber');
-    if(c&&c.remaining>0){
-      let tip=`Use your Amex Gold $10/mo Uber Cash first! ($${c.remaining.toFixed(2)} remaining, ${c.daysLeft}d left this month). After the credit is used, Amazon Prime Visa earns 2% on rideshare.`;
+  // Uber specifically → Amex $10/mo Uber Cash first, then United $5/mo rideshare
+  if(q.match(/uber/)){
+    const uberCash=checkCredit('amex-uber');
+    if(uberCash&&uberCash.remaining>0){
+      let tip=`Use your Amex Gold $10/mo Uber Cash first! ($${uberCash.remaining.toFixed(2)} remaining, ${uberCash.daysLeft}d left). This is free money — use it before anything else.`;
+      const rideshare=checkCredit('united-rideshare');
+      if(rideshare&&rideshare.remaining>0) tip+=` You also have a $${rideshare.remaining.toFixed(2)} United Explorer rideshare credit this month.`;
       if(boostNote)tip+=boostNote;
       return{card:'Amex Gold',rate:'$10/mo Uber Cash',color:'#C5A44E',tip};
     }
-    let tip='Uber Cash credit used this month. Amazon Prime Visa earns 2% on rideshare/transit.';
+    const rideshare=checkCredit('united-rideshare');
+    if(rideshare&&rideshare.remaining>0){
+      let tip=`Uber Cash used. Use your United Explorer $5/mo rideshare credit! ($${rideshare.remaining.toFixed(2)} remaining, ${rideshare.daysLeft}d left). United also earns 2x on rideshare.`;
+      if(boostNote)tip+=boostNote;
+      return{card:'United Explorer',rate:'2x + $5/mo credit',color:'#0033A0',tip};
+    }
+    let tip='Uber Cash and rideshare credits both used this month. United Explorer earns 2x on rideshare, or Amazon Prime Visa also earns 2%.';
     if(boostNote)tip+=boostNote;
-    return{card:'Amazon Prime Visa',rate:'2%',color:'#232F3E',tip};
+    return{card:'United Explorer',rate:'2x',color:'#0033A0',tip};
+  }
+
+  // Lyft/rideshare → United Explorer $5/mo rideshare credit first (Uber Cash is Uber-only)
+  if(q.match(/lyft|rideshare|ride share|taxi|cab/)){
+    const rideshare=checkCredit('united-rideshare');
+    if(rideshare&&rideshare.remaining>0){
+      let tip=`Use your United Explorer $5/mo rideshare credit! ($${rideshare.remaining.toFixed(2)} remaining, ${rideshare.daysLeft}d left). United also earns 2x.`;
+      if(boostNote)tip+=boostNote;
+      return{card:'United Explorer',rate:'2x + $5/mo credit',color:'#0033A0',tip};
+    }
+    let tip='Rideshare credit used this month. United Explorer and Amazon Prime Visa both earn 2% on rideshare.';
+    if(boostNote)tip+=boostNote;
+    return{card:'United Explorer',rate:'2x',color:'#0033A0',tip};
   }
 
   // Dunkin → Amex $7/mo credit first
