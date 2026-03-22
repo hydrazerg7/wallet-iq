@@ -320,7 +320,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-const APP_VERSION = '0.0.2';
+const APP_VERSION = '0.0.3';
 let appData = null;
 let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
 let aiMessages = [];
@@ -752,6 +752,39 @@ function renderSavings(){
 }
 document.querySelectorAll('.savings-field').forEach(el=>el.addEventListener('input',renderSavings));
 
+// ===== CHASE QUARTER AWARENESS =====
+function getActiveChaseCategories() {
+  const now = new Date();
+  const q = 'Q' + Math.ceil((now.getMonth() + 1) / 3);
+  const year = String(now.getFullYear());
+  const quarters = appData.chaseQuarters[year];
+  if (!quarters || !quarters[q]) return [];
+  return quarters[q].categories.map(c => c.toLowerCase());
+}
+
+// Map Chase category names to spending keywords
+const chaseKeywordMap = {
+  'dining': ['restaurant','dining','dinner','lunch','brunch','food','sandwich','burger','pizza','taco','burrito','sushi','wings','salad','cafeteria','cafe','deli','bakery','coffee','starbucks','dutch bros','five guys','5 guys','fiveguys','grubhub','chipotle','doordash','postmates','takeout','food delivery','dunkin','resy','date night','meal','snack','noodle','ramen','pho','panera','subway','mcdonalds','wendys','chick-fil-a','popeyes','taco bell','kfc','wingstop','canes','jersey mike','firehouse','jimmy john','qdoba','olive garden','outback','ihop','waffle house','denny','bbq','buffet','diner','bistro','grill'],
+  'amazon': ['amazon'],
+  'whole foods': ['whole foods','wholefoods'],
+  'gas stations': ['gas','gas station','fuel','shell','chevron','exxon','mobil','bp','conoco','pump','fill up','fillup','gasoline','petrol'],
+  'grocery stores': ['grocery','groceries','supermarket','safeway','king soopers','kroger','trader joe','aldi','sprouts'],
+  'select streaming': ['netflix','hulu','spotify','disney','hbo','streaming','subscription'],
+  'paypal': ['paypal'],
+};
+
+function isChaseQuarterMatch(query) {
+  const activeCategories = getActiveChaseCategories();
+  const q = query.toLowerCase();
+  for (const cat of activeCategories) {
+    const keywords = chaseKeywordMap[cat];
+    if (keywords && keywords.some(k => q.includes(k))) {
+      return { matched: true, category: cat, rate: '5%' };
+    }
+  }
+  return { matched: false };
+}
+
 // ===== AI ENGINE =====
 const aiRules=[
   {keys:['five guys','5 guys','fiveguys'],card:'Amex Gold',rate:'4x + $10/mo credit',color:'#C5A44E',tip:'You get a $10/mo dining credit that covers this. Check Tracker to see how much is left.'},
@@ -795,6 +828,23 @@ function getAIResponse(query){
   const boost=getActiveBoost();
   let boostNote='';
   if(boost&&boost.type==='timed') boostNote='\n\nYou have an ACTIVE Mystery Box boost: '+boost.rate+' — consider using Robinhood Gold Card instead if the boost rate is higher!';
+
+  // Check if Chase Freedom quarterly category applies (5% beats most cards)
+  const chaseCheck = isChaseQuarterMatch(q);
+  // Don't override gas station food, store food, or categories where another card gets 5%+
+  const skipChaseFor = ['food at gas','gas station food','food at sam','costco food','food at ikea','food at target','food at walmart','store food','ikea food','walmart food','amazon','whole foods','wholefoods'];
+  const shouldSkipChase = skipChaseFor.some(k => q.includes(k));
+
+  if (chaseCheck.matched && !shouldSkipChase) {
+    const now = new Date();
+    const endOfQ = new Date(now.getFullYear(), Math.ceil((now.getMonth()+1)/3)*3, 0);
+    const daysLeftQ = Math.max(0, Math.ceil((endOfQ - now) / 86400000));
+    let tip = `Chase Freedom 5% beats your other cards on "${chaseCheck.category}" this quarter (${daysLeftQ} days left, $1,500 cap). After the quarter ends or cap is hit, switch back to your usual card.`;
+    // Still append credit info
+    if(q.match(/five guys|5 guys|dining|grubhub|restaurant|dinner|lunch|cafeteria|food|sandwich|burger|pizza/)){const c=checkCredit('amex-dining');if(c)tip+=` (Amex Dining credit: $${c.remaining.toFixed(2)} left — use Amex for that specific credit, Chase for everything else)`;}
+    if(boostNote)tip+=boostNote;
+    return{card:'Chase Freedom (Legacy)',rate:'5%',color:'#1A73E8',tip};
+  }
 
   for(const rule of aiRules){
     if(rule.keys.some(k=>q.includes(k))){
