@@ -254,10 +254,16 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 
   <!-- HISTORY -->
   <div class="panel" id="panel-history">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div class="section-title" style="margin:0">Spending Log</div>
-      <button class="btn btn-outline btn-sm" onclick="clearAllLogs()">Clear All</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" onclick="exportData()">Export</button>
+        <label class="btn btn-outline btn-sm" style="cursor:pointer">Import<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+        <button class="btn btn-outline btn-sm" onclick="clearAllLogs()">Clear</button>
+      </div>
     </div>
+    <div class="ai-chips" id="historyFilters" style="margin-bottom:8px"></div>
+    <div id="historyStats"></div>
     <div id="historyList"></div>
   </div>
 
@@ -308,12 +314,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
       <div class="savings-input"><div class="savings-label">Everything Else</div><input class="savings-field" id="sv-other" type="number" inputmode="decimal" value="500" placeholder="0"></div>
     </div>
     <div class="savings-result" id="savingsResult"></div>
-    <div class="card" style="margin-top:12px">
-      <div style="font-size:12px;color:var(--text2);line-height:1.5">
-        This compares your optimized 5-card stack against a single flat-rate 2% card.
-        Does not include annual credits ($544/yr value) which add even more savings.
-      </div>
-    </div>
+    <div id="savingsBreakdown"></div>
   </div>
 
   <!-- CHASE 5% -->
@@ -383,7 +384,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-const APP_VERSION = '0.0.8';
+const APP_VERSION = '0.0.9';
 let appData = null;
 let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
 let aiMessages = [];
@@ -832,9 +833,48 @@ function undoLast(creditId){
 }
 
 // ===== HISTORY =====
+let historyCardFilter = null;
+
+function renderHistoryFilters() {
+  let html = `<button class="chip ${!historyCardFilter?'style="background:var(--accent);color:#000;border-color:var(--accent)"':''}" onclick="setHistoryFilter(null)">All</button>`;
+  const cardsUsed = [...new Set(logs.map(l => l.cardName))];
+  cardsUsed.forEach(name => {
+    const c = appData.cards.find(c => c.name === name);
+    const color = c ? c.color : '#888';
+    const isActive = historyCardFilter === name;
+    html += `<button class="chip" style="${isActive?'background:'+color+';color:#000;border-color:'+color:''}" onclick="setHistoryFilter('${name}')">${name.replace(' (Legacy)','')}</button>`;
+  });
+  document.getElementById('historyFilters').innerHTML = html;
+}
+
+function setHistoryFilter(name) {
+  historyCardFilter = name;
+  renderHistoryFilters();
+  renderHistory();
+}
+
 function renderHistory(){
+  renderHistoryFilters();
   const list=document.getElementById('historyList');
-  const sorted=[...logs].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  let filtered = [...logs];
+  if (historyCardFilter) filtered = filtered.filter(l => l.cardName === historyCardFilter);
+  const sorted = filtered.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  // Stats
+  const total = filtered.reduce((s,l) => s + l.amount, 0);
+  const thisMonth = filtered.filter(l => {
+    const d = new Date(l.date);
+    const now = new Date();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  const monthTotal = thisMonth.reduce((s,l) => s + l.amount, 0);
+  document.getElementById('historyStats').innerHTML = filtered.length > 0 ? `
+    <div class="summary" style="margin-bottom:12px">
+      <div class="summary-item"><div class="summary-value">$${monthTotal.toFixed(0)}</div><div class="summary-label">This Month</div></div>
+      <div class="summary-item"><div class="summary-value">$${total.toFixed(0)}</div><div class="summary-label">All Time</div></div>
+      <div class="summary-item"><div class="summary-value">${filtered.length}</div><div class="summary-label">Entries</div></div>
+    </div>` : '';
+
   if(!sorted.length){list.innerHTML='<div class="empty">No spending logged yet.</div>';return;}
   let html='';
   sorted.forEach(log=>{
@@ -846,6 +886,51 @@ function renderHistory(){
 }
 function deleteLog(id){logs=logs.filter(l=>l.id!==id);saveLogs();renderTracker();renderHistory();renderToday();}
 function clearAllLogs(){if(confirm('Clear all spending logs?')){logs=[];saveLogs();renderTracker();renderHistory();renderToday();}}
+
+// ===== EXPORT / IMPORT =====
+function exportData() {
+  const data = {
+    version: APP_VERSION,
+    exportDate: new Date().toISOString(),
+    logs: logs,
+    offers: offers,
+    enrolled: JSON.parse(localStorage.getItem('walletiq_enrolled') || '{}'),
+    boost: localStorage.getItem('walletiq_boost')
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'wallet-iq-backup-' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.logs) { alert('Invalid backup file.'); return; }
+      if (!confirm('This will replace all current data. Continue?')) return;
+      logs = data.logs || [];
+      offers = data.offers || [];
+      saveLogs();
+      saveOffers();
+      if (data.enrolled) localStorage.setItem('walletiq_enrolled', JSON.stringify(data.enrolled));
+      if (data.boost) localStorage.setItem('walletiq_boost', data.boost);
+      // Restore enrollment state
+      const enrolled = data.enrolled || {};
+      appData.credits.forEach(c => { if(enrolled[c.id]) c.enrolled = true; });
+      renderAll();
+      alert('Backup restored successfully!');
+    } catch(err) { alert('Error reading backup file.'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
 
 // ===== CHASE =====
 function renderChase(){
@@ -888,20 +973,51 @@ function renderSavings(){
   const v=id=>parseFloat(document.getElementById(id).value)||0;
   const grocery=v('sv-grocery'),dining=v('sv-dining'),amazon=v('sv-amazon'),gas=v('sv-gas'),stream=v('sv-stream'),flights=v('sv-flights'),other=v('sv-other');
   const total=grocery+dining+amazon+gas+stream+flights+other;
-  // Optimized stack
-  const optimized=(grocery*.04)+(dining*.04)+(amazon*.05)+(gas*.03)+(stream*.03)+(flights*.03)+(other*.03);
-  // Flat 2% card
-  const flat2=total*.02;
-  const annualSaved=(optimized-flat2)*12;
-  const annualBack=optimized*12;
+  const annualFees = 325 + 150; // Amex Gold + United Explorer
+  const annualCredits = (10+10+7)*12 + 50*2 + 10*12; // dining+uber+dunkin monthly, resy semi, instacart monthly = $544
+  // Per-category
+  const cats = [
+    {name:'Groceries',spend:grocery,rate:.04,card:'Amex Gold'},
+    {name:'Dining',spend:dining,rate:.04,card:'Amex Gold'},
+    {name:'Amazon',spend:amazon,rate:.05,card:'Amazon Prime'},
+    {name:'Gas',spend:gas,rate:.03,card:'Robinhood Gold'},
+    {name:'Streaming',spend:stream,rate:.03,card:'Robinhood Gold'},
+    {name:'Flights',spend:flights,rate:.03,card:'Amex Gold'},
+    {name:'Everything Else',spend:other,rate:.03,card:'Robinhood Gold'},
+  ];
+  const optimized = cats.reduce((s,c) => s + c.spend * c.rate, 0);
+  const flat2 = total * .02;
+  const annualBack = optimized * 12;
+  const annualFlat = flat2 * 12;
+  const netSavings = annualBack - annualFees + annualCredits;
+  const vsFlat = netSavings - annualFlat;
+
   document.getElementById('savingsResult').innerHTML=`
     <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Your optimized stack earns</div>
     <div class="savings-big">$${annualBack.toFixed(0)}/yr</div>
     <div class="savings-sub">in cash back & points</div>
     <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-      <div style="font-size:14px;font-weight:600;color:var(--accent)">$${annualSaved.toFixed(0)}/yr more</div>
-      <div style="font-size:12px;color:var(--text2)">vs a single 2% flat-rate card</div>
+      <div style="font-size:14px;font-weight:600;color:${vsFlat>=0?'var(--green)':'var(--red)'}">$${vsFlat.toFixed(0)}/yr ${vsFlat>=0?'ahead':'behind'}</div>
+      <div style="font-size:12px;color:var(--text2)">vs a single 2% card (after fees & credits)</div>
     </div>`;
+
+  // Breakdown
+  let bdHtml = '<div class="card" style="margin-top:12px"><div class="section-title" style="margin-top:0">Annual Breakdown</div>';
+  cats.forEach(c => {
+    if(c.spend <= 0) return;
+    bdHtml += `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <div>${c.name} <span style="color:var(--text2)">(${c.card}, ${Math.round(c.rate*100)}%)</span></div>
+      <div style="font-weight:600;color:var(--accent)">$${(c.spend*c.rate*12).toFixed(0)}</div>
+    </div>`;
+  });
+  bdHtml += `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+    <div style="color:var(--green)">+ Annual credits captured</div><div style="font-weight:600;color:var(--green)">+$${annualCredits}</div></div>`;
+  bdHtml += `<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px">
+    <div style="color:var(--red)">- Annual fees (Amex + United)</div><div style="font-weight:600;color:var(--red)">-$${annualFees}</div></div>`;
+  bdHtml += `<div style="display:flex;justify-content:space-between;padding:10px 0 0;font-size:14px;font-weight:700;border-top:1px solid var(--accent)">
+    <div>Net annual value</div><div style="color:var(--green)">$${netSavings.toFixed(0)}</div></div>`;
+  bdHtml += '</div>';
+  document.getElementById('savingsBreakdown').innerHTML = bdHtml;
 }
 document.querySelectorAll('.savings-field').forEach(el=>el.addEventListener('input',renderSavings));
 
@@ -924,7 +1040,8 @@ function submitOffer() {
   const merchant = document.getElementById('offerMerchant').value.trim();
   const discount = document.getElementById('offerDiscount').value.trim();
   const expires = document.getElementById('offerExpires').value;
-  if (!merchant || !discount) return;
+  if (!merchant || !discount) { alert('Merchant and discount are required.'); return; }
+  if (expires && expires < new Date().toISOString().split('T')[0]) { alert('Expiration date cannot be in the past.'); return; }
   offers.push({ id: Date.now().toString(), card, merchant, discount, expires, added: new Date().toISOString() });
   saveOffers(); closeOfferModal(); renderOffers(); renderToday();
 }
