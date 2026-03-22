@@ -6,6 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0a0f">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Wallet IQ</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -24,15 +27,34 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 
 /* Header */
 .header{padding:16px 20px 12px;background:var(--bg);border-bottom:1px solid var(--border)}
-.header h1{font-size:22px;font-weight:700;color:var(--accent)}
+.header h1{font-size:22px;font-weight:700;color:var(--accent);display:inline}
+.header .version{font-size:10px;color:var(--text2);margin-left:6px;vertical-align:middle}
 .header .subtitle{font-size:11px;color:var(--text2);margin-top:2px}
-.header .updated{font-size:10px;color:var(--text2);float:right;margin-top:-28px}
+.header .updated{font-size:10px;color:var(--text2);float:right;margin-top:-28px;text-align:right;line-height:1.4}
 
 /* Tabs */
-.tabs{display:flex;gap:8px;background:var(--bg);padding:10px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0;scrollbar-width:none;-ms-overflow-style:none}
+.tabs{display:flex;gap:8px;background:var(--bg);padding:10px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0;scrollbar-width:none;-ms-overflow-style:none;border-bottom:1px solid var(--border)}
 .tabs::-webkit-scrollbar{display:none}
-.tab{flex:0 0 auto;padding:8px 16px;text-align:center;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap;transition:.2s;background:var(--surface);border:1px solid var(--border);border-radius:99px}
-.tab.active{color:#000;background:var(--accent);border-color:var(--accent)}
+.tab{flex:0 0 auto;padding:8px 16px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s;border-radius:99px;border:1px solid}
+
+/* Tab colors — each unique */
+.tab[data-tab="ai"]{color:#c9a84c;border-color:#c9a84c33;background:rgba(201,168,76,.08)}
+.tab[data-tab="ai"].active{color:#000;background:#c9a84c;border-color:#c9a84c}
+
+.tab[data-tab="cards"]{color:#8b5cf6;border-color:#8b5cf633;background:rgba(139,92,246,.08)}
+.tab[data-tab="cards"].active{color:#fff;background:#8b5cf6;border-color:#8b5cf6}
+
+.tab[data-tab="tracker"]{color:#00c805;border-color:#00c80533;background:rgba(0,200,5,.08)}
+.tab[data-tab="tracker"].active{color:#000;background:#00c805;border-color:#00c805}
+
+.tab[data-tab="history"]{color:#3b82f6;border-color:#3b82f633;background:rgba(59,130,246,.08)}
+.tab[data-tab="history"].active{color:#fff;background:#3b82f6;border-color:#3b82f6}
+
+.tab[data-tab="mystery"]{color:#f59e0b;border-color:#f59e0b33;background:rgba(245,158,11,.08)}
+.tab[data-tab="mystery"].active{color:#000;background:#f59e0b;border-color:#f59e0b}
+
+.tab[data-tab="chase"]{color:#6b7280;border-color:#6b728033;background:rgba(107,114,128,.08)}
+.tab[data-tab="chase"].active{color:#fff;background:#6b7280;border-color:#6b7280}
 
 /* Content */
 .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + var(--safe-bottom))}
@@ -134,55 +156,55 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 .empty{text-align:center;padding:40px 20px;color:var(--text2);font-size:14px}
 
 /* AI Chat */
-.ai-chat{min-height:200px;max-height:calc(100vh - 320px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px}
+#panel-ai{display:flex;flex-direction:column;height:calc(100vh - 160px)}
+.ai-input-wrap{display:flex;gap:8px;padding-bottom:8px}
+.ai-input{flex:1;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:15px;outline:none}
+.ai-input:focus{border-color:var(--accent)}
+.ai-send{width:48px;height:48px;border-radius:14px;border:none;background:var(--accent);color:#000;font-size:18px;cursor:pointer;flex-shrink:0}
+.ai-send:active{background:var(--accent2)}
+.ai-chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0}
+.chip{padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:99px;color:var(--text);font-size:12px;font-weight:500;cursor:pointer}
+.chip:active{background:var(--accent);color:#000;border-color:var(--accent)}
+.ai-chat{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column-reverse;gap:8px;padding-top:8px}
 .ai-welcome{text-align:center;padding:40px 20px}
-.ai-msg{padding:12px 16px;border-radius:14px;margin-bottom:8px;font-size:14px;line-height:1.5;max-width:90%;animation:fadeIn .2s}
-.ai-msg.user{background:var(--accent);color:#000;margin-left:auto;border-bottom-right-radius:4px;font-weight:500}
-.ai-msg.bot{background:var(--surface);border:1px solid var(--border);margin-right:auto;border-bottom-left-radius:4px}
+.ai-msg{padding:12px 16px;border-radius:14px;font-size:14px;line-height:1.5;max-width:90%;animation:fadeIn .2s}
+.ai-msg.user{background:var(--accent);color:#000;align-self:flex-end;border-bottom-right-radius:4px;font-weight:500}
+.ai-msg.bot{background:var(--surface);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px}
 .ai-msg .card-rec{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border-radius:10px;margin-top:8px}
 .ai-msg .card-rec .rec-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .ai-msg .card-rec .rec-name{font-weight:700;font-size:14px}
 .ai-msg .card-rec .rec-rate{margin-left:auto;font-weight:700;color:var(--accent);font-size:16px}
 .ai-msg .ai-tip{font-size:12px;color:var(--text2);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
-.ai-chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0}
-.chip{padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:99px;color:var(--text);font-size:12px;font-weight:500;cursor:pointer}
-.chip:active{background:var(--accent);color:#000;border-color:var(--accent)}
-.ai-input-wrap{display:flex;gap:8px;padding-top:8px}
-.ai-input{flex:1;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:15px;outline:none}
-.ai-input:focus{border-color:var(--accent)}
-.ai-send{width:48px;height:48px;border-radius:14px;border:none;background:var(--accent);color:#000;font-size:18px;cursor:pointer;flex-shrink:0}
-.ai-send:active{background:var(--accent2)}
+.ai-clear-wrap{display:flex;justify-content:flex-end;padding:4px 0}
+.ai-clear{font-size:11px;color:var(--text2);background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer}
+.ai-clear:active{background:var(--surface2)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>Wallet IQ</h1>
+  <h1>Wallet IQ</h1><span class="version" id="appVersion">v1.3</span>
   <div class="subtitle">Card Optimizer & Credit Tracker</div>
   <div class="updated" id="lastUpdated"></div>
 </div>
 
 <div class="tabs" id="tabs">
   <div class="tab active" data-tab="ai">Ask AI</div>
-  <div class="tab" data-tab="guide">Which Card?</div>
+  <div class="tab" data-tab="cards">All Cards</div>
   <div class="tab" data-tab="tracker">Tracker</div>
   <div class="tab" data-tab="history">History</div>
-  <div class="tab" data-tab="chase">Chase 5%</div>
   <div class="tab" data-tab="mystery">Mystery Box</div>
-  <div class="tab" data-tab="cards">All Cards</div>
+  <div class="tab" data-tab="chase">Chase 5%</div>
 </div>
 
 <div class="content">
 
   <!-- ASK AI -->
   <div class="panel active" id="panel-ai">
-    <div class="ai-chat" id="aiChat">
-      <div class="ai-welcome">
-        <div style="font-size:28px;margin-bottom:8px">&#127183;</div>
-        <div style="font-size:16px;font-weight:600;margin-bottom:4px">What are you buying?</div>
-        <div style="font-size:13px;color:var(--text2)">Describe your purchase and I'll tell you which card to use</div>
-      </div>
+    <div class="ai-input-wrap">
+      <input type="text" id="aiInput" placeholder="I'm buying..." class="ai-input" enterkeyhint="send">
+      <button class="ai-send" onclick="sendAI()">&#9654;</button>
     </div>
     <div class="ai-chips" id="aiChips">
       <button class="chip" onclick="askAI('Gas fill-up')">Gas</button>
@@ -198,19 +220,27 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
       <button class="chip" onclick="askAI('International purchase abroad')">International</button>
       <button class="chip" onclick="askAI('Hotel booking')">Hotel</button>
     </div>
-    <div class="ai-input-wrap">
-      <input type="text" id="aiInput" placeholder="I'm buying..." class="ai-input" enterkeyhint="send">
-      <button class="ai-send" onclick="sendAI()">&#9654;</button>
+    <div class="ai-clear-wrap" id="aiClearWrap" style="display:none">
+      <button class="ai-clear" onclick="clearAI()">Clear Chat</button>
+    </div>
+    <div class="ai-chat" id="aiChat">
+      <div class="ai-welcome">
+        <div style="font-size:28px;margin-bottom:8px">&#127183;</div>
+        <div style="font-size:16px;font-weight:600;margin-bottom:4px">What are you buying?</div>
+        <div style="font-size:13px;color:var(--text2)">Type above or tap a quick button</div>
+      </div>
     </div>
   </div>
 
-  <!-- WHICH CARD -->
-  <div class="panel" id="panel-guide">
+  <!-- ALL CARDS -->
+  <div class="panel" id="panel-cards">
     <div class="search-wrap">
       <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-      <input type="text" id="guideSearch" placeholder="What are you buying? (gas, groceries, amazon...)">
+      <input type="text" id="guideSearch" placeholder="Search cards or categories (gas, groceries, amazon...)">
     </div>
     <div id="guideList"></div>
+    <div class="section-title" style="margin-top:24px">Card Details</div>
+    <div id="cardList"></div>
   </div>
 
   <!-- TRACKER -->
@@ -228,6 +258,16 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
     <div id="historyList"></div>
   </div>
 
+  <!-- MYSTERY BOX -->
+  <div class="panel" id="panel-mystery">
+    <div class="section-title">Prize Odds (1,000 pts per spin)</div>
+    <div class="card">
+      <div id="prizeList"></div>
+    </div>
+    <div class="section-title">Strategy Tips</div>
+    <div id="tipList"></div>
+  </div>
+
   <!-- CHASE 5% -->
   <div class="panel" id="panel-chase">
     <div class="section-title">2026 Quarterly Categories</div>
@@ -239,21 +279,6 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
         so Chase Freedom only helps when a unique category comes up (gas, PayPal, etc).
       </div>
     </div>
-  </div>
-
-  <!-- MYSTERY BOX -->
-  <div class="panel" id="panel-mystery">
-    <div class="section-title">Prize Odds (1,000 pts per spin)</div>
-    <div class="card">
-      <div id="prizeList"></div>
-    </div>
-    <div class="section-title">Strategy Tips</div>
-    <div id="tipList"></div>
-  </div>
-
-  <!-- ALL CARDS -->
-  <div class="panel" id="panel-cards">
-    <div id="cardList"></div>
   </div>
 
 </div>
@@ -279,9 +304,12 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
+const APP_VERSION = 'v1.3';
+
 // ===== State =====
 let appData = null;
 let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
+let aiMessages = []; // {role:'user'|'bot', html:string}
 
 // ===== Init =====
 async function init() {
@@ -289,13 +317,14 @@ async function init() {
     const r = await fetch('data.json?t=' + Date.now());
     appData = await r.json();
   } catch(e) {
-    // Fallback to cached or embedded
     const cached = localStorage.getItem('walletiq_data');
     if (cached) appData = JSON.parse(cached);
   }
   if (appData) {
     localStorage.setItem('walletiq_data', JSON.stringify(appData));
-    document.getElementById('lastUpdated').textContent = 'Updated ' + appData.lastUpdated;
+    const now = new Date();
+    const timeStr = now.toLocaleString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit', hour12:true });
+    document.getElementById('lastUpdated').innerHTML = APP_VERSION + '<br>' + timeStr;
     renderAll();
   }
   autoResetCredits();
@@ -317,17 +346,15 @@ function autoResetCredits() {
   const key = now.getFullYear() + '-' + (now.getMonth() + 1);
   const lastReset = localStorage.getItem('walletiq_lastReset');
   if (lastReset !== key) {
-    // New month — reset monthly credits
     logs = logs.filter(l => {
       const credit = appData.credits.find(c => c.id === l.creditId);
       if (!credit) return true;
-      if (credit.period === 'monthly') return false; // Remove monthly logs
+      if (credit.period === 'monthly') return false;
       return true;
     });
     saveLogs();
     localStorage.setItem('walletiq_lastReset', key);
   }
-  // Semi-annual reset (Jul 1 and Jan 1)
   const semiKey = now.getFullYear() + '-' + (now.getMonth() < 6 ? 'H1' : 'H2');
   const lastSemiReset = localStorage.getItem('walletiq_lastSemiReset');
   if (lastSemiReset !== semiKey) {
@@ -349,48 +376,60 @@ function saveLogs() {
 // ===== Render All =====
 function renderAll() {
   renderGuide();
+  renderCards();
   renderTracker();
   renderHistory();
   renderChase();
   renderMystery();
-  renderCards();
 }
 
-// ===== Which Card (Guide) =====
+// ===== Search aliases for guide =====
+const searchAliases = {
+  'grocery': 'U.S. Supermarkets', 'groceries': 'U.S. Supermarkets', 'supermarket': 'U.S. Supermarkets',
+  'food': 'Dining', 'eat': 'Dining', 'restaurant': 'Dining', 'dinner': 'Dining', 'lunch': 'Dining',
+  'flight': 'Non-United Flights', 'flights': 'Non-United Flights', 'plane': 'Non-United Flights',
+  'stream': 'Streaming', 'netflix': 'Streaming', 'hulu': 'Streaming', 'spotify': 'Streaming', 'disney': 'Streaming',
+  'fuel': 'Gas', 'gasoline': 'Gas', 'pump': 'Gas',
+  'coffee': 'Dining', 'starbucks': 'Dining',
+  'uber': 'Rideshare', 'lyft': 'Rideshare', 'taxi': 'Rideshare',
+  'target': 'Everything Else', 'walmart': 'Everything Else', 'costco': 'Everything Else',
+  'bills': 'Everything Else', 'utilities': 'Everything Else', 'phone': 'Everything Else',
+  'hotel': 'Non-United Flights', 'airbnb': 'Non-United Flights',
+};
+
 function renderGuide(filter = '') {
   const list = document.getElementById('guideList');
-  const items = appData.spendingGuide.filter(g =>
-    !filter || g.category.toLowerCase().includes(filter.toLowerCase()) ||
-    g.card.toLowerCase().includes(filter.toLowerCase())
-  );
+  const f = filter.toLowerCase().trim();
 
-  // Group by card
-  const grouped = {};
-  items.forEach(item => {
-    if (!grouped[item.card]) grouped[item.card] = { cardId: item.cardId, items: [] };
-    grouped[item.card].items.push(item);
+  // Resolve alias
+  const aliasMatch = searchAliases[f];
+
+  const items = appData.spendingGuide.filter(g => {
+    if (!f) return true;
+    if (g.category.toLowerCase().includes(f)) return true;
+    if (g.card.toLowerCase().includes(f)) return true;
+    if (aliasMatch && g.category.includes(aliasMatch)) return true;
+    return false;
   });
 
   let html = '';
-  if (filter && items.length === 0) {
-    // No exact match — show default card
+  if (f && items.length === 0) {
     html = `<div class="guide-row">
-      <div><div class="guide-cat" style="color:var(--green)">Use Robinhood Gold Card</div>
+      <div class="card-dot" style="background:var(--green)"></div>
+      <div style="flex:1"><div class="guide-cat">Use Robinhood Gold Card</div>
       <div class="guide-card">3% flat rate on everything not covered by another card</div></div>
       <div class="guide-rate">3%</div>
     </div>`;
   } else {
-    Object.entries(grouped).forEach(([card, data]) => {
-      const c = appData.cards.find(c => c.id === data.cardId);
+    items.forEach(item => {
+      const c = appData.cards.find(c => c.id === item.cardId);
       const color = c ? c.color : '#888';
-      data.items.forEach(item => {
-        html += `<div class="guide-row">
-          <div class="card-dot" style="background:${color}"></div>
-          <div style="flex:1"><div class="guide-cat">${item.category}</div>
-          <div class="guide-card">${item.card}</div></div>
-          <div class="guide-rate">${item.rate}</div>
-        </div>`;
-      });
+      html += `<div class="guide-row">
+        <div class="card-dot" style="background:${color}"></div>
+        <div style="flex:1"><div class="guide-cat">${item.category}</div>
+        <div class="guide-card">${item.card}</div></div>
+        <div class="guide-rate">${item.rate}</div>
+      </div>`;
     });
   }
   list.innerHTML = html;
@@ -399,6 +438,30 @@ function renderGuide(filter = '') {
 document.getElementById('guideSearch').addEventListener('input', e => {
   renderGuide(e.target.value);
 });
+
+// ===== All Cards =====
+function renderCards() {
+  let html = '';
+  appData.cards.forEach(c => {
+    let cats = '';
+    c.categories.forEach(cat => {
+      cats += `<div class="cat-row">
+        <div><div class="cat-name">${cat.name}</div>
+        ${cat.note ? `<div class="cat-note">${cat.note}</div>` : ''}</div>
+        <div class="cat-rate">${cat.rate}</div>
+      </div>`;
+    });
+    html += `<div class="card">
+      <div class="card-header">
+        <div class="card-dot" style="background:${c.color}"></div>
+        <div class="card-name">${c.name}</div>
+        <div class="card-fee">${c.annualFee}</div>
+      </div>
+      ${cats}
+    </div>`;
+  });
+  document.getElementById('cardList').innerHTML = html;
+}
 
 // ===== Tracker =====
 function getUsedAmount(creditId) {
@@ -410,27 +473,16 @@ function getUsedAmount(creditId) {
 function renderTracker() {
   const credits = appData.credits;
   let totalValue = 0, totalUsed = 0;
-
   credits.forEach(c => {
     if (c.isCount) return;
     totalValue += c.amount;
     totalUsed += Math.min(getUsedAmount(c.id), c.amount);
   });
-
   const pct = totalValue > 0 ? Math.round((totalUsed / totalValue) * 100) : 0;
   document.getElementById('creditSummary').innerHTML = `
-    <div class="summary-item">
-      <div class="summary-value">$${totalUsed.toFixed(0)}</div>
-      <div class="summary-label">Used</div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-value">$${(totalValue - totalUsed).toFixed(0)}</div>
-      <div class="summary-label">Remaining</div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-value">${pct}%</div>
-      <div class="summary-label">Captured</div>
-    </div>
+    <div class="summary-item"><div class="summary-value">$${totalUsed.toFixed(0)}</div><div class="summary-label">Used</div></div>
+    <div class="summary-item"><div class="summary-value">$${(totalValue - totalUsed).toFixed(0)}</div><div class="summary-label">Remaining</div></div>
+    <div class="summary-item"><div class="summary-value">${pct}%</div><div class="summary-label">Captured</div></div>
   `;
 
   let html = '';
@@ -441,18 +493,14 @@ function renderTracker() {
     const pct = Math.min(100, (used / max) * 100);
     const daysLeft = getDaysLeft(c.period);
     const isDanger = daysLeft <= 5;
-
     const barColor = pct >= 100 ? 'var(--green)' : pct >= 50 ? 'var(--accent)' : 'var(--orange)';
-
     html += `<div class="credit-card">
       <div class="credit-top">
         <div class="credit-name">${c.name}</div>
         <div class="credit-badge ${isDanger ? 'danger' : ''}">${daysLeft}d left</div>
       </div>
       <div class="credit-card-label" style="color:${c.color}">${c.card} &middot; ${c.period}</div>
-      <div class="progress-wrap">
-        <div class="progress-bar" style="width:${pct}%;background:${barColor}"></div>
-      </div>
+      <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${barColor}"></div></div>
       <div class="credit-bottom">
         <div class="credit-remaining">${c.isCount ? used + '/' + max + ' used' : '$' + used.toFixed(2) + ' / $' + max.toFixed(2)}</div>
         <div>${c.isCount ? remaining + ' left' : '$' + remaining.toFixed(2) + ' left'}</div>
@@ -495,31 +543,17 @@ function openLog(creditId) {
   document.getElementById('logModal').classList.add('show');
   setTimeout(() => document.getElementById('logAmount').focus(), 100);
 }
-
-function closeModal() {
-  document.getElementById('logModal').classList.remove('show');
-}
+function closeModal() { document.getElementById('logModal').classList.remove('show'); }
 
 function submitLog() {
   const creditId = document.getElementById('logCreditId').value;
   const amount = parseFloat(document.getElementById('logAmount').value);
   const desc = document.getElementById('logDesc').value.trim();
   if (!amount || amount <= 0) return;
-
   const credit = appData.credits.find(c => c.id === creditId);
-  logs.push({
-    id: Date.now().toString(),
-    creditId,
-    amount,
-    desc: desc || credit.name,
-    date: new Date().toISOString(),
-    cardName: credit.card,
-    color: credit.color
-  });
-  saveLogs();
-  closeModal();
-  renderTracker();
-  renderHistory();
+  logs.push({ id: Date.now().toString(), creditId, amount, desc: desc || credit.name,
+    date: new Date().toISOString(), cardName: credit.card, color: credit.color });
+  saveLogs(); closeModal(); renderTracker(); renderHistory();
 }
 
 function markFull(creditId) {
@@ -527,40 +561,28 @@ function markFull(creditId) {
   const used = getUsedAmount(creditId);
   const remaining = credit.amount - used;
   if (remaining <= 0) return;
-  logs.push({
-    id: Date.now().toString(),
-    creditId,
-    amount: remaining,
-    desc: credit.name + ' (marked full)',
-    date: new Date().toISOString(),
-    cardName: credit.card,
-    color: credit.color
-  });
-  saveLogs();
-  renderTracker();
-  renderHistory();
+  logs.push({ id: Date.now().toString(), creditId, amount: remaining,
+    desc: credit.name + ' (marked full)', date: new Date().toISOString(),
+    cardName: credit.card, color: credit.color });
+  saveLogs(); renderTracker(); renderHistory();
 }
 
 // ===== History =====
 function renderHistory() {
   const list = document.getElementById('historyList');
   const sorted = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
-
   if (sorted.length === 0) {
     list.innerHTML = '<div class="empty">No spending logged yet.<br>Use the Tracker tab to log credit usage.</div>';
     return;
   }
-
   let html = '';
   sorted.forEach(log => {
     const d = new Date(log.date);
     const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     html += `<div class="log-entry">
       <div class="log-dot" style="background:${log.color || '#888'}"></div>
-      <div class="log-info">
-        <div class="log-credit">${log.desc}</div>
-        <div class="log-date">${dateStr} &middot; ${log.cardName}</div>
-      </div>
+      <div class="log-info"><div class="log-credit">${log.desc}</div>
+      <div class="log-date">${dateStr} &middot; ${log.cardName}</div></div>
       <div class="log-amount">$${log.amount.toFixed(2)}</div>
       <button class="log-delete" onclick="deleteLog('${log.id}')">&times;</button>
     </div>`;
@@ -568,21 +590,8 @@ function renderHistory() {
   list.innerHTML = html;
 }
 
-function deleteLog(id) {
-  logs = logs.filter(l => l.id !== id);
-  saveLogs();
-  renderTracker();
-  renderHistory();
-}
-
-function clearAllLogs() {
-  if (confirm('Clear all spending logs?')) {
-    logs = [];
-    saveLogs();
-    renderTracker();
-    renderHistory();
-  }
-}
+function deleteLog(id) { logs = logs.filter(l => l.id !== id); saveLogs(); renderTracker(); renderHistory(); }
+function clearAllLogs() { if(confirm('Clear all spending logs?')){logs=[];saveLogs();renderTracker();renderHistory();} }
 
 // ===== Chase 5% =====
 function renderChase() {
@@ -590,12 +599,10 @@ function renderChase() {
   let html = '';
   const now = new Date();
   const currentQ = Math.ceil((now.getMonth() + 1) / 3);
-
   Object.entries(quarters).forEach(([q, data]) => {
     const qNum = parseInt(q.replace('Q', ''));
     const isActive = qNum === currentQ;
     const statusClass = data.status === 'active' ? 'status-active' : data.status === 'upcoming' ? 'status-upcoming' : 'status-future';
-
     html += `<div class="quarter-card ${isActive ? 'active-q' : ''}">
       <div class="quarter-label">${q} 2026 &middot; ${data.dates}</div>
       <div class="quarter-cats">${data.categories.join(', ')}</div>
@@ -609,42 +616,12 @@ function renderChase() {
 function renderMystery() {
   let html = '';
   appData.mysteryBox.prizes.forEach(p => {
-    html += `<div class="prize-row">
-      <div>${p.prize}</div>
-      <div class="prize-odds">${p.odds}</div>
-    </div>`;
+    html += `<div class="prize-row"><div>${p.prize}</div><div class="prize-odds">${p.odds}</div></div>`;
   });
   document.getElementById('prizeList').innerHTML = html;
-
   let tips = '';
-  appData.mysteryBox.tips.forEach(t => {
-    tips += `<div class="tip-item">${t}</div>`;
-  });
+  appData.mysteryBox.tips.forEach(t => { tips += `<div class="tip-item">${t}</div>`; });
   document.getElementById('tipList').innerHTML = tips;
-}
-
-// ===== All Cards =====
-function renderCards() {
-  let html = '';
-  appData.cards.forEach(c => {
-    let cats = '';
-    c.categories.forEach(cat => {
-      cats += `<div class="cat-row">
-        <div><div class="cat-name">${cat.name}</div>
-        ${cat.note ? `<div class="cat-note">${cat.note}</div>` : ''}</div>
-        <div class="cat-rate">${cat.rate}</div>
-      </div>`;
-    });
-    html += `<div class="card">
-      <div class="card-header">
-        <div class="card-dot" style="background:${c.color}"></div>
-        <div class="card-name">${c.name}</div>
-        <div class="card-fee">${c.annualFee}</div>
-      </div>
-      ${cats}
-    </div>`;
-  });
-  document.getElementById('cardList').innerHTML = html;
 }
 
 // ===== AI Engine =====
@@ -653,15 +630,14 @@ const aiRules = [
     tip: 'You get a $10/mo dining credit that covers this. Check Tracker to see how much is left this month.' },
   { keys: ['grubhub','goldbelly','shake shack','chipotle','restaurant','dining','dinner','lunch','brunch','bar','pub','eat out','takeout','take out','food delivery','doordash','postmates'],
     card: 'Amex Gold', rate: '4x', color: '#C5A44E', tip: 'Your $10/mo dining credit may apply here too.' },
-  { keys: ['grocery','groceries','supermarket','safeway','king soopers','kroger','trader joe','aldi','sprouts','hmart','target grocery','costco food'],
+  { keys: ['grocery','groceries','supermarket','safeway','king soopers','kroger','trader joe','aldi','sprouts','hmart','costco food'],
     card: 'Amex Gold', rate: '4x', color: '#C5A44E', tip: 'Must be a U.S. supermarket. Capped at $25K/yr.' },
   { keys: ['whole foods','wholefoods'], card: 'Amazon Prime Visa', rate: '5%', color: '#232F3E',
     tip: 'Whole Foods codes separately from supermarkets. Amazon card beats Amex Gold here.' },
-  { keys: ['amazon.com','amazon order','amazon purchase','amazon prime','amazon fresh','amazon subscribe'],
-    card: 'Amazon Prime Visa', rate: '5%', color: '#232F3E', tip: 'Also covers Amazon Fresh and Subscribe & Save.' },
+  { keys: ['amazon'], card: 'Amazon Prime Visa', rate: '5%', color: '#232F3E', tip: 'Also covers Amazon Fresh and Subscribe & Save.' },
   { keys: ['gas','gas station','fuel','shell','chevron','exxon','mobil','bp','conoco','circle k','costco gas','sams gas','pump','fill up','fillup','gasoline','petrol'],
     card: 'Robinhood Gold Card', rate: '3%', color: '#00C805',
-    tip: 'Amazon card only gets 2% on gas. Robinhood Gold wins. Also check Mystery Box for a potential boost before filling up!' },
+    tip: 'Amazon card only gets 2% on gas. Robinhood Gold wins. Check Mystery Box for a potential boost before filling up!' },
   { keys: ['netflix','hulu','spotify','disney','hbo','max','youtube','apple tv','peacock','paramount','streaming','subscription','subscriptions','crunchyroll','audible'],
     card: 'Robinhood Gold Card', rate: '3%', color: '#00C805', tip: 'No other card in your stack beats 1% on streaming.' },
   { keys: ['uber','lyft','rideshare','ride share','taxi','cab'], card: 'Amazon Prime Visa', rate: '2%', color: '#232F3E',
@@ -683,14 +659,13 @@ const aiRules = [
   { keys: ['target','walmart','costco','sams club','home depot','lowes','best buy','clothing','clothes','shoes','furniture','electronics','hardware'],
     card: 'Robinhood Gold Card', rate: '3%', color: '#00C805', tip: 'These are all "everything else" categories. Robinhood Gold\'s flat 3% is your best bet.' },
   { keys: ['phone','cell','t-mobile','verizon','att','at&t','internet','cable','utility','utilities','electric','water','sewer','insurance','rent','mortgage'],
-    card: 'Robinhood Gold Card', rate: '3%', color: '#00C805', tip: 'Bills and utilities earn 1% on most cards. Robinhood Gold gives you 3% — triple the normal rate.' },
+    card: 'Robinhood Gold Card', rate: '3%', color: '#00C805', tip: 'Bills and utilities earn 1% on most cards. Robinhood Gold gives you 3%.' },
   { keys: ['coffee','starbucks','dutch bros'], card: 'Amex Gold', rate: '4x', color: '#C5A44E',
     tip: 'Coffee shops code as restaurants/dining. If it\'s Dunkin\', you also have a $7/mo credit!' },
 ];
 
 function getAIResponse(query) {
   const q = query.toLowerCase().trim();
-  // Check credit status for relevant credits
   const checkCredit = (creditId) => {
     if (!appData) return null;
     const credit = appData.credits.find(c => c.id === creditId);
@@ -700,11 +675,9 @@ function getAIResponse(query) {
     const daysLeft = getDaysLeft(credit.period);
     return { remaining, daysLeft, name: credit.name };
   };
-
   for (const rule of aiRules) {
     if (rule.keys.some(k => q.includes(k))) {
       let tip = rule.tip;
-      // Enrich tip with live credit data
       if (q.includes('five guys') || q.includes('5 guys') || q.includes('dining') || q.includes('grubhub') || q.includes('restaurant') || q.includes('dinner') || q.includes('lunch')) {
         const c = checkCredit('amex-dining');
         if (c) tip += ` (Dining credit: $${c.remaining.toFixed(2)} remaining, ${c.daysLeft}d left)`;
@@ -724,34 +697,48 @@ function getAIResponse(query) {
       return { card: rule.card, rate: rule.rate, color: rule.color, tip };
     }
   }
-  // Default fallback
   return {
     card: 'Robinhood Gold Card', rate: '3%', color: '#00C805',
-    tip: 'This doesn\'t match a specific bonus category on any of your cards. Robinhood Gold\'s flat 3% is your best option — beats the 1% you\'d get on any other card.'
+    tip: 'This doesn\'t match a specific bonus category on any of your cards. Robinhood Gold\'s flat 3% is your best option.'
   };
 }
 
-function askAI(query) {
+function renderAI() {
   const chat = document.getElementById('aiChat');
-  const welcome = chat.querySelector('.ai-welcome');
-  if (welcome) welcome.remove();
+  if (aiMessages.length === 0) {
+    chat.innerHTML = `<div class="ai-welcome">
+      <div style="font-size:28px;margin-bottom:8px">&#127183;</div>
+      <div style="font-size:16px;font-weight:600;margin-bottom:4px">What are you buying?</div>
+      <div style="font-size:13px;color:var(--text2)">Type above or tap a quick button</div>
+    </div>`;
+    document.getElementById('aiClearWrap').style.display = 'none';
+    return;
+  }
+  document.getElementById('aiClearWrap').style.display = 'flex';
+  // Newest first (column-reverse handles visual order)
+  let html = '';
+  for (let i = aiMessages.length - 1; i >= 0; i--) {
+    html += aiMessages[i].html;
+  }
+  chat.innerHTML = html;
+}
 
-  // User message
-  chat.innerHTML += `<div class="ai-msg user">${escapeHtml(query)}</div>`;
-
-  // AI response
+function askAI(query) {
   const result = getAIResponse(query);
-  chat.innerHTML += `<div class="ai-msg bot">
-    <div style="margin-bottom:4px">Use this card:</div>
-    <div class="card-rec">
-      <div class="rec-dot" style="background:${result.color}"></div>
-      <div class="rec-name">${result.card}</div>
-      <div class="rec-rate">${result.rate}</div>
+  aiMessages.push({
+    role: 'pair',
+    html: `<div class="ai-msg bot">
+      <div style="margin-bottom:4px">Use this card:</div>
+      <div class="card-rec">
+        <div class="rec-dot" style="background:${result.color}"></div>
+        <div class="rec-name">${result.card}</div>
+        <div class="rec-rate">${result.rate}</div>
+      </div>
+      <div class="ai-tip">${result.tip}</div>
     </div>
-    <div class="ai-tip">${result.tip}</div>
-  </div>`;
-
-  chat.scrollTop = chat.scrollHeight;
+    <div class="ai-msg user">${escapeHtml(query)}</div>`
+  });
+  renderAI();
   document.getElementById('aiInput').value = '';
 }
 
@@ -762,6 +749,11 @@ function sendAI() {
   askAI(q);
 }
 
+function clearAI() {
+  aiMessages = [];
+  renderAI();
+}
+
 document.getElementById('aiInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') sendAI();
 });
@@ -770,9 +762,11 @@ function escapeHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ===== Service Worker =====
+// ===== Unregister old service worker to fix caching =====
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister());
+  });
 }
 
 // ===== Start =====
