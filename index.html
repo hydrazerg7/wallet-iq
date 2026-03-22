@@ -320,7 +320,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-const APP_VERSION = '0.0.3';
+const APP_VERSION = '0.0.4';
 let appData = null;
 let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
 let aiMessages = [];
@@ -787,10 +787,10 @@ function isChaseQuarterMatch(query) {
 
 // ===== AI ENGINE =====
 const aiRules=[
-  {keys:['five guys','5 guys','fiveguys'],card:'Amex Gold',rate:'4x + $10/mo credit',color:'#C5A44E',tip:'You get a $10/mo dining credit that covers this. Check Tracker to see how much is left.'},
+  {keys:['five guys','5 guys','fiveguys'],card:'Amex Gold',rate:'4x + $10/mo credit',color:'#C5A44E',tip:'Five Guys is one of the $10/mo dining credit merchants. Check Tracker for remaining credit. (Note: Chase Freedom 5% may beat this if dining is an active quarterly category.)'},
   {keys:['grubhub','goldbelly','shake shack','chipotle','restaurant','dining','dinner','lunch','brunch','bar','pub','eat out','takeout','take out','food delivery','doordash','postmates',
     'sandwich','burger','pizza','taco','burrito','sushi','wings','salad','soup','wrap','sub','meal','food','snack','cafeteria','cafe','deli','bakery','noodle','ramen','pho','thai','chinese','mexican','italian','indian','korean','bbq','barbecue','buffet','diner','bistro','grill','kitchen','eatery','food truck','food court','panera','subway','mcdonalds','wendys','chick-fil-a','chickfila','popeyes','panda express','taco bell','kfc','arbys','sonic','jack in the box','in-n-out','whataburger','noodles','wingstop','canes','raising cane','zaxby','jersey mike','firehouse','jimmy john','qdoba','moe','chili','applebee','olive garden','outback','red lobster','ihop','waffle house','denny'],
-    card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Food purchases almost always code as dining. Your $10/mo dining credit may apply too. If buying food at a gas station, it usually codes under the gas station — check your Amex statement to confirm.'},
+    card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Food purchases almost always code as dining. Note: the $10/mo dining credit only works at Grubhub, Cheesecake Factory, Goldbelly, Wine.com, and Five Guys — not all restaurants.'},
   {keys:['grocery','groceries','supermarket','safeway','king soopers','kroger','trader joe','aldi','sprouts','hmart','costco food'],
     card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Must be a U.S. supermarket. Capped at $25K/yr.'},
   {keys:['whole foods','wholefoods'],card:'Amazon Prime Visa',rate:'5%',color:'#232F3E',tip:'Whole Foods codes separately. Amazon card beats Amex Gold here.'},
