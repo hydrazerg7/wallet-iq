@@ -468,7 +468,10 @@ async function init() {
     appData.credits.forEach(c=>{if(enrolled[c.id])c.enrolled=true;});
     if(appData.version) APP_VERSION = appData.version;
     const relDate = new Date(appData.lastUpdated);
-    const relStr = isNaN(relDate) ? appData.lastUpdated : relDate.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true,timeZoneName:'short'});
+    let relStr = appData.lastUpdated;
+    if(!isNaN(relDate.getTime())){
+      relStr = relDate.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true,timeZoneName:'short'});
+    }
     document.getElementById('lastUpdated').textContent = APP_VERSION + ' | ' + relStr;
     renderAll();
     startBoostTimer();
