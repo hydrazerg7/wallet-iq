@@ -382,7 +382,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-const APP_VERSION = '0.0.6';
+const APP_VERSION = '0.0.7';
 let appData = null;
 let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
 let aiMessages = [];
@@ -735,13 +735,12 @@ function getTimeGradient(period) {
   }
   const elapsed = totalDays - daysLeft;
   const pctElapsed = Math.min(100, (elapsed / totalDays) * 100);
-  // Gradient: green(0%) → yellow(50%) → orange(75%) → red(95%)
+  // 4-tier gradient at 25% intervals
   let color;
-  if (pctElapsed < 40) color = '#10b981'; // green
-  else if (pctElapsed < 60) color = '#84cc16'; // lime
-  else if (pctElapsed < 75) color = '#eab308'; // yellow
-  else if (pctElapsed < 88) color = '#f97316'; // orange
-  else color = '#ef4444'; // red
+  if (pctElapsed < 25) color = '#10b981'; // green — plenty of time
+  else if (pctElapsed < 50) color = '#eab308'; // yellow — halfway
+  else if (pctElapsed < 75) color = '#f97316'; // orange — use it soon
+  else color = '#ef4444'; // red — running out
   return { pctElapsed, daysLeft, totalDays, color };
 }
 
