@@ -60,6 +60,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + var(--safe-bottom))}
 .panel{display:none;padding:16px}
 .panel.active{display:block}
+#panel-ai.active{display:flex}
 
 /* Search */
 .search-wrap{position:relative;margin-bottom:16px}
@@ -184,7 +185,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 <body>
 
 <div class="header">
-  <h1>Wallet IQ</h1><span class="version" id="appVersion">v1.4</span>
+  <h1>Wallet IQ</h1><span class="version" id="appVersion">v1.5</span>
   <div class="subtitle">Card Optimizer & Credit Tracker</div>
   <div class="updated" id="lastUpdated"></div>
 </div>
@@ -304,7 +305,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-const APP_VERSION = 'v1.4';
+const APP_VERSION = 'v1.5';
 
 // ===== State =====
 let appData = null;
