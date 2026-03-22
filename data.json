@@ -1,6 +1,6 @@
 {
   "lastUpdated": "2026-03-22",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "cards": [
     {
       "id": "amex-gold",
@@ -80,12 +80,12 @@
     { "id": "amex-uber", "card": "Amex Gold", "name": "Uber Cash", "amount": 10.00, "period": "monthly", "note": "Rides or Uber Eats in U.S. Add Gold Card to Uber account to activate.", "color": "#C5A44E", "enrolled": false, "enrollAction": "Add Amex Gold card in Uber app > Wallet > Add payment" },
     { "id": "amex-resy", "card": "Amex Gold", "name": "Resy Credit", "amount": 50.00, "period": "semi-annual", "note": "Dine at any U.S. Resy restaurant. $50 Jan-Jun, $50 Jul-Dec. Enrollment required.", "color": "#C5A44E", "enrolled": true },
     { "id": "amex-dunkin", "card": "Amex Gold", "name": "Dunkin' Credit", "amount": 7.00, "period": "monthly", "note": "Enrollment required via Amex offers. Easy to forget this one exists.", "color": "#C5A44E", "enrolled": false, "enrollAction": "Enroll at amex.com/offers or Amex app > Benefits > Dunkin'" },
-    { "id": "amex-hotel", "card": "Amex Gold", "name": "Hotel Collection Credit", "amount": 100.00, "period": "annual", "note": "$100 experience credit on 2+ night stays at Hotel Collection properties. Plus room upgrade, early check-in/late check-out.", "color": "#C5A44E", "enrolled": true },
+    { "id": "amex-hotel", "card": "Amex Gold", "name": "Hotel Collection Credit", "amount": 100.00, "period": "annual", "note": "$100 experience credit on 2+ night stays at Hotel Collection properties (curated luxury hotels bookable via AmexTravel). Plus room upgrade, early check-in/late check-out.", "color": "#C5A44E", "enrolled": true },
     { "id": "united-instacart", "card": "United Explorer", "name": "Instacart+ Credit", "amount": 10.00, "period": "monthly", "note": "Any Instacart order. Expires 12/31/27. Link United Explorer in Instacart app.", "color": "#0033A0", "enrolled": false, "enrollAction": "Link United Explorer in Instacart app > Payment methods" },
     { "id": "united-lounge", "card": "United Explorer", "name": "United Club Passes", "amount": 2, "period": "annual", "note": "2 passes per anniversary year. Cardholder must be present (guest restriction added).", "color": "#0033A0", "isCount": true, "enrolled": true },
-    { "id": "united-jsx", "card": "United Explorer", "name": "JSX Credit", "amount": 100.00, "period": "annual", "note": "$100/yr for JSX semi-private flights.", "color": "#0033A0", "enrolled": true },
-    { "id": "united-avis", "card": "United Explorer", "name": "Avis/Budget Credit", "amount": 50.00, "period": "annual", "note": "$50/yr TravelBank credit for Avis or Budget rentals.", "color": "#0033A0", "enrolled": true },
-    { "id": "united-globalentry", "card": "United Explorer", "name": "Global Entry/TSA Pre", "amount": 120.00, "period": "annual", "note": "Up to $120 statement credit every 4 years. Charge application fee to Explorer card.", "color": "#0033A0", "enrolled": true, "isCount": true }
+    { "id": "united-jsx", "card": "United Explorer", "name": "JSX Flight Credit", "amount": 100.00, "period": "annual", "note": "$100/yr for JSX semi-private flights. JSX = small jets, private terminals, no TSA. Flies select cities (West Coast, Vegas, Dallas). If you don't fly JSX, this credit is unusable.", "color": "#0033A0", "enrolled": true },
+    { "id": "united-avis", "card": "United Explorer", "name": "Avis/Budget Rental Credit", "amount": 50.00, "period": "annual", "note": "$50/yr TravelBank credit for Avis or Budget car rentals. After credit is used, Robinhood Gold 3% beats United 2x miles on rentals.", "color": "#0033A0", "enrolled": true },
+    { "id": "united-globalentry", "card": "United Explorer", "name": "Global Entry/TSA Pre", "amount": 120.00, "period": "annual", "note": "Up to $120 statement credit every 4 years (~$30/yr value). Charge the Global Entry ($120) or TSA Pre ($78) application fee to Explorer card for automatic reimbursement.", "color": "#0033A0", "enrolled": true, "isCount": true }
   ],
   "spendingGuide": [
     { "category": "U.S. Supermarkets", "card": "Amex Gold", "rate": "4%", "cardId": "amex-gold" },

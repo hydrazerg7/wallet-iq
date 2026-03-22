@@ -1506,8 +1506,8 @@ function getAIResponse(query){
       if(boostNote)tip+=boostNote;
       return{card:'United Explorer',rate:'$50/yr credit',color:'#0033A0',tip};
     }
-    // Credit exhausted — fall through to rate-based
-    let tip='Avis/Budget credit already used this year. United Explorer earns 2x on travel, or Robinhood Gold for 3%.';
+    // Credit exhausted — Robinhood 3% beats United 2x miles (~2.4-3 cents)
+    let tip='Avis/Budget credit already used this year. Robinhood Gold 3% cash beats United Explorer 2x miles (~2.4-3 cents/dollar with uncertain redemption).';
     if(boostNote)tip+=boostNote;
     return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip};
   }
