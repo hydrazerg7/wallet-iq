@@ -467,7 +467,9 @@ async function init() {
     const enrolled=JSON.parse(localStorage.getItem('walletiq_enrolled')||'{}');
     appData.credits.forEach(c=>{if(enrolled[c.id])c.enrolled=true;});
     if(appData.version) APP_VERSION = appData.version;
-    document.getElementById('lastUpdated').textContent = APP_VERSION + ' | Released ' + appData.lastUpdated;
+    const relDate = new Date(appData.lastUpdated);
+    const relStr = isNaN(relDate) ? appData.lastUpdated : relDate.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true,timeZoneName:'short'});
+    document.getElementById('lastUpdated').textContent = APP_VERSION + ' | ' + relStr;
     renderAll();
     startBoostTimer();
   }
