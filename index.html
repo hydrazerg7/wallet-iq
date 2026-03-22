@@ -446,7 +446,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-let APP_VERSION = '0.0.24';
+let APP_VERSION = '1.0';
 let appData = null;
 let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
 let aiMessages = [];
@@ -860,7 +860,8 @@ function renderCards() {
       cats += `<div class="cat-row"><div><div class="cat-name">${cat.name}</div>${cat.note?`<div class="cat-note">${cat.note}</div>`:''}</div><div class="cat-rate">${cat.rate}</div></div>`;
     });
     const appLink = c.appUrl ? `<a href="${c.appUrl}" class="card-link">Open App &#8599;</a>` : '';
-    html += `<div class="card"><div class="card-header"><div class="card-dot" style="background:${c.color}"></div><div class="card-name">${c.name}</div>${appLink}<div class="card-fee">Fee: ${c.annualFee}</div></div>${cats}</div>`;
+    const memberNote = c.membershipNote ? `<div style="font-size:10px;color:var(--text2);margin-top:2px">${c.membershipNote}</div>` : '';
+    html += `<div class="card"><div class="card-header"><div class="card-dot" style="background:${c.color}"></div><div class="card-name">${c.name}</div>${appLink}<div class="card-fee">Fee: ${c.annualFee}${memberNote}</div></div>${cats}</div>`;
   });
   document.getElementById('cardList').innerHTML = html;
 }
@@ -1334,8 +1335,6 @@ function renderSavings(){
   const feeLines = [
     {name:'Amex Gold', annual:325},
     {name:'United Explorer', annual:150},
-    {name:'Robinhood Gold (subscription)', annual:50},
-    {name:'Amazon Prime (membership)', annual:139},
   ];
   const totalFees = feeLines.reduce((s,f) => s + f.annual, 0) * (m / 12);
 
@@ -1651,13 +1650,13 @@ function getAIResponse(query){
   if(q.match(/lyft|rideshare|ride share|taxi|cab/)){
     const rideshare=checkCredit('united-rideshare');
     if(rideshare&&rideshare.remaining>0){
-      let tip=`Use your United Explorer $5/mo rideshare credit! ($${rideshare.remaining.toFixed(2)} remaining, ${rideshare.daysLeft}d left). United also earns 2x.`;
+      let tip=`Rideshare = services like Uber, Lyft, taxi apps. Use your United Explorer $5/mo rideshare credit first! ($${rideshare.remaining.toFixed(2)} remaining, ${rideshare.daysLeft}d left). United also earns 2x on top.`;
       if(boostNote)tip+=boostNote;
-      return{card:'United Explorer',rate:'2x + $5/mo credit',color:'#0033A0',tip};
+      return{card:'United Explorer',rate:'2x + $5/mo credit',color:'#0033A0',tip,alts:[{card:'Amazon Prime Visa',rate:'2%',color:'#232F3E',why:'Same 2% but no credit'},{card:'Robinhood Gold',rate:'3%',color:'#00C805',why:'Higher rate but no rideshare credit'}]};
     }
-    let tip='Rideshare credit used this month. United Explorer and Amazon Prime Visa both earn 2% on rideshare.';
+    let tip='Rideshare = services like Uber, Lyft, taxi apps. Credits used this month. Robinhood Gold 3% beats United/Amazon 2%.';
     if(boostNote)tip+=boostNote;
-    return{card:'United Explorer',rate:'2x',color:'#0033A0',tip};
+    return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip,alts:[{card:'United Explorer',rate:'2x',color:'#0033A0',why:'2x miles (~2.4 cents)'},{card:'Amazon Prime Visa',rate:'2%',color:'#232F3E',why:'Same 2% rate'}]};
   }
 
   // Dunkin → Amex $7/mo credit first
@@ -1781,7 +1780,7 @@ function getAIResponse(query){
   }
 
   // ===== PRIORITY 5: Default fallback =====
-  return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'No specific bonus category matched. Robinhood Gold\'s flat 3% is your best option.'+boostNote};
+  return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'No specific bonus category matched. Robinhood Gold\'s flat 3% cash back is your best option for uncategorized purchases.'+boostNote,alts:[{card:'Amazon Prime Visa',rate:'1%',color:'#232F3E',why:'Only 1% on misc'},{card:'United Explorer',rate:'1x',color:'#0033A0',why:'1x miles (~1.2 cents)'}]};
 }
 
 function renderAI(){
@@ -1799,7 +1798,15 @@ function renderAI(){
 
 function askAI(query){
   const result=getAIResponse(query);
-  aiMessages.push({role:'pair',html:`<div class="ai-msg user">${escapeHtml(query)}</div><div class="ai-msg bot"><div style="margin-bottom:4px">Use this card:</div><div class="card-rec"><div class="rec-dot" style="background:${result.color}"></div><div class="rec-name">${result.card}</div><div class="rec-rate">${result.rate}</div></div><div class="ai-tip">${result.tip}</div></div>`});
+  let altsHtml='';
+  if(result.alts&&result.alts.length>0){
+    altsHtml='<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:11px;color:var(--text2);margin-bottom:6px">Other options:</div>';
+    result.alts.forEach(a=>{
+      altsHtml+=`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px"><div class="card-dot" style="background:${a.color};width:8px;height:8px"></div><span style="font-weight:600">${a.card}</span><span style="color:var(--accent)">${a.rate}</span><span style="color:var(--text2)">— ${a.why}</span></div>`;
+    });
+    altsHtml+='</div>';
+  }
+  aiMessages.push({role:'pair',html:`<div class="ai-msg user">${escapeHtml(query)}</div><div class="ai-msg bot"><div style="margin-bottom:4px;font-size:12px;color:var(--text2)">Best card:</div><div class="card-rec"><div class="rec-dot" style="background:${result.color}"></div><div class="rec-name">${result.card}</div><div class="rec-rate">${result.rate}</div></div><div class="ai-tip">${result.tip}</div>${altsHtml}</div>`});
   renderAI();document.getElementById('aiInput').value='';
 }
 function sendAI(){const q=document.getElementById('aiInput').value.trim();if(q)askAI(q);}

@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2026-03-22T21:01:20Z",
-  "version": "0.0.24",
+  "lastUpdated": "2026-03-22T21:30:43Z",
+  "version": "1.0",
   "cards": [
     {
       "id": "amex-gold",
@@ -30,7 +30,8 @@
       "id": "amazon-prime",
       "name": "Amazon Prime Visa",
       "color": "#232F3E",
-      "annualFee": "$0 (Prime $139/yr)",
+      "annualFee": "$0/yr",
+      "membershipNote": "Requires Prime ($139/yr) — you already pay this",
       "appUrl": "https://apps.apple.com/app/id298867247",
       "categories": [
         { "name": "Amazon.com / Fresh / Whole Foods / Chase Travel", "rate": "5%", "note": "Requires active Prime. Drops to 3% if Prime cancelled" },
@@ -61,7 +62,8 @@
       "id": "robinhood-gold",
       "name": "Robinhood Gold Card",
       "color": "#00C805",
-      "annualFee": "$0 (Gold $50/yr)",
+      "annualFee": "$0/yr",
+      "membershipNote": "Requires Gold ($50/yr) — you already pay this",
       "appUrl": "https://apps.apple.com/app/id6462308655",
       "categories": [
         { "name": "Everything", "rate": "3%", "note": "Flat rate, no caps, no categories to track" },
