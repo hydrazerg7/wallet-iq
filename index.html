@@ -186,7 +186,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 <body>
 
 <div class="header">
-  <h1>Wallet IQ</h1><span class="version" id="appVersion">v1.7</span>
+  <h1>Wallet IQ</h1><span class="version" id="appVersion">v1.8</span>
   <div class="subtitle">Card Optimizer & Credit Tracker</div>
   <div class="updated" id="lastUpdated"></div>
 </div>
@@ -308,7 +308,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-const APP_VERSION = 'v1.7';
+const APP_VERSION = 'v1.8';
 
 // ===== State =====
 let appData = null;
@@ -640,9 +640,15 @@ const aiRules = [
   { keys: ['whole foods','wholefoods'], card: 'Amazon Prime Visa', rate: '5%', color: '#232F3E',
     tip: 'Whole Foods codes separately from supermarkets. Amazon card beats Amex Gold here.' },
   { keys: ['amazon'], card: 'Amazon Prime Visa', rate: '5%', color: '#232F3E', tip: 'Also covers Amazon Fresh and Subscribe & Save.' },
-  { keys: ['food at gas','snack at gas','gas station food','gas station snack','food at shell','food at chevron','food at exxon','food at bp','food at circle k'],
+  { keys: ['food at gas','snack at gas','gas station food','gas station snack','food at shell','food at chevron','food at exxon','food at bp','food at circle k','7-eleven food','7 eleven food','convenience store food','convenience store snack'],
     card: 'Robinhood Gold Card', rate: '3%', color: '#00C805',
-    tip: 'Food bought at a gas station usually codes under the gas station merchant code, NOT as dining. Amex likely won\'t give you 4x here. Robinhood 3% is your safest bet, but check your Amex statement — some gas stations have separate food registers that code as dining.' },
+    tip: 'Food at a gas station or convenience store codes under the store, NOT dining. Amex won\'t give 4x. Use Robinhood 3%.' },
+  { keys: ['food at sam','food at costco','costco food','sams food','sam\'s food','costco food court','sams food court','sam\'s food court','costco hot dog','sams club food','warehouse food'],
+    card: 'Robinhood Gold Card', rate: '3%', color: '#00C805',
+    tip: 'Costco/Sam\'s food court codes as "warehouse club," not dining. Amex won\'t give 4x here. Robinhood 3% is your best bet.' },
+  { keys: ['food at ikea','ikea food','ikea cafe','food at target','target food','target cafe','food at walmart','walmart food','store food','food court'],
+    card: 'Robinhood Gold Card', rate: '3%', color: '#00C805',
+    tip: 'Food at retail stores (IKEA, Target, Walmart) codes under the store category, not dining. Use Robinhood 3%. Exception: if the restaurant inside has its own separate register and merchant code, it might code as dining — check your Amex statement.' },
   { keys: ['gas','gas station','fuel','shell','chevron','exxon','mobil','bp','conoco','circle k','costco gas','sams gas','pump','fill up','fillup','gasoline','petrol'],
     card: 'Robinhood Gold Card', rate: '3%', color: '#00C805',
     tip: 'Amazon card only gets 2% on gas. Robinhood Gold wins. Check Mystery Box for a potential boost before filling up!' },
