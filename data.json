@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-22T19:05:12Z",
+  "lastUpdated": "2026-03-22T19:08:09Z",
   "version": "0.0.19",
   "cards": [
     {
@@ -34,7 +34,7 @@
       "appUrl": "https://apps.apple.com/app/id298867247",
       "categories": [
         { "name": "Amazon.com / Fresh / Whole Foods / Chase Travel", "rate": "5%", "note": "Requires active Prime. Drops to 3% if Prime cancelled" },
-        { "name": "Prime Card Bonus (rotating)", "rate": "10%+", "note": "Rotating limited-time exclusive offers for Prime cardmembers" },
+        { "name": "Prime Card Bonus (rotating)", "rate": "10%+", "note": "Random limited-time offers (e.g. 10% on select Amazon categories, Prime Day bonuses). No fixed schedule — check Chase app or Amazon checkout for active deals." },
         { "name": "Gas Stations", "rate": "2%", "note": "" },
         { "name": "Restaurants", "rate": "2%", "note": "" },
         { "name": "Transit & Rideshare", "rate": "2%", "note": "Uber, Lyft, buses, trains, commuting" },
