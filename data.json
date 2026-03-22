@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2026-03-22T19:13:25Z",
-  "version": "0.0.19",
+  "lastUpdated": "2026-03-22T19:14:39Z",
+  "version": "0.0.20",
   "cards": [
     {
       "id": "amex-gold",
@@ -123,10 +123,21 @@
       "appUrl": "https://apps.apple.com/app/id298867247",
       "categories": [
         { "name": "Quarterly 5% Categories", "rate": "5%", "note": "Up to $1,500/quarter, must activate. Visa card (not Mastercard like Flex)" },
+        { "name": "Lyft Rides", "rate": "2%", "note": "Permanent rate, not quarterly" },
         { "name": "Everything Else", "rate": "1%", "note": "No fixed 3% dining or 5% Chase Travel like Flex has. NEVER cancel — oldest account" }
       ],
       "protections": [
-        "Standard Chase Visa protections",
+        "Auto rental coverage",
+        "Extended warranty protection",
+        "Purchase protection",
+        "Roadside assistance",
+        "Travel & emergency assistance",
+        "Trip cancellation & interruption insurance",
+        "Visa Signature Concierge Service",
+        "Chase Offers (targeted merchant discounts)",
+        "No blackout dates on Chase Travel",
+        "Rewards don't expire",
+        "Zero liability protection",
         "No longer open to new applicants (closed Sept 2020)"
       ]
     }
@@ -152,6 +163,7 @@
     { "id": "united-hotels", "card": "United Explorer", "name": "United Hotels Credit", "amount": 100.00, "period": "annual", "note": "$50 credit on each of first 2 prepaid hotel stays per anniversary year via United Hotels.", "color": "#0033A0", "enrolled": true },
     { "id": "united-avis", "card": "United Explorer", "name": "Avis/Budget Rental Credit", "amount": 50.00, "period": "annual", "note": "$25 TravelBank cash on each of first 2 Avis/Budget rentals per year. After credit used, Robinhood 3% beats United 2x.", "color": "#0033A0", "enrolled": true },
     { "id": "united-travelbank", "card": "United Explorer", "name": "TravelBank Bonus ($10K spend)", "amount": 100.00, "period": "annual", "note": "$100 United TravelBank cash after $10K spend in a calendar year. Only usable on United/United Express flights. NOT worth chasing — moving bills to Robinhood Gold 3% saves more than this $100 bonus.", "color": "#0033A0", "enrolled": true },
+    { "id": "freedom-dashpass", "card": "Chase Freedom (Legacy)", "name": "DashPass Membership", "amount": 60.00, "period": "annual", "note": "6 months free DashPass ($9.99/mo value = $60). Activation required. Covers $0 delivery fees + reduced service fees on DoorDash orders $12+.", "color": "#1A73E8", "enrolled": false, "enrollAction": "Activate in Chase app > Freedom > Benefits > DashPass", "isCount": true },
     { "id": "united-globalentry", "card": "United Explorer", "name": "Global Entry/TSA Pre", "amount": 120.00, "period": "annual", "note": "Up to $120 statement credit every 4 years (~$30/yr value). Charge Global Entry ($120) or TSA Pre ($78) application fee to Explorer card.", "color": "#0033A0", "enrolled": true, "isCount": true }
   ],
   "spendingGuide": [
