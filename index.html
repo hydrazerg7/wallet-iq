@@ -60,7 +60,6 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + var(--safe-bottom))}
 .panel{display:none;padding:16px}
 .panel.active{display:block}
-#panel-ai.active{display:flex}
 
 /* Search */
 .search-wrap{position:relative;margin-bottom:16px}
@@ -157,7 +156,9 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 .empty{text-align:center;padding:40px 20px;color:var(--text2);font-size:14px}
 
 /* AI Chat */
-#panel-ai{display:flex;flex-direction:column;height:calc(100vh - 160px)}
+.panel#panel-ai{flex-direction:column;height:calc(100vh - 160px)}
+.panel#panel-ai.active{display:flex}
+.panel#panel-ai:not(.active){display:none}
 .ai-input-wrap{display:flex;gap:8px;padding-bottom:8px}
 .ai-input{flex:1;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:15px;outline:none}
 .ai-input:focus{border-color:var(--accent)}
@@ -185,7 +186,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 <body>
 
 <div class="header">
-  <h1>Wallet IQ</h1><span class="version" id="appVersion">v1.5</span>
+  <h1>Wallet IQ</h1><span class="version" id="appVersion">v1.6</span>
   <div class="subtitle">Card Optimizer & Credit Tracker</div>
   <div class="updated" id="lastUpdated"></div>
 </div>
@@ -305,7 +306,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-const APP_VERSION = 'v1.5';
+const APP_VERSION = 'v1.6';
 
 // ===== State =====
 let appData = null;
