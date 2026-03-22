@@ -1,0 +1,129 @@
+name: Update Chase Freedom Categories
+
+on:
+  schedule:
+    - cron: '0 14 * * 1'  # Every Monday at 2pm UTC (8am MT)
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  check-categories:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for new Chase Freedom categories
+        run: |
+          # Fetch The Points Guy Chase Freedom page
+          PAGE=$(curl -sL "https://thepointsguy.com/credit-cards/activate-chase-freedom-5x-earnings/" || echo "")
+
+          if [ -z "$PAGE" ]; then
+            echo "Failed to fetch page, skipping"
+            exit 0
+          fi
+
+          # Extract current data.json quarters
+          CURRENT_Q3=$(python3 -c "import json; d=json.load(open('data.json')); print(d['chaseQuarters']['2026']['Q3']['categories'][0])")
+          CURRENT_Q4=$(python3 -c "import json; d=json.load(open('data.json')); print(d['chaseQuarters']['2026']['Q4']['categories'][0])")
+
+          echo "Current Q3: $CURRENT_Q3"
+          echo "Current Q4: $CURRENT_Q4"
+
+          # Only proceed if we have TBD quarters
+          if [[ "$CURRENT_Q3" != *"TBD"* ]] && [[ "$CURRENT_Q4" != *"TBD"* ]]; then
+            echo "All quarters already populated, nothing to do"
+            exit 0
+          fi
+
+          # Use python to parse and update
+          python3 << 'PYEOF'
+          import json, re, sys
+
+          # Read the fetched page from file
+          import urllib.request
+          try:
+              req = urllib.request.Request(
+                  "https://thepointsguy.com/credit-cards/activate-chase-freedom-5x-earnings/",
+                  headers={"User-Agent": "Mozilla/5.0"}
+              )
+              page = urllib.request.urlopen(req, timeout=30).read().decode()
+          except Exception as e:
+              print(f"Fetch failed: {e}")
+              sys.exit(0)
+
+          with open("data.json") as f:
+              data = json.load(f)
+
+          quarters = data["chaseQuarters"]["2026"]
+          updated = False
+
+          # Look for Q3 patterns like "Q3 2026" or "July" or "Jul 1"
+          # Common format on TPG: "Quarter 3 (July 1 – September 30, 2026): Category1, Category2"
+          for q_key, q_months in [("Q3", ["july","jul","q3"]), ("Q4", ["october","oct","q4"])]:
+              current_cats = quarters[q_key]["categories"]
+              if not any("TBD" in c for c in current_cats):
+                  continue
+
+              # Search for category mentions near quarter references
+              page_lower = page.lower()
+              for month_key in q_months:
+                  idx = page_lower.find(month_key)
+                  if idx == -1:
+                      continue
+                  # Extract surrounding text (500 chars after the match)
+                  context = page[max(0,idx-100):idx+500]
+                  # Look for common category names
+                  found_cats = []
+                  cat_keywords = {
+                      "grocery": "Grocery Stores",
+                      "gas station": "Gas Stations",
+                      "amazon": "Amazon",
+                      "whole foods": "Whole Foods",
+                      "paypal": "PayPal",
+                      "walmart": "Walmart",
+                      "target": "Target",
+                      "streaming": "Select Streaming",
+                      "dining": "Dining",
+                      "drug store": "Drug Stores",
+                      "home improvement": "Home Improvement",
+                      "gym": "Gym Memberships",
+                      "fitness": "Fitness",
+                      "chase travel": "Chase Travel",
+                  }
+                  context_lower = context.lower()
+                  for keyword, display_name in cat_keywords.items():
+                      if keyword in context_lower:
+                          if display_name not in found_cats:
+                              found_cats.append(display_name)
+
+                  if found_cats:
+                      print(f"Found {q_key} categories: {found_cats}")
+                      quarters[q_key]["categories"] = found_cats
+                      quarters[q_key]["status"] = "upcoming"
+                      updated = True
+                      break
+
+          if updated:
+              from datetime import datetime
+              data["lastUpdated"] = datetime.now().strftime("%Y-%m-%d")
+              with open("data.json", "w") as f:
+                  json.dump(data, f, indent=2)
+              print("data.json updated!")
+              # Signal to git step that we have changes
+              with open("/tmp/chase_updated", "w") as f:
+                  f.write("yes")
+          else:
+              print("No new categories found yet")
+          PYEOF
+
+      - name: Commit and push if updated
+        run: |
+          if [ -f /tmp/chase_updated ]; then
+            git config user.name "GitHub Action"
+            git config user.email "action@github.com"
+            git add data.json
+            git commit -m "Auto-update: Chase Freedom quarterly categories"
+            git push
+            echo "Pushed updated categories!"
+          else
+            echo "No changes to push"
+          fi

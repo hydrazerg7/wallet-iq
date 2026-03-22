@@ -394,7 +394,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-const APP_VERSION = '0.0.11';
+const APP_VERSION = '0.0.12';
 let appData = null;
 let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
 let aiMessages = [];
@@ -539,6 +539,34 @@ function renderToday() {
         </div>
       </div>`;
     });
+  }
+
+  // Quarterly reminders
+  const qMonth = now.getMonth(); // 0-indexed
+  const reminderMonths = {2:'Q2 starts Apr 1',5:'Q3 starts Jul 1',8:'Q4 starts Oct 1',11:'Q1 starts Jan 1'};
+  const activateMonths = {3:'Activate Q2 now!',6:'Activate Q3 now!',9:'Activate Q4 now!',0:'Activate Q1 now!'};
+  const chaseReminder = reminderMonths[qMonth] || activateMonths[qMonth] || null;
+  // Check if any quarter is still TBD
+  const quarters2026 = appData.chaseQuarters['2026'] || {};
+  const tbdQuarters = Object.entries(quarters2026).filter(([k,v]) => v.categories.some(c => c.includes('TBD')));
+
+  if (chaseReminder || tbdQuarters.length > 0) {
+    creditsHtml += '<div class="section-title">Chase Freedom Reminders</div>';
+    if (chaseReminder) {
+      const isActivate = !!activateMonths[qMonth];
+      creditsHtml += `<div class="today-card" style="border-color:${isActivate?'var(--blue)':'var(--text2)'}">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div class="today-value" style="font-size:14px;color:${isActivate?'var(--blue)':'var(--text2)'}">${chaseReminder}</div>
+          <div class="today-sub">${isActivate?'Go to chase.com/freedom to activate 5% categories':'New quarter coming — check for updated categories'}</div></div>
+        </div>
+      </div>`;
+    }
+    if (tbdQuarters.length > 0) {
+      creditsHtml += `<div class="today-card">
+        <div class="today-value" style="font-size:14px;color:var(--text2)">${tbdQuarters.map(([k])=>k).join(', ')} categories not yet announced</div>
+        <div class="today-sub">Chase typically announces 1 month before the quarter. App auto-checks weekly.</div>
+      </div>`;
+    }
   }
 
   // Setup needed
