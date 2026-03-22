@@ -10,8 +10,21 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Wallet IQ</title>
-<link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script>
+// FIRST THING: nuke any service workers and caches from old versions
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(function(regs){
+    regs.forEach(function(r){r.unregister();});
+    if(regs.length>0){
+      // Had stale service workers — also clear all caches then reload
+      if('caches' in window){caches.keys().then(function(names){names.forEach(function(n){caches.delete(n);});});}
+      // Force reload from network after clearing
+      setTimeout(function(){location.reload(true);},500);
+    }
+  });
+}
+</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
@@ -1762,7 +1775,7 @@ document.getElementById('aiInput').addEventListener('keydown',e=>{if(e.key==='En
 function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 // ===== Unregister old service worker =====
-if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(r=>r.forEach(r=>r.unregister()));}
+// Service worker cleanup handled in <head>
 
 init();
 </script>
