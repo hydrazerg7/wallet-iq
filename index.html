@@ -446,7 +446,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-let APP_VERSION = '1.0';
+let APP_VERSION = '0.0.1';
 let appData = null;
 let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
 let aiMessages = [];
@@ -875,49 +875,63 @@ function renderPerks() {
 
   sorted.forEach(card => {
     const cardCredits = appData.credits.filter(c => c.card === card.name);
-    if (cardCredits.length === 0) {
-      html += `<div class="perk-card"><div class="perk-card-header"><div class="card-dot" style="background:${card.color}"></div><div class="card-name">${card.name}</div><div style="font-size:12px;color:var(--text2)">${card.annualFee}</div></div>
-        <div style="padding:16px;text-align:center;font-size:13px;color:var(--text2)">No tracked credits or perks</div></div>`;
-      return;
-    }
 
     let perksHtml = '';
     let totalAnnualValue = 0;
-    cardCredits.forEach(credit => {
-      const isEnrolled = enrolled[credit.id] !== undefined ? enrolled[credit.id] : credit.enrolled;
-      const badgeClass = isEnrolled ? 'enrolled' : 'needs-setup';
-      const badgeText = isEnrolled ? '&#10003; Enrolled' : '&#9888; Setup';
-      let annualValue = 0;
-      let valueDisplay = '';
-      if (credit.isCount) {
-        valueDisplay = credit.amount + (credit.amount === 1 ? '/yr' : '/yr');
-      } else if (credit.period === 'monthly') {
-        annualValue = credit.amount * 12;
-        valueDisplay = '$' + credit.amount.toFixed(0) + '/mo';
-      } else if (credit.period === 'semi-annual') {
-        annualValue = credit.amount * 2;
-        valueDisplay = '$' + credit.amount.toFixed(0) + '/semi';
-      } else {
-        annualValue = credit.amount;
-        valueDisplay = '$' + credit.amount.toFixed(0) + '/yr';
-      }
-      totalAnnualValue += annualValue;
 
-      perksHtml += `<div class="perk-item">
-        <div class="perk-info">
-          <div class="perk-name">${credit.name}</div>
-          <div class="perk-detail">${credit.note}</div>
-        </div>
-        <div class="perk-value">${valueDisplay}</div>
-        <span class="perk-badge ${badgeClass}">${badgeText}</span>
-      </div>`;
-    });
+    // Credits section
+    if (cardCredits.length > 0) {
+      perksHtml += '<div style="padding:6px 16px 2px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--accent)">Credits</div>';
+      cardCredits.forEach(credit => {
+        const isEnrolled = enrolled[credit.id] !== undefined ? enrolled[credit.id] : credit.enrolled;
+        const badgeClass = isEnrolled ? 'enrolled' : 'needs-setup';
+        const badgeText = isEnrolled ? '&#10003;' : '&#9888;';
+        let annualValue = 0;
+        let valueDisplay = '';
+        if (credit.isCount) {
+          valueDisplay = credit.amount + '/yr';
+        } else if (credit.period === 'monthly') {
+          annualValue = credit.amount * 12;
+          valueDisplay = '$' + credit.amount.toFixed(0) + '/mo';
+        } else if (credit.period === 'semi-annual') {
+          annualValue = credit.amount * 2;
+          valueDisplay = '$' + credit.amount.toFixed(0) + '/semi';
+        } else if (credit.period === 'quarterly') {
+          annualValue = credit.amount * 4;
+          valueDisplay = '$' + credit.amount.toFixed(0) + '/qtr';
+        } else {
+          annualValue = credit.amount;
+          valueDisplay = '$' + credit.amount.toFixed(0) + '/yr';
+        }
+        totalAnnualValue += annualValue;
+
+        perksHtml += `<div class="perk-item">
+          <div class="perk-info">
+            <div class="perk-name">${credit.name}</div>
+            <div class="perk-detail">${credit.note}</div>
+          </div>
+          <div class="perk-value">${valueDisplay}</div>
+          <span class="perk-badge ${badgeClass}">${badgeText}</span>
+        </div>`;
+      });
+    }
+
+    // Protections section
+    if (card.protections && card.protections.length > 0) {
+      perksHtml += '<div style="padding:6px 16px 2px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text2)">Protections & Perks</div>';
+      card.protections.forEach(p => {
+        perksHtml += `<div style="padding:6px 16px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border)">${p}</div>`;
+      });
+    }
+
+    const memberNote = card.membershipNote ? `<div style="font-size:10px;color:var(--text2)">${card.membershipNote}</div>` : '';
+    const valueLabel = totalAnnualValue > 0 ? `<div style="font-size:12px;color:var(--accent);font-weight:600">$${totalAnnualValue}/yr credits</div>` : '';
 
     html += `<div class="perk-card">
       <div class="perk-card-header">
         <div class="card-dot" style="background:${card.color}"></div>
         <div class="card-name">${card.name}</div>
-        <div style="font-size:12px;color:var(--accent);font-weight:600">$${totalAnnualValue}/yr value</div>
+        <div style="text-align:right">${valueLabel}${memberNote}</div>
       </div>
       ${perksHtml}
     </div>`;
@@ -1582,6 +1596,30 @@ function getAIResponse(query){
   let boostNote='';
   if(boost&&boost.type==='timed') boostNote='\n\nYou have an ACTIVE Mystery Box boost: '+boost.rate+' — consider using Robinhood Gold Card instead if the boost rate is higher!';
 
+  // ===== PRIORITY 0: Informational "what is" questions =====
+  const infoDb = {
+    'rideshare': {what:'Rideshare services like Uber, Lyft, and taxi apps where you book a ride through your phone. The driver picks you up and takes you to your destination.',cards:'United Explorer: 2x + $5/mo credit | Amazon Prime Visa: 2% | Robinhood Gold: 3% flat | Chase Freedom: 2% on Lyft only (expires 9/27)'},
+    'instacart': {what:'Instacart is a grocery delivery service. You order groceries through the app from stores like King Soopers, Costco, Safeway, etc. A shopper picks and delivers them to your door. No paid subscription needed — just a free account.',cards:'United Explorer: $10/mo statement credit | Robinhood Gold: 3% after credit used'},
+    'dashpass': {what:'DashPass is DoorDash\'s subscription for $0 delivery fees and lower service fees on food/grocery delivery orders. Your Chase Freedom card gives you 6 months free — but it auto-charges $9.99/mo after that, so set a cancel reminder.',cards:'Chase Freedom: 6mo free ($60 value) + $10/qtr non-restaurant promo'},
+    'resy': {what:'Resy is a restaurant reservation app (like OpenTable). Your Amex Gold gives you $50 in statement credits per half-year when you dine at any U.S. Resy-affiliated restaurant. No reservation required — just pay with your Gold card. Download the Resy app to find restaurants near you.',cards:'Amex Gold: $50/half-year credit + 4x points on dining'},
+    'doordash': {what:'DoorDash is a food and grocery delivery app. You order from restaurants, convenience stores, or grocery stores and a dasher delivers to your door. Your Chase Freedom gives you free DashPass (6mo) + $10/quarter off non-restaurant orders.',cards:'Chase Freedom: DashPass + $10/qtr promo | Amex Gold: 4x on restaurant orders'},
+    'uber cash': {what:'Uber Cash is a monthly $10 credit loaded to your Uber account when you have your Amex Gold card linked. Use it on Uber rides or Uber Eats orders. It does NOT roll over — use it each month or lose it.',cards:'Amex Gold: $10/mo auto-loaded'},
+    'mystery box': {what:'The Robinhood Gold Card Mystery Box costs 1,000 points (~$33 in spending) and gives you a random prize — usually a temporary cash back boost like 10% on your next restaurant order or 4-5% for 24 hours. Spin before a big purchase for best value.',cards:'Robinhood Gold Card only'},
+    'travelbank': {what:'United TravelBank is a cash balance you can use toward United and United Express flights. Your United Explorer card gives you $100 in TravelBank cash after spending $10K on the card in a calendar year. Not worth chasing — Robinhood 3% on that same $10K earns $300.',cards:'United Explorer: $100 after $10K annual spend'},
+    'jsx': {what:'JSX is a semi-private air carrier — small jets (30 seats), private terminals, no TSA security lines. Flies between select cities mostly on the West Coast, Vegas, and Dallas. Your United Explorer gives $100/yr credit, but if you don\'t fly JSX routes, this credit is unusable.',cards:'United Explorer: $100/yr credit'},
+    'global entry': {what:'Global Entry ($120) is a U.S. Customs program that lets you skip the customs line when returning from international flights. Includes TSA PreCheck ($78) which lets you keep shoes/belt on at security. Your United Explorer reimburses the application fee every 4 years.',cards:'United Explorer: up to $120 reimbursement every 4 years'},
+  };
+
+  // Check if this is a "what is" question
+  const isInfoQ = q.match(/^(what is|what are|what\'s|explain|tell me about|how does|how do|who is|who are|define)\s/i);
+  if (isInfoQ) {
+    for (const [key, info] of Object.entries(infoDb)) {
+      if (q.includes(key)) {
+        return {card:'', rate:'', color:'var(--accent)', tip: info.what + '\n\nCard options: ' + info.cards, isInfo: true};
+      }
+    }
+  }
+
   // ===== PRIORITY 1: Card-specific credits/free money =====
   // Always recommend using free credits before earning rates
 
@@ -1806,7 +1844,14 @@ function askAI(query){
     });
     altsHtml+='</div>';
   }
-  aiMessages.push({role:'pair',html:`<div class="ai-msg user">${escapeHtml(query)}</div><div class="ai-msg bot"><div style="margin-bottom:4px;font-size:12px;color:var(--text2)">Best card:</div><div class="card-rec"><div class="rec-dot" style="background:${result.color}"></div><div class="rec-name">${result.card}</div><div class="rec-rate">${result.rate}</div></div><div class="ai-tip">${result.tip}</div>${altsHtml}</div>`});
+  let botHtml;
+  if(result.isInfo){
+    // Informational response — no card recommendation header
+    botHtml=`<div class="ai-msg bot"><div class="ai-tip" style="white-space:pre-line">${result.tip}</div></div>`;
+  } else {
+    botHtml=`<div class="ai-msg bot"><div style="margin-bottom:4px;font-size:12px;color:var(--text2)">Best card:</div><div class="card-rec"><div class="rec-dot" style="background:${result.color}"></div><div class="rec-name">${result.card}</div><div class="rec-rate">${result.rate}</div></div><div class="ai-tip" style="white-space:pre-line">${result.tip}</div>${altsHtml}</div>`;
+  }
+  aiMessages.push({role:'pair',html:`<div class="ai-msg user">${escapeHtml(query)}</div>${botHtml}`});
   renderAI();document.getElementById('aiInput').value='';
 }
 function sendAI(){const q=document.getElementById('aiInput').value.trim();if(q)askAI(q);}
