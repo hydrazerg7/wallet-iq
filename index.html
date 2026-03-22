@@ -238,8 +238,9 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
   <div class="panel" id="panel-cards">
     <div class="search-wrap">
       <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-      <input type="text" id="guideSearch" placeholder="Search cards or categories...">
+      <input type="text" id="guideSearch" placeholder="Search categories (gas, groceries, amazon...)">
     </div>
+    <div class="ai-chips" id="cardFilters" style="margin-bottom:12px"></div>
     <div id="guideList"></div>
     <div class="section-title" style="margin-top:24px">Card Details</div>
     <div id="cardList"></div>
@@ -382,7 +383,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-const APP_VERSION = '0.0.7';
+const APP_VERSION = '0.0.8';
 let appData = null;
 let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
 let aiMessages = [];
@@ -442,7 +443,7 @@ function autoResetCredits() {
 function saveLogs() { localStorage.setItem('walletiq_logs', JSON.stringify(logs)); }
 
 // ===== Render All =====
-function renderAll() { renderToday(); renderGuide(); renderCards(); renderTracker(); renderHistory(); renderOffers(); renderChase(); renderMystery(); renderSavings(); }
+function renderAll() { renderToday(); renderCardFilters(); renderGuide(); renderCards(); renderTracker(); renderHistory(); renderOffers(); renderChase(); renderMystery(); renderSavings(); }
 
 // ===== TODAY DASHBOARD =====
 function renderToday() {
@@ -631,10 +632,31 @@ const searchAliases = {
   'hotel':'Non-United Flights','airbnb':'Non-United Flights',
 };
 
+let activeCardFilter = null;
+
+function renderCardFilters() {
+  let html = `<button class="chip ${!activeCardFilter?'style="background:var(--accent);color:#000;border-color:var(--accent)"':''}" onclick="setCardFilter(null)">All</button>`;
+  appData.cards.forEach(c => {
+    const isActive = activeCardFilter === c.id;
+    html += `<button class="chip" style="${isActive?'background:'+c.color+';color:#000;border-color:'+c.color:''}" onclick="setCardFilter('${c.id}')">${c.name.replace(' (Legacy)','')}</button>`;
+  });
+  document.getElementById('cardFilters').innerHTML = html;
+}
+
+function setCardFilter(cardId) {
+  activeCardFilter = cardId;
+  document.getElementById('guideSearch').value = '';
+  renderCardFilters();
+  renderGuide('');
+  renderCards();
+}
+
 function renderGuide(filter='') {
   const f = filter.toLowerCase().trim();
   const aliasMatch = searchAliases[f];
   const items = appData.spendingGuide.filter(g => {
+    // Card filter
+    if (activeCardFilter && g.cardId !== activeCardFilter) return false;
     if (!f) return true;
     return g.category.toLowerCase().includes(f) || g.card.toLowerCase().includes(f) || (aliasMatch && g.category.includes(aliasMatch));
   });
@@ -649,11 +671,16 @@ function renderGuide(filter='') {
   }
   document.getElementById('guideList').innerHTML = html;
 }
-document.getElementById('guideSearch').addEventListener('input', e => renderGuide(e.target.value));
+document.getElementById('guideSearch').addEventListener('input', e => { activeCardFilter = null; renderCardFilters(); renderGuide(e.target.value); });
 
 function renderCards() {
   let html = '';
-  appData.cards.forEach(c => {
+  // Sort by annual fee descending (most expensive first)
+  const feeVal = f => parseInt(f.replace(/[^0-9]/g,'')) || 0;
+  const sorted = [...appData.cards].sort((a,b) => feeVal(b.annualFee) - feeVal(a.annualFee));
+  // Apply card filter
+  const filtered = activeCardFilter ? sorted.filter(c => c.id === activeCardFilter) : sorted;
+  filtered.forEach(c => {
     let cats = '';
     c.categories.forEach(cat => {
       cats += `<div class="cat-row"><div><div class="cat-name">${cat.name}</div>${cat.note?`<div class="cat-note">${cat.note}</div>`:''}</div><div class="cat-rate">${cat.rate}</div></div>`;
