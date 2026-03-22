@@ -445,7 +445,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-const APP_VERSION = '0.0.12';
+let APP_VERSION = '0.0.16';
 let appData = null;
 let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
 let aiMessages = [];
@@ -466,6 +466,7 @@ async function init() {
     // Restore enrollment state
     const enrolled=JSON.parse(localStorage.getItem('walletiq_enrolled')||'{}');
     appData.credits.forEach(c=>{if(enrolled[c.id])c.enrolled=true;});
+    if(appData.version) APP_VERSION = appData.version;
     document.getElementById('lastUpdated').textContent = APP_VERSION + ' | Released ' + appData.lastUpdated;
     renderAll();
     startBoostTimer();
