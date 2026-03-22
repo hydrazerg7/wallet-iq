@@ -112,10 +112,10 @@
   ],
   "chaseQuarters": {
     "2026": {
-      "Q1": { "dates": "Jan 1 – Mar 31", "categories": ["Dining", "American Heart Assoc.", "Norwegian Cruise Line"], "status": "active" },
-      "Q2": { "dates": "Apr 1 – Jun 30", "categories": ["Amazon", "Whole Foods", "Chase Travel", "Feeding America"], "status": "upcoming" },
-      "Q3": { "dates": "Jul 1 – Sep 30", "categories": ["TBD — typically announced June 15"], "status": "future" },
-      "Q4": { "dates": "Oct 1 – Dec 31", "categories": ["TBD — typically announced Sept 15"], "status": "future" }
+      "Q1": { "dates": "Jan 1 – Mar 31", "activateBy": "Mar 14", "categories": ["Dining", "Norwegian Cruise Line", "American Heart Assoc."], "status": "active" },
+      "Q2": { "dates": "Apr 1 – Jun 30", "activateBy": "Jun 14 (estimated)", "categories": ["Amazon", "Whole Foods", "Chase Travel", "Feeding America"], "status": "upcoming" },
+      "Q3": { "dates": "Jul 1 – Sep 30", "activateBy": "TBD", "categories": ["TBD — typically announced June 15"], "status": "future" },
+      "Q4": { "dates": "Oct 1 – Dec 31", "activateBy": "TBD", "categories": ["TBD — typically announced Sept 15"], "status": "future" }
     }
   },
   "credits": [

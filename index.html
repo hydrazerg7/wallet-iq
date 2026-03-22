@@ -1170,7 +1170,8 @@ function renderChase(){
   Object.entries(quarters).forEach(([q,data])=>{
     const qNum=parseInt(q.replace('Q',''));const isActive=qNum===currentQ;
     const sc=data.status==='active'?'status-active':data.status==='upcoming'?'status-upcoming':'status-future';
-    html+=`<div class="quarter-card ${isActive?'active-q':''}"><div class="quarter-label">${q} 2026 &middot; ${data.dates}</div><div class="quarter-cats">${data.categories.join(', ')}</div><span class="quarter-status ${sc}">${isActive?'Active Now':data.status==='upcoming'?'Up Next':'TBD'}</span></div>`;
+    const activateBy = data.activateBy ? `<div style="font-size:11px;color:${isActive?'var(--green)':'var(--text2)'};margin-top:4px">Activate by: ${data.activateBy}</div>` : '';
+    html+=`<div class="quarter-card ${isActive?'active-q':''}"><div class="quarter-label">${q} 2026 &middot; ${data.dates}</div><div class="quarter-cats">${data.categories.join(', ')}</div>${activateBy}<span class="quarter-status ${sc}">${isActive?'Active Now':data.status==='upcoming'?'Up Next':'TBD'}</span></div>`;
   });
   document.getElementById('chaseList').innerHTML=html;
 }
