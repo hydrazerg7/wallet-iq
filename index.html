@@ -45,8 +45,18 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 .tab[data-tab="mystery"].active{color:#000;background:#f59e0b;border-color:#f59e0b}
 .tab[data-tab="savings"]{color:#ec4899;border-color:#ec489933;background:rgba(236,72,153,.08)}
 .tab[data-tab="savings"].active{color:#fff;background:#ec4899;border-color:#ec4899}
+.tab[data-tab="offers"]{color:#14b8a6;border-color:#14b8a633;background:rgba(20,184,166,.08)}
+.tab[data-tab="offers"].active{color:#000;background:#14b8a6;border-color:#14b8a6}
 .tab[data-tab="chase"]{color:#6b7280;border-color:#6b728033;background:rgba(107,114,128,.08)}
 .tab[data-tab="chase"].active{color:#fff;background:#6b7280;border-color:#6b7280}
+/* Offers */
+.offer-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;position:relative}
+.offer-card.expiring-soon{border-color:var(--orange)}
+.offer-card.expired{opacity:.5;border-color:var(--red)}
+.offer-merchant{font-size:16px;font-weight:700}
+.offer-discount{font-size:14px;font-weight:700;color:var(--green)}
+.offer-meta{font-size:11px;color:var(--text2);margin-top:4px}
+.offer-delete{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer;padding:4px 8px}
 .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + var(--safe-bottom))}
 .panel{display:none;padding:16px}
 .panel.active{display:block}
@@ -174,6 +184,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
   <div class="tab" data-tab="cards">All Cards</div>
   <div class="tab" data-tab="tracker">Tracker</div>
   <div class="tab" data-tab="history">History</div>
+  <div class="tab" data-tab="offers">Offers</div>
   <div class="tab" data-tab="mystery">Mystery Box</div>
   <div class="tab" data-tab="savings">Savings</div>
   <div class="tab" data-tab="chase">Chase 5%</div>
@@ -244,6 +255,21 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
       <button class="btn btn-outline btn-sm" onclick="clearAllLogs()">Clear All</button>
     </div>
     <div id="historyList"></div>
+  </div>
+
+  <!-- OFFERS -->
+  <div class="panel" id="panel-offers">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="section-title" style="margin:0">Active Card Offers</div>
+      <button class="btn btn-primary btn-sm" onclick="openOfferModal()">+ Add Offer</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
+      <a href="https://apps.apple.com/app/id362348516" class="chip" style="text-decoration:none">Check Amex</a>
+      <a href="https://apps.apple.com/app/id298867247" class="chip" style="text-decoration:none">Check Chase</a>
+      <a href="https://apps.apple.com/app/id6462308655" class="chip" style="text-decoration:none">Check Robinhood</a>
+    </div>
+    <div id="offersList"></div>
+    <div id="expiredOffersList"></div>
   </div>
 
   <!-- MYSTERY BOX -->
@@ -319,12 +345,46 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
   </div>
 </div>
 
+<!-- Add Offer Modal -->
+<div class="modal-overlay" id="offerModal">
+  <div class="modal">
+    <h3>Add Card Offer</h3>
+    <div class="form-group">
+      <label>Card</label>
+      <select id="offerCard">
+        <option value="Amex Gold">Amex Gold</option>
+        <option value="Amazon Prime Visa">Amazon Prime Visa</option>
+        <option value="Robinhood Gold Card">Robinhood Gold Card</option>
+        <option value="United Explorer">United Explorer</option>
+        <option value="Chase Freedom">Chase Freedom</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Merchant (e.g. Home Depot, Nike)</label>
+      <input type="text" id="offerMerchant" placeholder="Home Depot">
+    </div>
+    <div class="form-group">
+      <label>Discount (e.g. 10% back, $15 off $75)</label>
+      <input type="text" id="offerDiscount" placeholder="10% back">
+    </div>
+    <div class="form-group">
+      <label>Expires</label>
+      <input type="date" id="offerExpires">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn btn-primary" style="flex:1" onclick="submitOffer()">Add Offer</button>
+      <button class="btn btn-outline" style="flex:1" onclick="closeOfferModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
-const APP_VERSION = '0.0.4';
+const APP_VERSION = '0.0.5';
 let appData = null;
 let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
 let aiMessages = [];
 let boostTimer = null;
+let offers = JSON.parse(localStorage.getItem('walletiq_offers') || '[]');
 
 // ===== Init =====
 async function init() {
@@ -379,7 +439,7 @@ function autoResetCredits() {
 function saveLogs() { localStorage.setItem('walletiq_logs', JSON.stringify(logs)); }
 
 // ===== Render All =====
-function renderAll() { renderToday(); renderGuide(); renderCards(); renderTracker(); renderHistory(); renderChase(); renderMystery(); renderSavings(); }
+function renderAll() { renderToday(); renderGuide(); renderCards(); renderTracker(); renderHistory(); renderOffers(); renderChase(); renderMystery(); renderSavings(); }
 
 // ===== TODAY DASHBOARD =====
 function renderToday() {
@@ -443,6 +503,26 @@ function renderToday() {
     });
   }
   document.getElementById('todayCredits').innerHTML = creditsHtml;
+
+  // Active offers expiring soon
+  const urgentOffers = getActiveOffers().filter(o => {
+    if (!o.expires) return false;
+    const daysLeft = Math.ceil((new Date(o.expires+'T23:59:59') - new Date()) / 86400000);
+    return daysLeft <= 7;
+  });
+  if (urgentOffers.length > 0) {
+    creditsHtml += '<div class="section-title">Offers Expiring Soon</div>';
+    urgentOffers.forEach(o => {
+      const daysLeft = Math.max(0, Math.ceil((new Date(o.expires+'T23:59:59') - new Date()) / 86400000));
+      creditsHtml += `<div class="today-card" style="border-color:var(--orange)">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div class="today-value" style="font-size:14px">${o.merchant}</div>
+          <div class="today-sub">${o.discount} &middot; ${o.card}</div></div>
+          <div style="color:${daysLeft<=3?'var(--red)':'var(--orange)'};font-weight:700;font-size:14px">${daysLeft}d</div>
+        </div>
+      </div>`;
+    });
+  }
 
   // Setup needed
   const needSetup = appData.credits.filter(c => c.enrolled === false);
@@ -752,6 +832,109 @@ function renderSavings(){
 }
 document.querySelectorAll('.savings-field').forEach(el=>el.addEventListener('input',renderSavings));
 
+// ===== OFFERS =====
+function saveOffers() { localStorage.setItem('walletiq_offers', JSON.stringify(offers)); }
+
+function openOfferModal() {
+  document.getElementById('offerMerchant').value = '';
+  document.getElementById('offerDiscount').value = '';
+  // Default expiry to 30 days from now
+  const d = new Date(); d.setDate(d.getDate() + 30);
+  document.getElementById('offerExpires').value = d.toISOString().split('T')[0];
+  document.getElementById('offerModal').classList.add('show');
+  setTimeout(() => document.getElementById('offerMerchant').focus(), 100);
+}
+function closeOfferModal() { document.getElementById('offerModal').classList.remove('show'); }
+
+function submitOffer() {
+  const card = document.getElementById('offerCard').value;
+  const merchant = document.getElementById('offerMerchant').value.trim();
+  const discount = document.getElementById('offerDiscount').value.trim();
+  const expires = document.getElementById('offerExpires').value;
+  if (!merchant || !discount) return;
+  offers.push({ id: Date.now().toString(), card, merchant, discount, expires, added: new Date().toISOString() });
+  saveOffers(); closeOfferModal(); renderOffers(); renderToday();
+}
+
+function deleteOffer(id) {
+  offers = offers.filter(o => o.id !== id);
+  saveOffers(); renderOffers(); renderToday();
+}
+
+function getActiveOffers() {
+  const now = new Date().toISOString().split('T')[0];
+  return offers.filter(o => !o.expires || o.expires >= now);
+}
+
+function getExpiredOffers() {
+  const now = new Date().toISOString().split('T')[0];
+  return offers.filter(o => o.expires && o.expires < now);
+}
+
+function renderOffers() {
+  const active = getActiveOffers();
+  const expired = getExpiredOffers();
+  const now = new Date();
+
+  let html = '';
+  if (active.length === 0) {
+    html = '<div class="empty">No active offers.<br>Tap "+ Add Offer" after checking your card apps.</div>';
+  } else {
+    active.forEach(o => {
+      const expDate = o.expires ? new Date(o.expires + 'T23:59:59') : null;
+      const daysLeft = expDate ? Math.max(0, Math.ceil((expDate - now) / 86400000)) : null;
+      const isUrgent = daysLeft !== null && daysLeft <= 5;
+      const cardData = appData.cards.find(c => c.name === o.card);
+      const color = cardData ? cardData.color : '#888';
+      html += `<div class="offer-card ${isUrgent ? 'expiring-soon' : ''}">
+        <button class="offer-delete" onclick="deleteOffer('${o.id}')">&times;</button>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <div class="card-dot" style="background:${color}"></div>
+          <div class="offer-merchant">${o.merchant}</div>
+        </div>
+        <div class="offer-discount">${o.discount}</div>
+        <div class="offer-meta">${o.card}${daysLeft !== null ? ' &middot; ' + (isUrgent ? '<span style="color:var(--red)">' + daysLeft + 'd left!</span>' : daysLeft + 'd left') : ' &middot; No expiry'}</div>
+      </div>`;
+    });
+  }
+  document.getElementById('offersList').innerHTML = html;
+
+  // Expired
+  let expHtml = '';
+  if (expired.length > 0) {
+    expHtml = '<div class="section-title">Expired</div>';
+    expired.forEach(o => {
+      expHtml += `<div class="offer-card expired">
+        <button class="offer-delete" onclick="deleteOffer('${o.id}')">&times;</button>
+        <div class="offer-merchant" style="font-size:14px">${o.merchant}</div>
+        <div style="font-size:12px;color:var(--text2)">${o.discount} &middot; ${o.card} &middot; Expired ${o.expires}</div>
+      </div>`;
+    });
+    expHtml += '<button class="btn btn-outline btn-sm" onclick="clearExpiredOffers()" style="margin-top:8px">Clear Expired</button>';
+  }
+  document.getElementById('expiredOffersList').innerHTML = expHtml;
+}
+
+function clearExpiredOffers() {
+  const now = new Date().toISOString().split('T')[0];
+  offers = offers.filter(o => !o.expires || o.expires >= now);
+  saveOffers(); renderOffers();
+}
+
+// Get offer for a merchant (used by AI)
+function findMatchingOffer(query) {
+  const q = query.toLowerCase();
+  const active = getActiveOffers();
+  for (const o of active) {
+    if (q.includes(o.merchant.toLowerCase())) {
+      const expDate = o.expires ? new Date(o.expires + 'T23:59:59') : null;
+      const daysLeft = expDate ? Math.max(0, Math.ceil((expDate - new Date()) / 86400000)) : null;
+      return { card: o.card, discount: o.discount, merchant: o.merchant, daysLeft };
+    }
+  }
+  return null;
+}
+
 // ===== CHASE QUARTER AWARENESS =====
 function getActiveChaseCategories() {
   const now = new Date();
@@ -828,6 +1011,18 @@ function getAIResponse(query){
   const boost=getActiveBoost();
   let boostNote='';
   if(boost&&boost.type==='timed') boostNote='\n\nYou have an ACTIVE Mystery Box boost: '+boost.rate+' — consider using Robinhood Gold Card instead if the boost rate is higher!';
+
+  // Check if there's a matching card offer first
+  const offerMatch = findMatchingOffer(q);
+  if (offerMatch) {
+    const cardData = appData.cards.find(c => c.name === offerMatch.card);
+    const color = cardData ? cardData.color : '#888';
+    let tip = `You have an active offer: ${offerMatch.discount} at ${offerMatch.merchant} on your ${offerMatch.card}!`;
+    if (offerMatch.daysLeft !== null) tip += ` (${offerMatch.daysLeft} days left)`;
+    tip += ' This likely beats your standard card rate for this purchase.';
+    if(boostNote)tip+=boostNote;
+    return{card:offerMatch.card,rate:offerMatch.discount,color,tip};
+  }
 
   // Check if Chase Freedom quarterly category applies (5% beats most cards)
   const chaseCheck = isChaseQuarterMatch(q);
