@@ -1,11 +1,13 @@
 {
   "lastUpdated": "2026-03-21",
+  "version": "0.0.1",
   "cards": [
     {
       "id": "amex-gold",
       "name": "Amex Gold",
       "color": "#C5A44E",
       "annualFee": "$325",
+      "appUrl": "https://apps.apple.com/app/id362348516",
       "categories": [
         { "name": "U.S. Supermarkets", "rate": "4x", "note": "Capped at $25K/yr" },
         { "name": "Dining / Restaurants", "rate": "4x", "note": "Beats every other card" },
@@ -20,6 +22,7 @@
       "name": "Amazon Prime Visa",
       "color": "#232F3E",
       "annualFee": "$0",
+      "appUrl": "https://apps.apple.com/app/id298867247",
       "categories": [
         { "name": "Amazon.com", "rate": "5%", "note": "" },
         { "name": "Whole Foods", "rate": "5%", "note": "Beats Amex Gold here" },
@@ -34,6 +37,7 @@
       "name": "Robinhood Gold Card",
       "color": "#00C805",
       "annualFee": "$0 (Gold sub)",
+      "appUrl": "https://apps.apple.com/app/id6462308655",
       "categories": [
         { "name": "Gas", "rate": "3%", "note": "Beats Amazon's 2%" },
         { "name": "Streaming (Netflix, Spotify, etc.)", "rate": "3%", "note": "No other card beats 1% here" },
@@ -47,6 +51,7 @@
       "name": "United Explorer",
       "color": "#0033A0",
       "annualFee": "$150",
+      "appUrl": "https://apps.apple.com/app/id298867247",
       "categories": [
         { "name": "United Flights", "rate": "7x", "note": "Must pay with this for free bag + priority boarding" },
         { "name": "Instacart", "rate": "—", "note": "Use $10/mo credit first" },
@@ -59,6 +64,7 @@
       "name": "Chase Freedom (Legacy)",
       "color": "#1A73E8",
       "annualFee": "$0",
+      "appUrl": "https://apps.apple.com/app/id298867247",
       "categories": [
         { "name": "Quarterly 5% Categories", "rate": "5%", "note": "Up to $1,500/quarter, must activate" },
         { "name": "Everything Else", "rate": "1%", "note": "Never cancel — oldest account" }
@@ -74,61 +80,12 @@
     }
   },
   "credits": [
-    {
-      "id": "amex-dining",
-      "card": "Amex Gold",
-      "name": "Dining Credit",
-      "amount": 10.00,
-      "period": "monthly",
-      "note": "Five Guys, Grubhub, Goldbelly, etc.",
-      "color": "#C5A44E"
-    },
-    {
-      "id": "amex-uber",
-      "card": "Amex Gold",
-      "name": "Uber Cash",
-      "amount": 10.00,
-      "period": "monthly",
-      "note": "Add Amex Gold to Uber app. Rides or Uber Eats.",
-      "color": "#C5A44E"
-    },
-    {
-      "id": "amex-resy",
-      "card": "Amex Gold",
-      "name": "Resy Credit",
-      "amount": 50.00,
-      "period": "semi-annual",
-      "note": "Any Resy restaurant. Resets Jun 30 & Dec 31.",
-      "color": "#C5A44E"
-    },
-    {
-      "id": "amex-dunkin",
-      "card": "Amex Gold",
-      "name": "Dunkin' Credit",
-      "amount": 7.00,
-      "period": "monthly",
-      "note": "Enroll on Amex site. Easy to forget.",
-      "color": "#C5A44E"
-    },
-    {
-      "id": "united-instacart",
-      "card": "United Explorer",
-      "name": "Instacart Credit",
-      "amount": 10.00,
-      "period": "monthly",
-      "note": "Use on any Instacart order. Expires 12/31/27.",
-      "color": "#0033A0"
-    },
-    {
-      "id": "united-lounge",
-      "card": "United Explorer",
-      "name": "United Club Passes",
-      "amount": 2,
-      "period": "annual",
-      "note": "2 passes per anniversary year. Use on longer layovers.",
-      "color": "#0033A0",
-      "isCount": true
-    }
+    { "id": "amex-dining", "card": "Amex Gold", "name": "Dining Credit", "amount": 10.00, "period": "monthly", "note": "Five Guys, Grubhub, Goldbelly, etc.", "color": "#C5A44E" },
+    { "id": "amex-uber", "card": "Amex Gold", "name": "Uber Cash", "amount": 10.00, "period": "monthly", "note": "Add Amex Gold to Uber app. Rides or Uber Eats.", "color": "#C5A44E" },
+    { "id": "amex-resy", "card": "Amex Gold", "name": "Resy Credit", "amount": 50.00, "period": "semi-annual", "note": "Any Resy restaurant. Resets Jun 30 & Dec 31.", "color": "#C5A44E" },
+    { "id": "amex-dunkin", "card": "Amex Gold", "name": "Dunkin' Credit", "amount": 7.00, "period": "monthly", "note": "Enroll on Amex site. Easy to forget.", "color": "#C5A44E" },
+    { "id": "united-instacart", "card": "United Explorer", "name": "Instacart Credit", "amount": 10.00, "period": "monthly", "note": "Use on any Instacart order. Expires 12/31/27.", "color": "#0033A0" },
+    { "id": "united-lounge", "card": "United Explorer", "name": "United Club Passes", "amount": 2, "period": "annual", "note": "2 passes per anniversary year. Use on longer layovers.", "color": "#0033A0", "isCount": true }
   ],
   "spendingGuide": [
     { "category": "U.S. Supermarkets", "card": "Amex Gold", "rate": "4%", "cardId": "amex-gold" },
@@ -150,14 +107,14 @@
   "mysteryBox": {
     "cost": 1000,
     "prizes": [
-      { "prize": "10% on next restaurant order ($500 cap)", "odds": "25.75%" },
-      { "prize": "4% cash back for 24 hours ($3,000 cap)", "odds": "17.00%" },
-      { "prize": "5% on next restaurant order ($500 cap)", "odds": "16.00%" },
-      { "prize": "5% on next grocery purchase ($500 cap)", "odds": "8.00%" },
-      { "prize": "5% cash back for 24 hours ($3,500 cap)", "odds": "6.00%" },
-      { "prize": "10% on next grocery order ($500 cap)", "odds": "2.00%" },
-      { "prize": "5% for 30 days ($10,000 cap)", "odds": "0.25%" },
-      { "prize": "100,000 points", "odds": "0.001%" }
+      { "id": "mb-rest-10", "prize": "10% on next restaurant order ($500 cap)", "odds": "25.75%", "type": "next-purchase", "category": "restaurant", "rate": "10%", "cap": 500 },
+      { "id": "mb-all-4-24h", "prize": "4% cash back for 24 hours ($3,000 cap)", "odds": "17.00%", "type": "timed", "hours": 24, "rate": "4%", "cap": 3000 },
+      { "id": "mb-rest-5", "prize": "5% on next restaurant order ($500 cap)", "odds": "16.00%", "type": "next-purchase", "category": "restaurant", "rate": "5%", "cap": 500 },
+      { "id": "mb-groc-5", "prize": "5% on next grocery purchase ($500 cap)", "odds": "8.00%", "type": "next-purchase", "category": "grocery", "rate": "5%", "cap": 500 },
+      { "id": "mb-all-5-24h", "prize": "5% cash back for 24 hours ($3,500 cap)", "odds": "6.00%", "type": "timed", "hours": 24, "rate": "5%", "cap": 3500 },
+      { "id": "mb-groc-10", "prize": "10% on next grocery order ($500 cap)", "odds": "2.00%", "type": "next-purchase", "category": "grocery", "rate": "10%", "cap": 500 },
+      { "id": "mb-all-5-30d", "prize": "5% for 30 days ($10,000 cap)", "odds": "0.25%", "type": "timed", "hours": 720, "rate": "5%", "cap": 10000 },
+      { "id": "mb-100k", "prize": "100,000 points", "odds": "0.001%", "type": "instant", "points": 100000 }
     ],
     "tips": [
       "Spin before a restaurant dinner or big grocery run",

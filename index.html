@@ -24,66 +24,53 @@
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,system-ui,sans-serif;overflow:hidden}
 body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
-
-/* Header */
 .header{padding:16px 20px 12px;background:var(--bg);border-bottom:1px solid var(--border)}
 .header h1{font-size:22px;font-weight:700;color:var(--accent)}
 .header .subtitle{font-size:11px;color:var(--text2);margin-top:2px}
-.header .updated{font-size:10px;color:var(--text2);float:right;margin-top:-28px;text-align:right;line-height:1.4}
-
-/* Tabs */
-.tabs{display:flex;gap:8px;background:var(--bg);padding:10px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0;scrollbar-width:none;-ms-overflow-style:none;border-bottom:1px solid var(--border)}
+.header .updated{font-size:10px;color:var(--text2);float:right;margin-top:-28px;text-align:right}
+.tabs{display:flex;gap:8px;background:var(--bg);padding:10px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0;scrollbar-width:none;border-bottom:1px solid var(--border)}
 .tabs::-webkit-scrollbar{display:none}
 .tab{flex:0 0 auto;padding:8px 16px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s;border-radius:99px;border:1px solid}
-
-/* Tab colors — each unique */
+.tab[data-tab="today"]{color:#10b981;border-color:#10b98133;background:rgba(16,185,129,.08)}
+.tab[data-tab="today"].active{color:#000;background:#10b981;border-color:#10b981}
 .tab[data-tab="ai"]{color:#c9a84c;border-color:#c9a84c33;background:rgba(201,168,76,.08)}
 .tab[data-tab="ai"].active{color:#000;background:#c9a84c;border-color:#c9a84c}
-
 .tab[data-tab="cards"]{color:#8b5cf6;border-color:#8b5cf633;background:rgba(139,92,246,.08)}
 .tab[data-tab="cards"].active{color:#fff;background:#8b5cf6;border-color:#8b5cf6}
-
 .tab[data-tab="tracker"]{color:#00c805;border-color:#00c80533;background:rgba(0,200,5,.08)}
 .tab[data-tab="tracker"].active{color:#000;background:#00c805;border-color:#00c805}
-
 .tab[data-tab="history"]{color:#3b82f6;border-color:#3b82f633;background:rgba(59,130,246,.08)}
 .tab[data-tab="history"].active{color:#fff;background:#3b82f6;border-color:#3b82f6}
-
 .tab[data-tab="mystery"]{color:#f59e0b;border-color:#f59e0b33;background:rgba(245,158,11,.08)}
 .tab[data-tab="mystery"].active{color:#000;background:#f59e0b;border-color:#f59e0b}
-
+.tab[data-tab="savings"]{color:#ec4899;border-color:#ec489933;background:rgba(236,72,153,.08)}
+.tab[data-tab="savings"].active{color:#fff;background:#ec4899;border-color:#ec4899}
 .tab[data-tab="chase"]{color:#6b7280;border-color:#6b728033;background:rgba(107,114,128,.08)}
 .tab[data-tab="chase"].active{color:#fff;background:#6b7280;border-color:#6b7280}
-
-/* Content */
 .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + var(--safe-bottom))}
 .panel{display:none;padding:16px}
 .panel.active{display:block}
-
-/* Search */
+.panel#panel-ai.active{display:flex}
+.panel#panel-ai:not(.active){display:none}
+.panel#panel-ai{flex-direction:column;height:calc(100vh - 160px)}
 .search-wrap{position:relative;margin-bottom:16px}
 .search-wrap input{width:100%;padding:12px 16px 12px 40px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:15px;outline:none}
 .search-wrap input:focus{border-color:var(--accent)}
 .search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;fill:var(--text2)}
-
-/* Cards */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
 .card-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .card-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .card-name{font-weight:700;font-size:15px}
 .card-fee{font-size:11px;color:var(--text2);margin-left:auto}
+.card-link{font-size:11px;color:var(--blue);text-decoration:none;margin-left:8px}
 .cat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--border)}
 .cat-name{font-size:13px;flex:1}
 .cat-rate{font-size:13px;font-weight:700;color:var(--accent);min-width:60px;text-align:right}
 .cat-note{font-size:11px;color:var(--text2);margin-top:2px}
-
-/* Spending Guide */
 .guide-row{display:flex;align-items:center;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;gap:10px}
 .guide-cat{flex:1;font-size:14px;font-weight:500}
 .guide-card{font-size:12px;color:var(--text2)}
 .guide-rate{font-size:14px;font-weight:700;color:var(--accent);min-width:50px;text-align:right}
-
-/* Tracker */
 .credit-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px}
 .credit-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
 .credit-name{font-weight:600;font-size:14px}
@@ -93,32 +80,25 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 .progress-bar{height:100%;border-radius:99px;transition:width .3s}
 .credit-bottom{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text2)}
 .credit-remaining{font-weight:600;color:var(--text)}
-.credit-actions{display:flex;gap:6px;margin-top:8px}
+.credit-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 .btn{padding:8px 14px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
 .btn-primary{background:var(--accent);color:#000}
 .btn-primary:active{background:var(--accent2)}
 .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
 .btn-outline:active{background:var(--surface2)}
 .btn-sm{padding:6px 10px;font-size:11px}
-.btn-danger{background:var(--red);color:#fff}
-
-/* Log Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:flex-end;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px calc(24px + var(--safe-bottom));width:100%;max-width:500px;max-height:80vh;overflow-y:auto}
 .modal h3{font-size:18px;margin-bottom:16px;color:var(--accent)}
 .form-group{margin-bottom:14px}
 .form-group label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px}
-.form-group input,.form-group select{width:100%;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;outline:none}
+.form-group input,.form-group select{width:100%;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;outline:none;-webkit-appearance:none}
 .form-group input:focus,.form-group select:focus{border-color:var(--accent)}
-
-/* Summary bar */
 .summary{display:flex;gap:8px;margin-bottom:16px;padding:14px;background:linear-gradient(135deg,var(--surface),var(--surface2));border:1px solid var(--border);border-radius:14px}
 .summary-item{flex:1;text-align:center}
 .summary-value{font-size:20px;font-weight:700;color:var(--accent)}
 .summary-label{font-size:10px;color:var(--text2);margin-top:2px}
-
-/* History */
 .log-entry{display:flex;align-items:center;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;gap:10px}
 .log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .log-info{flex:1}
@@ -126,38 +106,23 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 .log-date{font-size:11px;color:var(--text2)}
 .log-amount{font-size:14px;font-weight:700;color:var(--accent)}
 .log-delete{background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer;padding:4px 8px}
-
-/* Chase */
 .quarter-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px}
 .quarter-card.active-q{border-color:var(--green)}
 .quarter-label{font-size:12px;color:var(--text2);margin-bottom:4px}
 .quarter-cats{font-size:16px;font-weight:700;margin-bottom:4px}
-.quarter-dates{font-size:12px;color:var(--text2)}
 .quarter-status{display:inline-block;font-size:11px;padding:3px 10px;border-radius:99px;margin-top:8px;font-weight:600}
 .status-active{background:rgba(0,200,5,.15);color:var(--green)}
 .status-upcoming{background:rgba(26,115,232,.15);color:var(--blue)}
 .status-future{background:var(--surface2);color:var(--text2)}
-
-/* Mystery Box */
 .prize-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
 .prize-row:last-child{border-bottom:none}
 .prize-odds{color:var(--accent);font-weight:600;min-width:60px;text-align:right}
 .tip-item{padding:10px 14px;background:var(--surface2);border-radius:10px;margin-bottom:6px;font-size:13px;line-height:1.4}
-
-/* Section headers */
 .section-title{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin:20px 0 10px}
 .section-title:first-child{margin-top:0}
-
-/* Danger zone pill */
 .danger{color:var(--red) !important}
-
-/* Empty state */
 .empty{text-align:center;padding:40px 20px;color:var(--text2);font-size:14px}
-
-/* AI Chat */
-.panel#panel-ai{flex-direction:column;height:calc(100vh - 160px)}
-.panel#panel-ai.active{display:flex}
-.panel#panel-ai:not(.active){display:none}
+/* AI */
 .ai-input-wrap{display:flex;gap:8px;padding-bottom:8px}
 .ai-input{flex:1;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:15px;outline:none}
 .ai-input:focus{border-color:var(--accent)}
@@ -178,36 +143,57 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 .ai-msg .ai-tip{font-size:12px;color:var(--text2);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
 .ai-clear-wrap{display:flex;justify-content:flex-end;padding:4px 0}
 .ai-clear{font-size:11px;color:var(--text2);background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer}
-.ai-clear:active{background:var(--surface2)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+/* Today */
+.today-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px}
+.today-card.urgent{border-color:var(--red)}
+.today-card.boost{border-color:var(--green);background:rgba(0,200,5,.05)}
+.today-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.today-value{font-size:16px;font-weight:700}
+.today-sub{font-size:12px;color:var(--text2);margin-top:4px}
+.boost-timer{font-size:24px;font-weight:700;color:var(--green);text-align:center;padding:8px 0}
+/* Savings */
+.savings-input{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.savings-label{flex:1;font-size:14px}
+.savings-field{width:90px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;text-align:right;outline:none}
+.savings-field:focus{border-color:var(--accent)}
+.savings-result{padding:16px;background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(0,200,5,.1));border:1px solid var(--accent);border-radius:14px;margin-top:16px;text-align:center}
+.savings-big{font-size:32px;font-weight:700;color:var(--green)}
+.savings-sub{font-size:13px;color:var(--text2);margin-top:4px}
 </style>
 </head>
 <body>
-
 <div class="header">
   <h1>Wallet IQ</h1>
   <div class="subtitle">Card Optimizer & Credit Tracker</div>
   <div class="updated" id="lastUpdated"></div>
 </div>
-
 <div class="tabs" id="tabs">
-  <div class="tab active" data-tab="ai">Ask AI</div>
+  <div class="tab active" data-tab="today">Today</div>
+  <div class="tab" data-tab="ai">Ask AI</div>
   <div class="tab" data-tab="cards">All Cards</div>
   <div class="tab" data-tab="tracker">Tracker</div>
   <div class="tab" data-tab="history">History</div>
   <div class="tab" data-tab="mystery">Mystery Box</div>
+  <div class="tab" data-tab="savings">Savings</div>
   <div class="tab" data-tab="chase">Chase 5%</div>
 </div>
-
 <div class="content">
 
+  <!-- TODAY -->
+  <div class="panel active" id="panel-today">
+    <div id="todayBoost"></div>
+    <div id="todayCredits"></div>
+    <div id="todayApps"></div>
+  </div>
+
   <!-- ASK AI -->
-  <div class="panel active" id="panel-ai">
+  <div class="panel" id="panel-ai">
     <div class="ai-input-wrap">
       <input type="text" id="aiInput" placeholder="I'm buying..." class="ai-input" enterkeyhint="send">
       <button class="ai-send" onclick="sendAI()">&#9654;</button>
     </div>
-    <div class="ai-chips" id="aiChips">
+    <div class="ai-chips">
       <button class="chip" onclick="askAI('Gas fill-up')">Gas</button>
       <button class="chip" onclick="askAI('Groceries')">Groceries</button>
       <button class="chip" onclick="askAI('Five Guys')">Five Guys</button>
@@ -217,11 +203,10 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
       <button class="chip" onclick="askAI('Uber ride')">Uber</button>
       <button class="chip" onclick="askAI('United flight')">United Flight</button>
       <button class="chip" onclick="askAI('Instacart delivery')">Instacart</button>
-      <button class="chip" onclick="askAI('Random purchase at Target')">Target/Other</button>
-      <button class="chip" onclick="askAI('International purchase abroad')">International</button>
-      <button class="chip" onclick="askAI('Hotel booking')">Hotel</button>
       <button class="chip" onclick="askAI('Sandwich at cafeteria')">Cafeteria</button>
+      <button class="chip" onclick="askAI('Random purchase at Target')">Target/Other</button>
       <button class="chip" onclick="askAI('Coffee')">Coffee</button>
+      <button class="chip" onclick="askAI('Hotel booking')">Hotel</button>
     </div>
     <div class="ai-clear-wrap" id="aiClearWrap" style="display:none">
       <button class="ai-clear" onclick="clearAI()">Clear Chat</button>
@@ -239,7 +224,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
   <div class="panel" id="panel-cards">
     <div class="search-wrap">
       <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-      <input type="text" id="guideSearch" placeholder="Search cards or categories (gas, groceries, amazon...)">
+      <input type="text" id="guideSearch" placeholder="Search cards or categories...">
     </div>
     <div id="guideList"></div>
     <div class="section-title" style="margin-top:24px">Card Details</div>
@@ -263,12 +248,42 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 
   <!-- MYSTERY BOX -->
   <div class="panel" id="panel-mystery">
-    <div class="section-title">Prize Odds (1,000 pts per spin)</div>
-    <div class="card">
-      <div id="prizeList"></div>
+    <div id="activeBoostSection"></div>
+    <div class="section-title">Log a Win</div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="form-group" style="margin-bottom:10px">
+        <label>Which prize did you win?</label>
+        <select id="mbPrizeSelect">
+          <option value="">Select your prize...</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="logMysteryWin()">Start Timer</button>
     </div>
+    <div class="section-title">Prize Odds (1,000 pts per spin)</div>
+    <div class="card"><div id="prizeList"></div></div>
     <div class="section-title">Strategy Tips</div>
     <div id="tipList"></div>
+  </div>
+
+  <!-- SAVINGS CALCULATOR -->
+  <div class="panel" id="panel-savings">
+    <div class="section-title" style="margin-top:0">Monthly Spending by Category</div>
+    <div class="card">
+      <div class="savings-input"><div class="savings-label">Groceries</div><input class="savings-field" id="sv-grocery" type="number" inputmode="decimal" value="400" placeholder="0"></div>
+      <div class="savings-input"><div class="savings-label">Dining Out</div><input class="savings-field" id="sv-dining" type="number" inputmode="decimal" value="200" placeholder="0"></div>
+      <div class="savings-input"><div class="savings-label">Amazon</div><input class="savings-field" id="sv-amazon" type="number" inputmode="decimal" value="150" placeholder="0"></div>
+      <div class="savings-input"><div class="savings-label">Gas</div><input class="savings-field" id="sv-gas" type="number" inputmode="decimal" value="150" placeholder="0"></div>
+      <div class="savings-input"><div class="savings-label">Streaming</div><input class="savings-field" id="sv-stream" type="number" inputmode="decimal" value="50" placeholder="0"></div>
+      <div class="savings-input"><div class="savings-label">Flights (per month avg)</div><input class="savings-field" id="sv-flights" type="number" inputmode="decimal" value="100" placeholder="0"></div>
+      <div class="savings-input"><div class="savings-label">Everything Else</div><input class="savings-field" id="sv-other" type="number" inputmode="decimal" value="500" placeholder="0"></div>
+    </div>
+    <div class="savings-result" id="savingsResult"></div>
+    <div class="card" style="margin-top:12px">
+      <div style="font-size:12px;color:var(--text2);line-height:1.5">
+        This compares your optimized 5-card stack against a single flat-rate 2% card.
+        Does not include annual credits ($544/yr value) which add even more savings.
+      </div>
+    </div>
   </div>
 
   <!-- CHASE 5% -->
@@ -278,12 +293,10 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
     <div class="card" style="margin-top:16px">
       <div style="font-size:13px;color:var(--text2);line-height:1.5">
         <strong style="color:var(--text)">Remember:</strong> Activate each quarter at chase.com/freedom.
-        Cap is $1,500 combined spending per quarter. Your Amazon Prime Visa already covers Amazon at 5%,
-        so Chase Freedom only helps when a unique category comes up (gas, PayPal, etc).
+        Cap is $1,500 combined spending per quarter.
       </div>
     </div>
   </div>
-
 </div>
 
 <!-- Log Spending Modal -->
@@ -307,12 +320,11 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-const APP_VERSION = 'v2.0';
-
-// ===== State =====
+const APP_VERSION = '0.0.1';
 let appData = null;
 let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
-let aiMessages = []; // {role:'user'|'bot', html:string}
+let aiMessages = [];
+let boostTimer = null;
 
 // ===== Init =====
 async function init() {
@@ -325,11 +337,12 @@ async function init() {
   }
   if (appData) {
     localStorage.setItem('walletiq_data', JSON.stringify(appData));
-    const now = new Date();
     const pad = n => String(n).padStart(2,'0');
-    const timeStr = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+' '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
-    document.getElementById('lastUpdated').textContent = APP_VERSION + ' | ' + timeStr;
+    const now = new Date();
+    const ts = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+' '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+    document.getElementById('lastUpdated').textContent = APP_VERSION + ' | ' + ts;
     renderAll();
+    startBoostTimer();
   }
   autoResetCredits();
 }
@@ -344,178 +357,239 @@ document.getElementById('tabs').addEventListener('click', e => {
   document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
 });
 
-// ===== Auto-reset credits on new month =====
+// ===== Auto-reset =====
 function autoResetCredits() {
   const now = new Date();
   const key = now.getFullYear() + '-' + (now.getMonth() + 1);
   const lastReset = localStorage.getItem('walletiq_lastReset');
   if (lastReset !== key) {
-    logs = logs.filter(l => {
-      const credit = appData.credits.find(c => c.id === l.creditId);
-      if (!credit) return true;
-      if (credit.period === 'monthly') return false;
-      return true;
-    });
-    saveLogs();
-    localStorage.setItem('walletiq_lastReset', key);
+    logs = logs.filter(l => { const c = appData.credits.find(c => c.id === l.creditId); return !c || c.period !== 'monthly'; });
+    saveLogs(); localStorage.setItem('walletiq_lastReset', key);
   }
   const semiKey = now.getFullYear() + '-' + (now.getMonth() < 6 ? 'H1' : 'H2');
   const lastSemiReset = localStorage.getItem('walletiq_lastSemiReset');
   if (lastSemiReset !== semiKey) {
-    logs = logs.filter(l => {
-      const credit = appData.credits.find(c => c.id === l.creditId);
-      if (!credit) return true;
-      if (credit.period === 'semi-annual') return false;
-      return true;
-    });
-    saveLogs();
-    localStorage.setItem('walletiq_lastSemiReset', semiKey);
+    logs = logs.filter(l => { const c = appData.credits.find(c => c.id === l.creditId); return !c || c.period !== 'semi-annual'; });
+    saveLogs(); localStorage.setItem('walletiq_lastSemiReset', semiKey);
   }
 }
-
-function saveLogs() {
-  localStorage.setItem('walletiq_logs', JSON.stringify(logs));
-}
+function saveLogs() { localStorage.setItem('walletiq_logs', JSON.stringify(logs)); }
 
 // ===== Render All =====
-function renderAll() {
-  renderGuide();
-  renderCards();
-  renderTracker();
-  renderHistory();
-  renderChase();
-  renderMystery();
-}
+function renderAll() { renderToday(); renderGuide(); renderCards(); renderTracker(); renderHistory(); renderChase(); renderMystery(); renderSavings(); }
 
-// ===== Search aliases for guide =====
-const searchAliases = {
-  'grocery': 'U.S. Supermarkets', 'groceries': 'U.S. Supermarkets', 'supermarket': 'U.S. Supermarkets',
-  'food': 'Dining', 'eat': 'Dining', 'restaurant': 'Dining', 'dinner': 'Dining', 'lunch': 'Dining',
-  'flight': 'Non-United Flights', 'flights': 'Non-United Flights', 'plane': 'Non-United Flights',
-  'stream': 'Streaming', 'netflix': 'Streaming', 'hulu': 'Streaming', 'spotify': 'Streaming', 'disney': 'Streaming',
-  'fuel': 'Gas', 'gasoline': 'Gas', 'pump': 'Gas',
-  'coffee': 'Dining', 'starbucks': 'Dining',
-  'uber': 'Rideshare', 'lyft': 'Rideshare', 'taxi': 'Rideshare',
-  'target': 'Everything Else', 'walmart': 'Everything Else', 'costco': 'Everything Else',
-  'bills': 'Everything Else', 'utilities': 'Everything Else', 'phone': 'Everything Else',
-  'hotel': 'Non-United Flights', 'airbnb': 'Non-United Flights',
-};
+// ===== TODAY DASHBOARD =====
+function renderToday() {
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const daysLeft = daysInMonth - now.getDate();
 
-function renderGuide(filter = '') {
-  const list = document.getElementById('guideList');
-  const f = filter.toLowerCase().trim();
+  // Active boost
+  let boostHtml = '';
+  const boost = getActiveBoost();
+  if (boost) {
+    const remaining = getBoostTimeRemaining(boost);
+    boostHtml = `<div class="today-card boost">
+      <div class="today-label" style="color:var(--green)">ACTIVE MYSTERY BOX BOOST</div>
+      <div class="today-value">${boost.prize}</div>
+      <div class="boost-timer" id="boostCountdown">${remaining}</div>
+      <div class="today-sub">Use your <strong>Robinhood Gold Card</strong> for all eligible purchases right now!</div>
+      <div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="clearBoost()">Dismiss</button></div>
+    </div>`;
+  }
+  document.getElementById('todayBoost').innerHTML = boostHtml;
 
-  // Resolve alias
-  const aliasMatch = searchAliases[f];
-
-  const items = appData.spendingGuide.filter(g => {
-    if (!f) return true;
-    if (g.category.toLowerCase().includes(f)) return true;
-    if (g.card.toLowerCase().includes(f)) return true;
-    if (aliasMatch && g.category.includes(aliasMatch)) return true;
-    return false;
+  // Credits expiring
+  let creditsHtml = `<div class="section-title" style="margin-top:${boost?'10':'0'}px">Credits This Month — ${daysLeft} days left</div>`;
+  const urgentCredits = appData.credits.filter(c => !c.isCount && (c.period === 'monthly'));
+  urgentCredits.forEach(c => {
+    const used = getUsedAmount(c.id);
+    const remaining = Math.max(0, c.amount - used);
+    const pct = Math.min(100, (used / c.amount) * 100);
+    const isDone = remaining <= 0;
+    const isUrgent = daysLeft <= 5 && !isDone;
+    creditsHtml += `<div class="today-card ${isUrgent ? 'urgent' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div class="today-value" style="font-size:14px;${isDone ? 'color:var(--green)' : ''}">${isDone ? '&#10003; ' : ''}${c.name}</div>
+          <div class="today-sub">${c.card}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:18px;font-weight:700;${isDone ? 'color:var(--green)' : remaining === c.amount ? 'color:var(--orange)' : 'color:var(--accent)'}">${isDone ? 'Done' : '$'+remaining.toFixed(2)}</div>
+          <div style="font-size:11px;color:var(--text2)">${isDone ? 'Fully used' : 'remaining'}</div>
+        </div>
+      </div>
+    </div>`;
   });
 
-  let html = '';
-  if (f && items.length === 0) {
-    html = `<div class="guide-row">
-      <div class="card-dot" style="background:var(--green)"></div>
-      <div style="flex:1"><div class="guide-cat">Use Robinhood Gold Card</div>
-      <div class="guide-card">3% flat rate on everything not covered by another card</div></div>
-      <div class="guide-rate">3%</div>
-    </div>`;
-  } else {
-    items.forEach(item => {
-      const c = appData.cards.find(c => c.id === item.cardId);
-      const color = c ? c.color : '#888';
-      html += `<div class="guide-row">
-        <div class="card-dot" style="background:${color}"></div>
-        <div style="flex:1"><div class="guide-cat">${item.category}</div>
-        <div class="guide-card">${item.card}</div></div>
-        <div class="guide-rate">${item.rate}</div>
+  // Semi-annual
+  const semiCredits = appData.credits.filter(c => !c.isCount && c.period === 'semi-annual');
+  if (semiCredits.length > 0) {
+    const semiDaysLeft = getDaysLeft('semi-annual');
+    creditsHtml += `<div class="section-title">Semi-Annual Credits — ${semiDaysLeft} days left</div>`;
+    semiCredits.forEach(c => {
+      const used = getUsedAmount(c.id);
+      const remaining = Math.max(0, c.amount - used);
+      const isDone = remaining <= 0;
+      creditsHtml += `<div class="today-card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div class="today-value" style="font-size:14px;${isDone?'color:var(--green)':''}">${isDone?'&#10003; ':''}${c.name}</div><div class="today-sub">${c.card}</div></div>
+          <div style="text-align:right"><div style="font-size:18px;font-weight:700;${isDone?'color:var(--green)':'color:var(--accent)'}">${isDone?'Done':'$'+remaining.toFixed(2)}</div></div>
+        </div>
       </div>`;
     });
   }
-  list.innerHTML = html;
+  document.getElementById('todayCredits').innerHTML = creditsHtml;
+
+  // Quick app links
+  let appsHtml = '<div class="section-title">Open Card Apps</div><div style="display:flex;gap:8px;flex-wrap:wrap">';
+  appData.cards.forEach(c => {
+    if (c.appUrl) {
+      appsHtml += `<a href="${c.appUrl}" style="flex:1;min-width:45%;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;text-decoration:none;text-align:center">
+        <div class="card-dot" style="background:${c.color};margin:0 auto 6px;width:12px;height:12px;border-radius:50%"></div>
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${c.name}</div>
+      </a>`;
+    }
+  });
+  appsHtml += '</div>';
+  document.getElementById('todayApps').innerHTML = appsHtml;
 }
 
-document.getElementById('guideSearch').addEventListener('input', e => {
-  renderGuide(e.target.value);
-});
+// ===== MYSTERY BOX BOOST =====
+function getActiveBoost() {
+  const raw = localStorage.getItem('walletiq_boost');
+  if (!raw) return null;
+  const boost = JSON.parse(raw);
+  if (boost.type === 'timed') {
+    const expires = new Date(boost.expires);
+    if (expires <= new Date()) { localStorage.removeItem('walletiq_boost'); return null; }
+  }
+  return boost;
+}
 
-// ===== All Cards =====
+function getBoostTimeRemaining(boost) {
+  if (boost.type === 'next-purchase') return 'Until next ' + boost.category + ' purchase';
+  if (boost.type === 'instant') return 'Redeemed!';
+  const expires = new Date(boost.expires);
+  const diff = expires - new Date();
+  if (diff <= 0) return 'Expired';
+  const h = Math.floor(diff/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  const s = Math.floor((diff%60000)/1000);
+  if (h > 24) { const d = Math.floor(h/24); return d + 'd ' + (h%24) + 'h remaining'; }
+  return (h>0?h+'h ':'') + pad2(m) + 'm ' + pad2(s) + 's remaining';
+}
+function pad2(n) { return String(n).padStart(2,'0'); }
+
+function startBoostTimer() {
+  if (boostTimer) clearInterval(boostTimer);
+  boostTimer = setInterval(() => {
+    const boost = getActiveBoost();
+    const el = document.getElementById('boostCountdown');
+    if (boost && el) el.textContent = getBoostTimeRemaining(boost);
+    else if (!boost && el) renderToday();
+  }, 1000);
+}
+
+function logMysteryWin() {
+  const sel = document.getElementById('mbPrizeSelect');
+  const prizeId = sel.value;
+  if (!prizeId) return;
+  const prize = appData.mysteryBox.prizes.find(p => p.id === prizeId);
+  if (!prize) return;
+  const boost = { id: prize.id, prize: prize.prize, type: prize.type, rate: prize.rate, category: prize.category || 'all' };
+  if (prize.type === 'timed') {
+    boost.expires = new Date(Date.now() + prize.hours * 3600000).toISOString();
+  }
+  localStorage.setItem('walletiq_boost', JSON.stringify(boost));
+  sel.value = '';
+  renderToday();
+  renderMystery();
+  startBoostTimer();
+}
+
+function clearBoost() {
+  localStorage.removeItem('walletiq_boost');
+  renderToday();
+  renderMystery();
+}
+
+// ===== GUIDE + CARDS =====
+const searchAliases = {
+  'grocery':'U.S. Supermarkets','groceries':'U.S. Supermarkets','supermarket':'U.S. Supermarkets',
+  'food':'Dining','eat':'Dining','restaurant':'Dining','dinner':'Dining','lunch':'Dining',
+  'flight':'Non-United Flights','flights':'Non-United Flights','plane':'Non-United Flights',
+  'stream':'Streaming','netflix':'Streaming','hulu':'Streaming','spotify':'Streaming','disney':'Streaming',
+  'fuel':'Gas','gasoline':'Gas','pump':'Gas',
+  'coffee':'Dining','starbucks':'Dining',
+  'uber':'Rideshare','lyft':'Rideshare','taxi':'Rideshare',
+  'target':'Everything Else','walmart':'Everything Else','costco':'Everything Else',
+  'bills':'Everything Else','utilities':'Everything Else','phone':'Everything Else',
+  'hotel':'Non-United Flights','airbnb':'Non-United Flights',
+};
+
+function renderGuide(filter='') {
+  const f = filter.toLowerCase().trim();
+  const aliasMatch = searchAliases[f];
+  const items = appData.spendingGuide.filter(g => {
+    if (!f) return true;
+    return g.category.toLowerCase().includes(f) || g.card.toLowerCase().includes(f) || (aliasMatch && g.category.includes(aliasMatch));
+  });
+  let html = '';
+  if (f && items.length === 0) {
+    html = `<div class="guide-row"><div class="card-dot" style="background:var(--green)"></div><div style="flex:1"><div class="guide-cat">Use Robinhood Gold Card</div><div class="guide-card">3% flat rate — best for uncategorized purchases</div></div><div class="guide-rate">3%</div></div>`;
+  } else {
+    items.forEach(item => {
+      const c = appData.cards.find(c => c.id === item.cardId);
+      html += `<div class="guide-row"><div class="card-dot" style="background:${c?c.color:'#888'}"></div><div style="flex:1"><div class="guide-cat">${item.category}</div><div class="guide-card">${item.card}</div></div><div class="guide-rate">${item.rate}</div></div>`;
+    });
+  }
+  document.getElementById('guideList').innerHTML = html;
+}
+document.getElementById('guideSearch').addEventListener('input', e => renderGuide(e.target.value));
+
 function renderCards() {
   let html = '';
   appData.cards.forEach(c => {
     let cats = '';
     c.categories.forEach(cat => {
-      cats += `<div class="cat-row">
-        <div><div class="cat-name">${cat.name}</div>
-        ${cat.note ? `<div class="cat-note">${cat.note}</div>` : ''}</div>
-        <div class="cat-rate">${cat.rate}</div>
-      </div>`;
+      cats += `<div class="cat-row"><div><div class="cat-name">${cat.name}</div>${cat.note?`<div class="cat-note">${cat.note}</div>`:''}</div><div class="cat-rate">${cat.rate}</div></div>`;
     });
-    html += `<div class="card">
-      <div class="card-header">
-        <div class="card-dot" style="background:${c.color}"></div>
-        <div class="card-name">${c.name}</div>
-        <div class="card-fee">${c.annualFee}</div>
-      </div>
-      ${cats}
-    </div>`;
+    const appLink = c.appUrl ? `<a href="${c.appUrl}" class="card-link">Open App &#8599;</a>` : '';
+    html += `<div class="card"><div class="card-header"><div class="card-dot" style="background:${c.color}"></div><div class="card-name">${c.name}</div>${appLink}<div class="card-fee">${c.annualFee}</div></div>${cats}</div>`;
   });
   document.getElementById('cardList').innerHTML = html;
 }
 
-// ===== Tracker =====
-function getUsedAmount(creditId) {
-  return logs
-    .filter(l => l.creditId === creditId)
-    .reduce((sum, l) => sum + l.amount, 0);
-}
+// ===== TRACKER =====
+function getUsedAmount(creditId) { return logs.filter(l=>l.creditId===creditId).reduce((s,l)=>s+l.amount,0); }
 
 function renderTracker() {
   const credits = appData.credits;
-  let totalValue = 0, totalUsed = 0;
-  credits.forEach(c => {
-    if (c.isCount) return;
-    totalValue += c.amount;
-    totalUsed += Math.min(getUsedAmount(c.id), c.amount);
-  });
-  const pct = totalValue > 0 ? Math.round((totalUsed / totalValue) * 100) : 0;
+  let totalValue=0, totalUsed=0;
+  credits.forEach(c => { if(c.isCount) return; totalValue+=c.amount; totalUsed+=Math.min(getUsedAmount(c.id),c.amount); });
+  const pct = totalValue>0 ? Math.round((totalUsed/totalValue)*100) : 0;
   document.getElementById('creditSummary').innerHTML = `
     <div class="summary-item"><div class="summary-value">$${totalUsed.toFixed(0)}</div><div class="summary-label">Used</div></div>
-    <div class="summary-item"><div class="summary-value">$${(totalValue - totalUsed).toFixed(0)}</div><div class="summary-label">Remaining</div></div>
-    <div class="summary-item"><div class="summary-value">${pct}%</div><div class="summary-label">Captured</div></div>
-  `;
-
+    <div class="summary-item"><div class="summary-value">$${(totalValue-totalUsed).toFixed(0)}</div><div class="summary-label">Remaining</div></div>
+    <div class="summary-item"><div class="summary-value">${pct}%</div><div class="summary-label">Captured</div></div>`;
   let html = '';
   credits.forEach(c => {
-    const used = c.isCount ? logs.filter(l => l.creditId === c.id).length : getUsedAmount(c.id);
-    const max = c.amount;
-    const remaining = Math.max(0, max - used);
-    const pct = Math.min(100, (used / max) * 100);
-    const daysLeft = getDaysLeft(c.period);
-    const isDanger = daysLeft <= 5;
-    const barColor = pct >= 100 ? 'var(--green)' : pct >= 50 ? 'var(--accent)' : 'var(--orange)';
+    const used = c.isCount ? logs.filter(l=>l.creditId===c.id).length : getUsedAmount(c.id);
+    const max=c.amount, remaining=Math.max(0,max-used), pct=Math.min(100,(used/max)*100);
+    const daysLeft=getDaysLeft(c.period), isDanger=daysLeft<=5;
+    const barColor = pct>=100?'var(--green)':pct>=50?'var(--accent)':'var(--orange)';
     html += `<div class="credit-card">
-      <div class="credit-top">
-        <div class="credit-name">${c.name}</div>
-        <div class="credit-badge ${isDanger ? 'danger' : ''}">${daysLeft}d left</div>
-      </div>
+      <div class="credit-top"><div class="credit-name">${c.name}</div><div class="credit-badge ${isDanger?'danger':''}">${daysLeft}d left</div></div>
       <div class="credit-card-label" style="color:${c.color}">${c.card} &middot; ${c.period}</div>
       <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${barColor}"></div></div>
-      <div class="credit-bottom">
-        <div class="credit-remaining">${c.isCount ? used + '/' + max + ' used' : '$' + used.toFixed(2) + ' / $' + max.toFixed(2)}</div>
-        <div>${c.isCount ? remaining + ' left' : '$' + remaining.toFixed(2) + ' left'}</div>
-      </div>
+      <div class="credit-bottom"><div class="credit-remaining">${c.isCount?used+'/'+max+' used':'$'+used.toFixed(2)+' / $'+max.toFixed(2)}</div><div>${c.isCount?remaining+' left':'$'+remaining.toFixed(2)+' left'}</div></div>
       <div style="font-size:11px;color:var(--text2);margin-top:4px">${c.note}</div>
       <div class="credit-actions">
-        ${c.isCount
-          ? (remaining > 0 ? `<button class="btn btn-primary btn-sm" onclick="usePass('${c.id}')">Use 1 Pass</button>` : '')
+        ${c.isCount ? (remaining>0?`<button class="btn btn-primary btn-sm" onclick="usePass('${c.id}')">Use 1 Pass</button>`:'')
           : `<button class="btn btn-primary btn-sm" onclick="openLog('${c.id}')">Log Spend</button>`}
-        ${!c.isCount && pct < 100 ? `<button class="btn btn-outline btn-sm" onclick="confirmMarkFull('${c.id}')">Mark Full</button>` : ''}
-        ${used > 0 ? `<button class="btn btn-outline btn-sm" onclick="undoLast('${c.id}')">Undo</button>` : ''}
+        ${!c.isCount&&pct<100?`<button class="btn btn-outline btn-sm" onclick="confirmMarkFull('${c.id}')">Mark Full</button>`:''}
+        ${used>0?`<button class="btn btn-outline btn-sm" onclick="undoLast('${c.id}')">Undo</button>`:''}
       </div>
     </div>`;
   });
@@ -523,295 +597,215 @@ function renderTracker() {
 }
 
 function getDaysLeft(period) {
-  const now = new Date();
-  if (period === 'monthly') {
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    return Math.max(0, end.getDate() - now.getDate());
-  }
-  if (period === 'semi-annual') {
-    const mid = new Date(now.getFullYear(), 6, 1);
-    const end = now < mid ? mid : new Date(now.getFullYear() + 1, 0, 1);
-    return Math.max(0, Math.ceil((end - now) / 86400000));
-  }
-  if (period === 'annual') {
-    const end = new Date(now.getFullYear() + 1, 0, 1);
-    return Math.max(0, Math.ceil((end - now) / 86400000));
-  }
+  const now=new Date();
+  if(period==='monthly'){const end=new Date(now.getFullYear(),now.getMonth()+1,0);return Math.max(0,end.getDate()-now.getDate());}
+  if(period==='semi-annual'){const mid=new Date(now.getFullYear(),6,1);const end=now<mid?mid:new Date(now.getFullYear()+1,0,1);return Math.max(0,Math.ceil((end-now)/86400000));}
+  if(period==='annual'){return Math.max(0,Math.ceil((new Date(now.getFullYear()+1,0,1)-now)/86400000));}
   return 30;
 }
 
-// ===== Log Modal =====
 function openLog(creditId) {
-  const credit = appData.credits.find(c => c.id === creditId);
-  const used = getUsedAmount(creditId);
-  const remaining = Math.max(0, credit.amount - used);
-  document.getElementById('logModalTitle').textContent = 'Log: ' + credit.name;
-  document.getElementById('logAmountLabel').textContent = 'Amount Spent ($' + remaining.toFixed(2) + ' remaining)';
-  document.getElementById('logCreditId').value = creditId;
-  document.getElementById('logAmount').value = '';
-  document.getElementById('logAmount').max = remaining;
-  document.getElementById('logAmount').placeholder = remaining.toFixed(2);
-  document.getElementById('logDesc').value = '';
+  const credit=appData.credits.find(c=>c.id===creditId);
+  const remaining=Math.max(0,credit.amount-getUsedAmount(creditId));
+  document.getElementById('logModalTitle').textContent='Log: '+credit.name;
+  document.getElementById('logAmountLabel').textContent='Amount Spent ($'+remaining.toFixed(2)+' remaining)';
+  document.getElementById('logCreditId').value=creditId;
+  document.getElementById('logAmount').value='';
+  document.getElementById('logAmount').placeholder=remaining.toFixed(2);
+  document.getElementById('logDesc').value='';
   document.getElementById('logModal').classList.add('show');
-  setTimeout(() => document.getElementById('logAmount').focus(), 100);
+  setTimeout(()=>document.getElementById('logAmount').focus(),100);
 }
-function closeModal() { document.getElementById('logModal').classList.remove('show'); }
-
-function submitLog() {
-  const creditId = document.getElementById('logCreditId').value;
-  const amount = parseFloat(document.getElementById('logAmount').value);
-  const desc = document.getElementById('logDesc').value.trim();
-  if (!amount || amount <= 0) return;
-  const credit = appData.credits.find(c => c.id === creditId);
-  logs.push({ id: Date.now().toString(), creditId, amount, desc: desc || credit.name,
-    date: new Date().toISOString(), cardName: credit.card, color: credit.color });
-  saveLogs(); closeModal(); renderTracker(); renderHistory();
+function closeModal(){document.getElementById('logModal').classList.remove('show');}
+function submitLog(){
+  const creditId=document.getElementById('logCreditId').value;
+  const amount=parseFloat(document.getElementById('logAmount').value);
+  const desc=document.getElementById('logDesc').value.trim();
+  if(!amount||amount<=0)return;
+  const credit=appData.credits.find(c=>c.id===creditId);
+  logs.push({id:Date.now().toString(),creditId,amount,desc:desc||credit.name,date:new Date().toISOString(),cardName:credit.card,color:credit.color});
+  saveLogs();closeModal();renderTracker();renderHistory();renderToday();
+}
+function usePass(creditId){
+  const credit=appData.credits.find(c=>c.id===creditId);
+  const used=logs.filter(l=>l.creditId===creditId).length;
+  if(used>=credit.amount)return;
+  logs.push({id:Date.now().toString(),creditId,amount:1,desc:credit.name+' (pass '+(used+1)+'/'+credit.amount+')',date:new Date().toISOString(),cardName:credit.card,color:credit.color});
+  saveLogs();renderTracker();renderHistory();renderToday();
+}
+function confirmMarkFull(creditId){
+  if(!confirm('Mark this credit as fully used?'))return;
+  const credit=appData.credits.find(c=>c.id===creditId);
+  const remaining=credit.amount-getUsedAmount(creditId);
+  if(remaining<=0)return;
+  logs.push({id:Date.now().toString(),creditId,amount:remaining,desc:credit.name+' (marked full)',date:new Date().toISOString(),cardName:credit.card,color:credit.color});
+  saveLogs();renderTracker();renderHistory();renderToday();
+}
+function undoLast(creditId){
+  const creditLogs=logs.filter(l=>l.creditId===creditId);
+  if(!creditLogs.length)return;
+  logs=logs.filter(l=>l.id!==creditLogs[creditLogs.length-1].id);
+  saveLogs();renderTracker();renderHistory();renderToday();
 }
 
-function usePass(creditId) {
-  const credit = appData.credits.find(c => c.id === creditId);
-  const used = logs.filter(l => l.creditId === creditId).length;
-  if (used >= credit.amount) return;
-  logs.push({ id: Date.now().toString(), creditId, amount: 1,
-    desc: credit.name + ' (pass ' + (used + 1) + '/' + credit.amount + ')',
-    date: new Date().toISOString(), cardName: credit.card, color: credit.color });
-  saveLogs(); renderTracker(); renderHistory();
+// ===== HISTORY =====
+function renderHistory(){
+  const list=document.getElementById('historyList');
+  const sorted=[...logs].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!sorted.length){list.innerHTML='<div class="empty">No spending logged yet.</div>';return;}
+  let html='';
+  sorted.forEach(log=>{
+    const d=new Date(log.date);
+    const ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    html+=`<div class="log-entry"><div class="log-dot" style="background:${log.color||'#888'}"></div><div class="log-info"><div class="log-credit">${log.desc}</div><div class="log-date">${ds} &middot; ${log.cardName}</div></div><div class="log-amount">$${log.amount.toFixed(2)}</div><button class="log-delete" onclick="deleteLog('${log.id}')">&times;</button></div>`;
+  });
+  list.innerHTML=html;
+}
+function deleteLog(id){logs=logs.filter(l=>l.id!==id);saveLogs();renderTracker();renderHistory();renderToday();}
+function clearAllLogs(){if(confirm('Clear all spending logs?')){logs=[];saveLogs();renderTracker();renderHistory();renderToday();}}
+
+// ===== CHASE =====
+function renderChase(){
+  const quarters=appData.chaseQuarters['2026'];let html='';const now=new Date();const currentQ=Math.ceil((now.getMonth()+1)/3);
+  Object.entries(quarters).forEach(([q,data])=>{
+    const qNum=parseInt(q.replace('Q',''));const isActive=qNum===currentQ;
+    const sc=data.status==='active'?'status-active':data.status==='upcoming'?'status-upcoming':'status-future';
+    html+=`<div class="quarter-card ${isActive?'active-q':''}"><div class="quarter-label">${q} 2026 &middot; ${data.dates}</div><div class="quarter-cats">${data.categories.join(', ')}</div><span class="quarter-status ${sc}">${isActive?'Active Now':data.status==='upcoming'?'Up Next':'TBD'}</span></div>`;
+  });
+  document.getElementById('chaseList').innerHTML=html;
 }
 
-function confirmMarkFull(creditId) {
-  if (confirm('Mark this credit as fully used for the period?')) {
-    const credit = appData.credits.find(c => c.id === creditId);
-    const used = getUsedAmount(creditId);
-    const remaining = credit.amount - used;
-    if (remaining <= 0) return;
-    logs.push({ id: Date.now().toString(), creditId, amount: remaining,
-      desc: credit.name + ' (marked full)', date: new Date().toISOString(),
-      cardName: credit.card, color: credit.color });
-    saveLogs(); renderTracker(); renderHistory();
+// ===== MYSTERY BOX =====
+function renderMystery(){
+  // Populate prize dropdown
+  const sel=document.getElementById('mbPrizeSelect');
+  if(sel.options.length<=1){
+    appData.mysteryBox.prizes.forEach(p=>{
+      if(p.id){const o=document.createElement('option');o.value=p.id;o.textContent=p.prize;sel.appendChild(o);}
+    });
   }
-}
-
-function undoLast(creditId) {
-  const creditLogs = logs.filter(l => l.creditId === creditId);
-  if (creditLogs.length === 0) return;
-  const lastLog = creditLogs[creditLogs.length - 1];
-  logs = logs.filter(l => l.id !== lastLog.id);
-  saveLogs(); renderTracker(); renderHistory();
-}
-
-// ===== History =====
-function renderHistory() {
-  const list = document.getElementById('historyList');
-  const sorted = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
-  if (sorted.length === 0) {
-    list.innerHTML = '<div class="empty">No spending logged yet.<br>Use the Tracker tab to log credit usage.</div>';
-    return;
+  // Active boost display
+  const boost=getActiveBoost();
+  let boostHtml='';
+  if(boost){
+    boostHtml=`<div class="today-card boost" style="margin-bottom:16px"><div class="today-label" style="color:var(--green)">ACTIVE BOOST</div><div class="today-value">${boost.prize}</div><div class="boost-timer" id="boostCountdownMystery">${getBoostTimeRemaining(boost)}</div><button class="btn btn-outline btn-sm" onclick="clearBoost()" style="margin-top:6px">Dismiss</button></div>`;
   }
-  let html = '';
-  sorted.forEach(log => {
-    const d = new Date(log.date);
-    const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    html += `<div class="log-entry">
-      <div class="log-dot" style="background:${log.color || '#888'}"></div>
-      <div class="log-info"><div class="log-credit">${log.desc}</div>
-      <div class="log-date">${dateStr} &middot; ${log.cardName}</div></div>
-      <div class="log-amount">$${log.amount.toFixed(2)}</div>
-      <button class="log-delete" onclick="deleteLog('${log.id}')">&times;</button>
+  document.getElementById('activeBoostSection').innerHTML=boostHtml;
+  // Prize table
+  let html='';
+  appData.mysteryBox.prizes.forEach(p=>{html+=`<div class="prize-row"><div>${p.prize}</div><div class="prize-odds">${p.odds}</div></div>`;});
+  document.getElementById('prizeList').innerHTML=html;
+  let tips='';
+  appData.mysteryBox.tips.forEach(t=>{tips+=`<div class="tip-item">${t}</div>`;});
+  document.getElementById('tipList').innerHTML=tips;
+}
+
+// ===== SAVINGS CALCULATOR =====
+function renderSavings(){
+  const v=id=>parseFloat(document.getElementById(id).value)||0;
+  const grocery=v('sv-grocery'),dining=v('sv-dining'),amazon=v('sv-amazon'),gas=v('sv-gas'),stream=v('sv-stream'),flights=v('sv-flights'),other=v('sv-other');
+  const total=grocery+dining+amazon+gas+stream+flights+other;
+  // Optimized stack
+  const optimized=(grocery*.04)+(dining*.04)+(amazon*.05)+(gas*.03)+(stream*.03)+(flights*.03)+(other*.03);
+  // Flat 2% card
+  const flat2=total*.02;
+  const annualSaved=(optimized-flat2)*12;
+  const annualBack=optimized*12;
+  document.getElementById('savingsResult').innerHTML=`
+    <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Your optimized stack earns</div>
+    <div class="savings-big">$${annualBack.toFixed(0)}/yr</div>
+    <div class="savings-sub">in cash back & points</div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+      <div style="font-size:14px;font-weight:600;color:var(--accent)">$${annualSaved.toFixed(0)}/yr more</div>
+      <div style="font-size:12px;color:var(--text2)">vs a single 2% flat-rate card</div>
     </div>`;
-  });
-  list.innerHTML = html;
 }
+document.querySelectorAll('.savings-field').forEach(el=>el.addEventListener('input',renderSavings));
 
-function deleteLog(id) { logs = logs.filter(l => l.id !== id); saveLogs(); renderTracker(); renderHistory(); }
-function clearAllLogs() { if(confirm('Clear all spending logs?')){logs=[];saveLogs();renderTracker();renderHistory();} }
-
-// ===== Chase 5% =====
-function renderChase() {
-  const quarters = appData.chaseQuarters['2026'];
-  let html = '';
-  const now = new Date();
-  const currentQ = Math.ceil((now.getMonth() + 1) / 3);
-  Object.entries(quarters).forEach(([q, data]) => {
-    const qNum = parseInt(q.replace('Q', ''));
-    const isActive = qNum === currentQ;
-    const statusClass = data.status === 'active' ? 'status-active' : data.status === 'upcoming' ? 'status-upcoming' : 'status-future';
-    html += `<div class="quarter-card ${isActive ? 'active-q' : ''}">
-      <div class="quarter-label">${q} 2026 &middot; ${data.dates}</div>
-      <div class="quarter-cats">${data.categories.join(', ')}</div>
-      <span class="quarter-status ${statusClass}">${isActive ? 'Active Now' : data.status === 'upcoming' ? 'Up Next' : 'TBD'}</span>
-    </div>`;
-  });
-  document.getElementById('chaseList').innerHTML = html;
-}
-
-// ===== Mystery Box =====
-function renderMystery() {
-  let html = '';
-  appData.mysteryBox.prizes.forEach(p => {
-    html += `<div class="prize-row"><div>${p.prize}</div><div class="prize-odds">${p.odds}</div></div>`;
-  });
-  document.getElementById('prizeList').innerHTML = html;
-  let tips = '';
-  appData.mysteryBox.tips.forEach(t => { tips += `<div class="tip-item">${t}</div>`; });
-  document.getElementById('tipList').innerHTML = tips;
-}
-
-// ===== AI Engine =====
-const aiRules = [
-  { keys: ['five guys','5 guys','fiveguys'], card: 'Amex Gold', rate: '4x + $10/mo credit', color: '#C5A44E',
-    tip: 'You get a $10/mo dining credit that covers this. Check Tracker to see how much is left this month.' },
-  { keys: ['grubhub','goldbelly','shake shack','chipotle','restaurant','dining','dinner','lunch','brunch','bar','pub','eat out','takeout','take out','food delivery','doordash','postmates',
+// ===== AI ENGINE =====
+const aiRules=[
+  {keys:['five guys','5 guys','fiveguys'],card:'Amex Gold',rate:'4x + $10/mo credit',color:'#C5A44E',tip:'You get a $10/mo dining credit that covers this. Check Tracker to see how much is left.'},
+  {keys:['grubhub','goldbelly','shake shack','chipotle','restaurant','dining','dinner','lunch','brunch','bar','pub','eat out','takeout','take out','food delivery','doordash','postmates',
     'sandwich','burger','pizza','taco','burrito','sushi','wings','salad','soup','wrap','sub','meal','food','snack','cafeteria','cafe','deli','bakery','noodle','ramen','pho','thai','chinese','mexican','italian','indian','korean','bbq','barbecue','buffet','diner','bistro','grill','kitchen','eatery','food truck','food court','panera','subway','mcdonalds','wendys','chick-fil-a','chickfila','popeyes','panda express','taco bell','kfc','arbys','sonic','jack in the box','in-n-out','whataburger','noodles','wingstop','canes','raising cane','zaxby','jersey mike','firehouse','jimmy john','qdoba','moe','chili','applebee','olive garden','outback','red lobster','ihop','waffle house','denny'],
-    card: 'Amex Gold', rate: '4x', color: '#C5A44E', tip: 'Food purchases almost always code as dining. Your $10/mo dining credit may apply too. If buying food at a gas station, it usually codes under the gas station — check your Amex statement to confirm.' },
-  { keys: ['grocery','groceries','supermarket','safeway','king soopers','kroger','trader joe','aldi','sprouts','hmart','costco food'],
-    card: 'Amex Gold', rate: '4x', color: '#C5A44E', tip: 'Must be a U.S. supermarket. Capped at $25K/yr.' },
-  { keys: ['whole foods','wholefoods'], card: 'Amazon Prime Visa', rate: '5%', color: '#232F3E',
-    tip: 'Whole Foods codes separately from supermarkets. Amazon card beats Amex Gold here.' },
-  { keys: ['amazon'], card: 'Amazon Prime Visa', rate: '5%', color: '#232F3E', tip: 'Also covers Amazon Fresh and Subscribe & Save.' },
-  { keys: ['food at gas','snack at gas','gas station food','gas station snack','food at shell','food at chevron','food at exxon','food at bp','food at circle k','7-eleven food','7 eleven food','convenience store food','convenience store snack'],
-    card: 'Robinhood Gold Card', rate: '3%', color: '#00C805',
-    tip: 'Food at a gas station or convenience store codes under the store, NOT dining. Amex won\'t give 4x. Use Robinhood 3%.' },
-  { keys: ['food at sam','food at costco','costco food','sams food','sam\'s food','costco food court','sams food court','sam\'s food court','costco hot dog','sams club food','warehouse food'],
-    card: 'Robinhood Gold Card', rate: '3%', color: '#00C805',
-    tip: 'Costco/Sam\'s food court codes as "warehouse club," not dining. Amex won\'t give 4x here. Robinhood 3% is your best bet.' },
-  { keys: ['food at ikea','ikea food','ikea cafe','food at target','target food','target cafe','food at walmart','walmart food','store food','food court'],
-    card: 'Robinhood Gold Card', rate: '3%', color: '#00C805',
-    tip: 'Food at retail stores (IKEA, Target, Walmart) codes under the store category, not dining. Use Robinhood 3%. Exception: if the restaurant inside has its own separate register and merchant code, it might code as dining — check your Amex statement.' },
-  { keys: ['gas','gas station','fuel','shell','chevron','exxon','mobil','bp','conoco','circle k','costco gas','sams gas','pump','fill up','fillup','gasoline','petrol'],
-    card: 'Robinhood Gold Card', rate: '3%', color: '#00C805',
-    tip: 'Amazon card only gets 2% on gas. Robinhood Gold wins. Check Mystery Box for a potential boost before filling up!' },
-  { keys: ['netflix','hulu','spotify','disney','hbo','max','youtube','apple tv','peacock','paramount','streaming','subscription','subscriptions','crunchyroll','audible'],
-    card: 'Robinhood Gold Card', rate: '3%', color: '#00C805', tip: 'No other card in your stack beats 1% on streaming.' },
-  { keys: ['uber','lyft','rideshare','ride share','taxi','cab'], card: 'Amazon Prime Visa', rate: '2%', color: '#232F3E',
-    tip: 'BUT use your Amex Gold $10/mo Uber Cash first! Check Tracker to see if you still have Uber credit this month.' },
-  { keys: ['united','united airlines','united flight'], card: 'United Explorer', rate: '7x', color: '#0033A0',
-    tip: 'You MUST pay with the Explorer card to get free checked bag + priority boarding for you and a companion.' },
-  { keys: ['instacart'], card: 'United Explorer', rate: '$10/mo credit', color: '#0033A0',
-    tip: 'Use the $10/mo credit first (expires monthly, through 12/31/27). Works with Whole Foods orders through Instacart too.' },
-  { keys: ['flight','airline','plane','travel','vacation','trip','booking','delta','southwest','american airlines','jetblue','spirit','frontier','alaska airlines'],
-    card: 'Amex Gold', rate: '3x', color: '#C5A44E', tip: 'Book direct with the airline or via AmexTravel. For United specifically, use the United Explorer for 7x + free bag.' },
-  { keys: ['hotel','hilton','marriott','hyatt','airbnb','resort','motel','lodging','stay'], card: 'Amex Gold', rate: '3x', color: '#C5A44E',
-    tip: 'For United Hotels, use Explorer ($50 credit per stay). For everything else, Amex Gold 3x or check Robinhood travel portal for 5%.' },
-  { keys: ['international','abroad','foreign','overseas','europe','mexico','canada','japan','uk','travel abroad'],
-    card: 'Amex Gold', rate: 'varies', color: '#C5A44E', tip: 'Both Amex Gold and United Explorer have no foreign transaction fees. Use the card that matches the spending category.' },
-  { keys: ['dunkin','donuts','dunkin donuts'], card: 'Amex Gold', rate: '4x + $7/mo credit', color: '#C5A44E',
-    tip: 'You have a $7/mo Dunkin credit! Enroll on the Amex site if you haven\'t already.' },
-  { keys: ['resy','nice dinner','fancy dinner','date night'], card: 'Amex Gold', rate: '4x + $50 Resy credit', color: '#C5A44E',
-    tip: 'You have $50 Resy credit per half-year (resets Jun 30 & Dec 31). Any Resy restaurant, no reservation needed.' },
-  { keys: ['target','walmart','costco','sams club','home depot','lowes','best buy','clothing','clothes','shoes','furniture','electronics','hardware'],
-    card: 'Robinhood Gold Card', rate: '3%', color: '#00C805', tip: 'These are all "everything else" categories. Robinhood Gold\'s flat 3% is your best bet.' },
-  { keys: ['phone','cell','t-mobile','verizon','att','at&t','internet','cable','utility','utilities','electric','water','sewer','insurance','rent','mortgage'],
-    card: 'Robinhood Gold Card', rate: '3%', color: '#00C805', tip: 'Bills and utilities earn 1% on most cards. Robinhood Gold gives you 3%.' },
-  { keys: ['coffee','starbucks','dutch bros'], card: 'Amex Gold', rate: '4x', color: '#C5A44E',
-    tip: 'Coffee shops code as restaurants/dining. If it\'s Dunkin\', you also have a $7/mo credit!' },
+    card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Food purchases almost always code as dining. Your $10/mo dining credit may apply too. If buying food at a gas station, it usually codes under the gas station — check your Amex statement to confirm.'},
+  {keys:['grocery','groceries','supermarket','safeway','king soopers','kroger','trader joe','aldi','sprouts','hmart','costco food'],
+    card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Must be a U.S. supermarket. Capped at $25K/yr.'},
+  {keys:['whole foods','wholefoods'],card:'Amazon Prime Visa',rate:'5%',color:'#232F3E',tip:'Whole Foods codes separately. Amazon card beats Amex Gold here.'},
+  {keys:['amazon'],card:'Amazon Prime Visa',rate:'5%',color:'#232F3E',tip:'Also covers Amazon Fresh and Subscribe & Save.'},
+  {keys:['food at gas','snack at gas','gas station food','gas station snack','food at shell','food at chevron','food at exxon','food at bp','food at circle k','7-eleven food','7 eleven food','convenience store food','convenience store snack'],
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Food at a gas station or convenience store codes under the store, NOT dining. Use Robinhood 3%.'},
+  {keys:['food at sam','food at costco','costco food','sams food','costco food court','sams food court','costco hot dog','sams club food','warehouse food'],
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Costco/Sam\'s food court codes as "warehouse club," not dining. Use Robinhood 3%.'},
+  {keys:['food at ikea','ikea food','ikea cafe','food at target','target food','target cafe','food at walmart','walmart food','store food'],
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Food at retail stores codes under the store category, not dining. Use Robinhood 3%. Exception: if the restaurant has its own register, it might code as dining.'},
+  {keys:['gas','gas station','fuel','shell','chevron','exxon','mobil','bp','conoco','circle k','costco gas','sams gas','pump','fill up','fillup','gasoline','petrol'],
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Amazon card only gets 2%. Robinhood Gold wins. Check Mystery Box for a boost before filling up!'},
+  {keys:['netflix','hulu','spotify','disney','hbo','max','youtube','apple tv','peacock','paramount','streaming','subscription','subscriptions','crunchyroll','audible'],
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'No other card in your stack beats 1% on streaming.'},
+  {keys:['uber','lyft','rideshare','ride share','taxi','cab'],card:'Amazon Prime Visa',rate:'2%',color:'#232F3E',tip:'Use your Amex Gold $10/mo Uber Cash first! Check Tracker.'},
+  {keys:['united','united airlines','united flight'],card:'United Explorer',rate:'7x',color:'#0033A0',tip:'Must pay with Explorer for free checked bag + priority boarding.'},
+  {keys:['instacart'],card:'United Explorer',rate:'$10/mo credit',color:'#0033A0',tip:'Use the $10/mo credit first (expires monthly, through 12/31/27).'},
+  {keys:['flight','airline','plane','travel','vacation','trip','booking','delta','southwest','american airlines','jetblue','spirit','frontier','alaska airlines'],
+    card:'Amex Gold',rate:'3x',color:'#C5A44E',tip:'Book direct or via AmexTravel. For United, use Explorer for 7x + free bag.'},
+  {keys:['hotel','hilton','marriott','hyatt','airbnb','resort','motel','lodging','stay'],card:'Amex Gold',rate:'3x',color:'#C5A44E',tip:'Check Robinhood travel portal for 5%. For United Hotels, use Explorer ($50 credit).'},
+  {keys:['international','abroad','foreign','overseas','europe','mexico','canada','japan','uk'],card:'Amex Gold',rate:'varies',color:'#C5A44E',tip:'Both Amex Gold and United Explorer have no foreign transaction fees.'},
+  {keys:['dunkin','donuts'],card:'Amex Gold',rate:'4x + $7/mo credit',color:'#C5A44E',tip:'You have a $7/mo Dunkin credit! Enroll on Amex site.'},
+  {keys:['resy','nice dinner','fancy dinner','date night'],card:'Amex Gold',rate:'4x + $50 Resy credit',color:'#C5A44E',tip:'$50 Resy credit per half-year (resets Jun 30 & Dec 31).'},
+  {keys:['target','walmart','costco','sams club','home depot','lowes','best buy','clothing','clothes','shoes','furniture','electronics','hardware'],
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Robinhood Gold\'s flat 3% is your best bet for retail.'},
+  {keys:['phone','cell','t-mobile','verizon','att','at&t','internet','cable','utility','utilities','electric','water','sewer','insurance','rent','mortgage'],
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Bills and utilities earn 1% on most cards. Robinhood Gold gives you 3%.'},
+  {keys:['coffee','starbucks','dutch bros'],card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Coffee shops code as dining. If Dunkin\', you also have a $7/mo credit!'},
 ];
 
-function getAIResponse(query) {
-  const q = query.toLowerCase().trim();
-  const checkCredit = (creditId) => {
-    if (!appData) return null;
-    const credit = appData.credits.find(c => c.id === creditId);
-    if (!credit || credit.isCount) return null;
-    const used = getUsedAmount(creditId);
-    const remaining = Math.max(0, credit.amount - used);
-    const daysLeft = getDaysLeft(credit.period);
-    return { remaining, daysLeft, name: credit.name };
-  };
-  for (const rule of aiRules) {
-    if (rule.keys.some(k => q.includes(k))) {
-      let tip = rule.tip;
-      if (q.includes('five guys') || q.includes('5 guys') || q.includes('dining') || q.includes('grubhub') || q.includes('restaurant') || q.includes('dinner') || q.includes('lunch')) {
-        const c = checkCredit('amex-dining');
-        if (c) tip += ` (Dining credit: $${c.remaining.toFixed(2)} remaining, ${c.daysLeft}d left)`;
-      }
-      if (q.includes('uber') || q.includes('lyft')) {
-        const c = checkCredit('amex-uber');
-        if (c) tip += ` (Uber Cash: $${c.remaining.toFixed(2)} remaining, ${c.daysLeft}d left)`;
-      }
-      if (q.includes('dunkin')) {
-        const c = checkCredit('amex-dunkin');
-        if (c) tip += ` (Dunkin credit: $${c.remaining.toFixed(2)} remaining, ${c.daysLeft}d left)`;
-      }
-      if (q.includes('instacart')) {
-        const c = checkCredit('united-instacart');
-        if (c) tip += ` (Instacart credit: $${c.remaining.toFixed(2)} remaining, ${c.daysLeft}d left)`;
-      }
-      return { card: rule.card, rate: rule.rate, color: rule.color, tip };
+function getAIResponse(query){
+  const q=query.toLowerCase().trim();
+  const checkCredit=(id)=>{if(!appData)return null;const c=appData.credits.find(c=>c.id===id);if(!c||c.isCount)return null;return{remaining:Math.max(0,c.amount-getUsedAmount(id)),daysLeft:getDaysLeft(c.period)};};
+  // Check for active boost
+  const boost=getActiveBoost();
+  let boostNote='';
+  if(boost&&boost.type==='timed') boostNote='\n\nYou have an ACTIVE Mystery Box boost: '+boost.rate+' — consider using Robinhood Gold Card instead if the boost rate is higher!';
+
+  for(const rule of aiRules){
+    if(rule.keys.some(k=>q.includes(k))){
+      let tip=rule.tip;
+      if(q.match(/five guys|5 guys|dining|grubhub|restaurant|dinner|lunch|cafeteria|food/)){const c=checkCredit('amex-dining');if(c)tip+=` (Dining credit: $${c.remaining.toFixed(2)} left, ${c.daysLeft}d)`;}
+      if(q.match(/uber|lyft/)){const c=checkCredit('amex-uber');if(c)tip+=` (Uber Cash: $${c.remaining.toFixed(2)} left, ${c.daysLeft}d)`;}
+      if(q.match(/dunkin/)){const c=checkCredit('amex-dunkin');if(c)tip+=` (Dunkin: $${c.remaining.toFixed(2)} left, ${c.daysLeft}d)`;}
+      if(q.match(/instacart/)){const c=checkCredit('united-instacart');if(c)tip+=` (Instacart: $${c.remaining.toFixed(2)} left, ${c.daysLeft}d)`;}
+      if(boostNote)tip+=boostNote;
+      return{card:rule.card,rate:rule.rate,color:rule.color,tip};
     }
   }
-  return {
-    card: 'Robinhood Gold Card', rate: '3%', color: '#00C805',
-    tip: 'This doesn\'t match a specific bonus category on any of your cards. Robinhood Gold\'s flat 3% is your best option.'
-  };
+  return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'No specific bonus category matched. Robinhood Gold\'s flat 3% is your best option.'+boostNote};
 }
 
-function renderAI() {
-  const chat = document.getElementById('aiChat');
-  if (aiMessages.length === 0) {
-    chat.innerHTML = `<div class="ai-welcome">
-      <div style="font-size:28px;margin-bottom:8px">&#127183;</div>
-      <div style="font-size:16px;font-weight:600;margin-bottom:4px">What are you buying?</div>
-      <div style="font-size:13px;color:var(--text2)">Type above or tap a quick button</div>
-    </div>`;
-    document.getElementById('aiClearWrap').style.display = 'none';
-    return;
+function renderAI(){
+  const chat=document.getElementById('aiChat');
+  if(!aiMessages.length){
+    chat.innerHTML='<div class="ai-welcome"><div style="font-size:28px;margin-bottom:8px">&#127183;</div><div style="font-size:16px;font-weight:600;margin-bottom:4px">What are you buying?</div><div style="font-size:13px;color:var(--text2)">Type above or tap a quick button</div></div>';
+    document.getElementById('aiClearWrap').style.display='none';return;
   }
-  document.getElementById('aiClearWrap').style.display = 'flex';
-  let html = '';
-  for (let i = 0; i < aiMessages.length; i++) {
-    html += aiMessages[i].html;
-  }
-  chat.innerHTML = html;
-  chat.scrollTop = chat.scrollHeight;
+  document.getElementById('aiClearWrap').style.display='flex';
+  let html='';
+  for(let i=0;i<aiMessages.length;i++) html+=aiMessages[i].html;
+  chat.innerHTML=html;
+  chat.scrollTop=chat.scrollHeight;
 }
 
-function askAI(query) {
-  const result = getAIResponse(query);
-  aiMessages.push({
-    role: 'pair',
-    html: `<div class="ai-msg user">${escapeHtml(query)}</div>
-    <div class="ai-msg bot">
-      <div style="margin-bottom:4px">Use this card:</div>
-      <div class="card-rec">
-        <div class="rec-dot" style="background:${result.color}"></div>
-        <div class="rec-name">${result.card}</div>
-        <div class="rec-rate">${result.rate}</div>
-      </div>
-      <div class="ai-tip">${result.tip}</div>
-    </div>`
-  });
-  renderAI();
-  document.getElementById('aiInput').value = '';
+function askAI(query){
+  const result=getAIResponse(query);
+  aiMessages.push({role:'pair',html:`<div class="ai-msg user">${escapeHtml(query)}</div><div class="ai-msg bot"><div style="margin-bottom:4px">Use this card:</div><div class="card-rec"><div class="rec-dot" style="background:${result.color}"></div><div class="rec-name">${result.card}</div><div class="rec-rate">${result.rate}</div></div><div class="ai-tip">${result.tip}</div></div>`});
+  renderAI();document.getElementById('aiInput').value='';
 }
+function sendAI(){const q=document.getElementById('aiInput').value.trim();if(q)askAI(q);}
+function clearAI(){aiMessages=[];renderAI();}
+document.getElementById('aiInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendAI();});
+function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-function sendAI() {
-  const input = document.getElementById('aiInput');
-  const q = input.value.trim();
-  if (!q) return;
-  askAI(q);
-}
+// ===== Unregister old service worker =====
+if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(r=>r.forEach(r=>r.unregister()));}
 
-function clearAI() {
-  aiMessages = [];
-  renderAI();
-}
-
-document.getElementById('aiInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') sendAI();
-});
-
-function escapeHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// ===== Unregister old service worker to fix caching =====
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(r => r.unregister());
-  });
-}
-
-// ===== Start =====
 init();
 </script>
 </body>
