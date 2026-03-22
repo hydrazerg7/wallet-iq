@@ -291,7 +291,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
   <div class="modal">
     <h3 id="logModalTitle">Log Spending</h3>
     <div class="form-group">
-      <label>Amount Spent ($)</label>
+      <label id="logAmountLabel">Amount Spent ($)</label>
       <input type="number" id="logAmount" placeholder="9.00" step="0.01" min="0" inputmode="decimal">
     </div>
     <div class="form-group">
@@ -307,7 +307,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-const APP_VERSION = 'v1.9';
+const APP_VERSION = 'v2.0';
 
 // ===== State =====
 let appData = null;
@@ -511,8 +511,11 @@ function renderTracker() {
       </div>
       <div style="font-size:11px;color:var(--text2);margin-top:4px">${c.note}</div>
       <div class="credit-actions">
-        <button class="btn btn-primary btn-sm" onclick="openLog('${c.id}')">Log Spend</button>
-        ${!c.isCount && pct < 100 ? `<button class="btn btn-outline btn-sm" onclick="markFull('${c.id}')">Mark Full</button>` : ''}
+        ${c.isCount
+          ? (remaining > 0 ? `<button class="btn btn-primary btn-sm" onclick="usePass('${c.id}')">Use 1 Pass</button>` : '')
+          : `<button class="btn btn-primary btn-sm" onclick="openLog('${c.id}')">Log Spend</button>`}
+        ${!c.isCount && pct < 100 ? `<button class="btn btn-outline btn-sm" onclick="confirmMarkFull('${c.id}')">Mark Full</button>` : ''}
+        ${used > 0 ? `<button class="btn btn-outline btn-sm" onclick="undoLast('${c.id}')">Undo</button>` : ''}
       </div>
     </div>`;
   });
@@ -540,9 +543,14 @@ function getDaysLeft(period) {
 // ===== Log Modal =====
 function openLog(creditId) {
   const credit = appData.credits.find(c => c.id === creditId);
+  const used = getUsedAmount(creditId);
+  const remaining = Math.max(0, credit.amount - used);
   document.getElementById('logModalTitle').textContent = 'Log: ' + credit.name;
+  document.getElementById('logAmountLabel').textContent = 'Amount Spent ($' + remaining.toFixed(2) + ' remaining)';
   document.getElementById('logCreditId').value = creditId;
   document.getElementById('logAmount').value = '';
+  document.getElementById('logAmount').max = remaining;
+  document.getElementById('logAmount').placeholder = remaining.toFixed(2);
   document.getElementById('logDesc').value = '';
   document.getElementById('logModal').classList.add('show');
   setTimeout(() => document.getElementById('logAmount').focus(), 100);
@@ -560,14 +568,34 @@ function submitLog() {
   saveLogs(); closeModal(); renderTracker(); renderHistory();
 }
 
-function markFull(creditId) {
+function usePass(creditId) {
   const credit = appData.credits.find(c => c.id === creditId);
-  const used = getUsedAmount(creditId);
-  const remaining = credit.amount - used;
-  if (remaining <= 0) return;
-  logs.push({ id: Date.now().toString(), creditId, amount: remaining,
-    desc: credit.name + ' (marked full)', date: new Date().toISOString(),
-    cardName: credit.card, color: credit.color });
+  const used = logs.filter(l => l.creditId === creditId).length;
+  if (used >= credit.amount) return;
+  logs.push({ id: Date.now().toString(), creditId, amount: 1,
+    desc: credit.name + ' (pass ' + (used + 1) + '/' + credit.amount + ')',
+    date: new Date().toISOString(), cardName: credit.card, color: credit.color });
+  saveLogs(); renderTracker(); renderHistory();
+}
+
+function confirmMarkFull(creditId) {
+  if (confirm('Mark this credit as fully used for the period?')) {
+    const credit = appData.credits.find(c => c.id === creditId);
+    const used = getUsedAmount(creditId);
+    const remaining = credit.amount - used;
+    if (remaining <= 0) return;
+    logs.push({ id: Date.now().toString(), creditId, amount: remaining,
+      desc: credit.name + ' (marked full)', date: new Date().toISOString(),
+      cardName: credit.card, color: credit.color });
+    saveLogs(); renderTracker(); renderHistory();
+  }
+}
+
+function undoLast(creditId) {
+  const creditLogs = logs.filter(l => l.creditId === creditId);
+  if (creditLogs.length === 0) return;
+  const lastLog = creditLogs[creditLogs.length - 1];
+  logs = logs.filter(l => l.id !== lastLog.id);
   saveLogs(); renderTracker(); renderHistory();
 }
 
