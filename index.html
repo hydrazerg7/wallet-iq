@@ -38,7 +38,8 @@ if('serviceWorker' in navigator){
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,system-ui,sans-serif;overflow:hidden}
 body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 .header{padding:16px 20px 12px;background:var(--bg);border-bottom:1px solid var(--border)}
-.header h1{font-size:22px;font-weight:700;color:var(--accent)}
+.header h1{font-size:22px;font-weight:700;background:linear-gradient(135deg,#c9a84c,#e8c55a,#f0d878,#c9a84c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline}
+.header h1 .refresh{-webkit-text-fill-color:#10b981;font-size:18px;margin-left:4px}
 .header .subtitle{font-size:11px;color:var(--text2);margin-top:2px}
 .header .updated{font-size:10px;color:var(--text2);float:right;margin-top:-28px;text-align:right}
 .tabs{display:flex;gap:8px;background:var(--bg);padding:10px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0;scrollbar-width:none;border-bottom:1px solid var(--border)}
@@ -211,7 +212,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </head>
 <body>
 <div class="header">
-  <h1 style="cursor:pointer" onclick="location.reload(true)">Wallet IQ &#8635;</h1>
+  <h1 style="cursor:pointer" onclick="location.reload(true)">Wallet IQ<span class="refresh">&#8635;</span></h1>
   <div class="subtitle">Card Optimizer & Credit Tracker</div>
   <div class="updated" id="lastUpdated"></div>
 </div>
@@ -422,7 +423,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
         <option value="Amazon Prime Visa">Amazon Prime Visa</option>
         <option value="Robinhood Gold Card">Robinhood Gold Card</option>
         <option value="United Explorer">United Explorer</option>
-        <option value="Chase Freedom">Chase Freedom</option>
+        <option value="Chase Freedom (Legacy)">Chase Freedom</option>
       </select>
     </div>
     <div class="form-group">
@@ -445,7 +446,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-let APP_VERSION = '0.0.16';
+let APP_VERSION = '0.0.24';
 let appData = null;
 let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
 let aiMessages = [];
@@ -503,6 +504,20 @@ function autoResetCredits() {
   if (lastSemiReset !== semiKey) {
     logs = logs.filter(l => { const c = appData.credits.find(c => c.id === l.creditId); return !c || c.period !== 'semi-annual'; });
     saveLogs(); localStorage.setItem('walletiq_lastSemiReset', semiKey);
+  }
+  // Quarterly reset (Q1=Jan-Mar, Q2=Apr-Jun, Q3=Jul-Sep, Q4=Oct-Dec)
+  const qKey = now.getFullYear() + '-Q' + Math.ceil((now.getMonth()+1)/3);
+  const lastQReset = localStorage.getItem('walletiq_lastQReset');
+  if (lastQReset !== qKey) {
+    logs = logs.filter(l => { const c = appData.credits.find(c => c.id === l.creditId); return !c || c.period !== 'quarterly'; });
+    saveLogs(); localStorage.setItem('walletiq_lastQReset', qKey);
+  }
+  // Annual reset
+  const yearKey = String(now.getFullYear());
+  const lastYearReset = localStorage.getItem('walletiq_lastYearReset');
+  if (lastYearReset !== yearKey) {
+    logs = logs.filter(l => { const c = appData.credits.find(c => c.id === l.creditId); return !c || c.period !== 'annual'; });
+    saveLogs(); localStorage.setItem('walletiq_lastYearReset', yearKey);
   }
 }
 function saveLogs() { localStorage.setItem('walletiq_logs', JSON.stringify(logs)); }
@@ -756,7 +771,7 @@ const searchAliases = {
   'uber':'Rideshare','lyft':'Rideshare','taxi':'Rideshare',
   'target':'Everything Else','walmart':'Everything Else','costco':'Everything Else',
   'bills':'Everything Else','utilities':'Everything Else','phone':'Everything Else',
-  'hotel':'Non-United Flights','airbnb':'Non-United Flights',
+  'hotel':'Everything Else','airbnb':'Everything Else',
 };
 
 let activeCardFilter = null;
@@ -1060,6 +1075,7 @@ function getDaysLeft(period) {
   const now=new Date();
   if(period==='monthly'){const end=new Date(now.getFullYear(),now.getMonth()+1,0);return Math.max(0,end.getDate()-now.getDate());}
   if(period==='semi-annual'){const mid=new Date(now.getFullYear(),6,1);const end=now<mid?mid:new Date(now.getFullYear()+1,0,1);return Math.max(0,Math.ceil((end-now)/86400000));}
+  if(period==='quarterly'){const qEnd=new Date(now.getFullYear(),Math.ceil((now.getMonth()+1)/3)*3,0);return Math.max(0,Math.ceil((qEnd-now)/86400000));}
   if(period==='annual'){return Math.max(0,Math.ceil((new Date(now.getFullYear()+1,0,1)-now)/86400000));}
   return 30;
 }
@@ -1233,9 +1249,11 @@ function renderChase(){
   const quarters=appData.chaseQuarters['2026'];let html='';const now=new Date();const currentQ=Math.ceil((now.getMonth()+1)/3);
   Object.entries(quarters).forEach(([q,data])=>{
     const qNum=parseInt(q.replace('Q',''));const isActive=qNum===currentQ;
-    const sc=data.status==='active'?'status-active':data.status==='upcoming'?'status-upcoming':'status-future';
+    const isUpcoming=qNum===currentQ+1;
+    const sc=isActive?'status-active':isUpcoming?'status-upcoming':'status-future';
+    const statusText=isActive?'Active Now':isUpcoming?'Up Next':'TBD';
     const activateBy = data.activateBy ? `<div style="font-size:11px;color:${isActive?'var(--green)':'var(--text2)'};margin-top:4px">Activate by: ${data.activateBy}</div>` : '';
-    html+=`<div class="quarter-card ${isActive?'active-q':''}"><div class="quarter-label">${q} 2026 &middot; ${data.dates}</div><div class="quarter-cats">${data.categories.join(', ')}</div>${activateBy}<span class="quarter-status ${sc}">${isActive?'Active Now':data.status==='upcoming'?'Up Next':'TBD'}</span></div>`;
+    html+=`<div class="quarter-card ${isActive?'active-q':''}"><div class="quarter-label">${q} 2026 &middot; ${data.dates}</div><div class="quarter-cats">${data.categories.join(', ')}</div>${activateBy}<span class="quarter-status ${sc}">${statusText}</span></div>`;
   });
   document.getElementById('chaseList').innerHTML=html;
 }
@@ -1307,6 +1325,8 @@ function renderSavings(){
     {name:'Avis/Budget', card:'United Explorer', annual:50, note:'$25 x 2 rentals'},
     {name:'TravelBank ($10K spend)', card:'United Explorer', annual:100, note:'After $10K annual spend'},
     {name:'Global Entry/TSA Pre', card:'United Explorer', annual:30, note:'$120 every 4 years'},
+    {name:'DashPass (6mo free)', card:'Chase Freedom', annual:60, note:'$9.99/mo value'},
+    {name:'DoorDash Promo', card:'Chase Freedom', annual:40, note:'$10/quarter'},
   ];
   const totalCredits = creditLines.reduce((s,c) => s + c.annual, 0) * (m / 12);
 
@@ -1538,11 +1558,11 @@ const aiRules=[
   {keys:['netflix','hulu','spotify','disney','hbo','max','youtube','apple tv','peacock','paramount','streaming','subscription','subscriptions','crunchyroll','audible'],
     card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Robinhood Gold 3% beats United Explorer 2x miles (~2-2.4 cents) on streaming since 3% cash is guaranteed value.'},
   {keys:['ride'],card:'United Explorer',rate:'2x',color:'#0033A0',tip:'United Explorer earns 2x on rideshare. Check for $5/mo rideshare credit and Uber Cash first.'},
-  {keys:['united','united airlines','united flight'],card:'United Explorer',rate:'7x',color:'#0033A0',tip:'Must pay with Explorer for free checked bag + priority boarding.'},
+  {keys:['united','united airlines','united flight'],card:'United Explorer',rate:'2x (9x Apr 2)',color:'#0033A0',tip:'Must pay with Explorer for free checked bag + priority boarding. Currently 2x, jumps to 9x on April 2, 2026.'},
   {keys:['instacart'],card:'United Explorer',rate:'$10/mo credit',color:'#0033A0',tip:'Use the $10/mo credit first (expires monthly, through 12/31/27).'},
   {keys:['flight','airline','plane','travel','vacation','trip','booking','delta','southwest','american airlines','jetblue','spirit','frontier','alaska airlines'],
     card:'Amex Gold',rate:'3x',color:'#C5A44E',tip:'Book direct or via AmexTravel. For United, use Explorer for 7x + free bag.'},
-  {keys:['hotel','hilton','marriott','hyatt','airbnb','resort','motel','lodging','stay'],card:'Amex Gold',rate:'3x',color:'#C5A44E',tip:'Check Robinhood travel portal for 5%. For United Hotels, use Explorer ($50 credit).'},
+  {keys:['hotel','hilton','marriott','hyatt','airbnb','resort','motel','lodging','stay'],card:'Amex Gold',rate:'2x (AmexTravel)',color:'#C5A44E',tip:'2x ONLY when booked via AmexTravel.com. Hotels booked elsewhere earn 1x — Robinhood Gold 3% beats that. Check Robinhood travel portal for 5%. For United Hotels, use Explorer ($50 credit).'},
   {keys:['international','abroad','foreign','overseas','europe','mexico','canada','japan','uk'],card:'Amex Gold',rate:'varies',color:'#C5A44E',tip:'Both Amex Gold and United Explorer have no foreign transaction fees.'},
   {keys:['dunkin','donuts'],card:'Amex Gold',rate:'4x + $7/mo credit',color:'#C5A44E',tip:'You have a $7/mo Dunkin credit! Enroll on Amex site.'},
   {keys:['resy','nice dinner','fancy dinner','date night'],card:'Amex Gold',rate:'4x + $50 Resy credit',color:'#C5A44E',tip:'$50 Resy credit per half-year (resets Jun 30 & Dec 31).'},
@@ -1698,11 +1718,11 @@ function getAIResponse(query){
     if(c&&c.remaining>0){
       let tip=`Check if this is a Hotel Collection property — you have a $100/yr experience credit ($${c.remaining.toFixed(2)} remaining). Requires 2+ night stay. Book via AmexTravel for Hotel Collection properties. Otherwise, Amex Gold earns 3x on hotels, or check Robinhood travel portal for 5%.`;
       if(boostNote)tip+=boostNote;
-      return{card:'Amex Gold',rate:'3x + $100 Hotel credit',color:'#C5A44E',tip};
+      return{card:'Amex Gold',rate:'2x + $100 Hotel credit',color:'#C5A44E',tip};
     }
-    let tip='Hotel Collection credit used this year. Amex Gold earns 3x, or Robinhood travel portal for 5%.';
+    let tip='Hotel Collection credit used this year. Book via AmexTravel for 2x, Robinhood travel portal for 5%, or Robinhood Gold 3% for hotels booked elsewhere.';
     if(boostNote)tip+=boostNote;
-    return{card:'Amex Gold',rate:'3x',color:'#C5A44E',tip};
+    return{card:'Robinhood Gold Card',rate:'3% (or 5% portal)',color:'#00C805',tip};
   }
 
   // United Club / airport lounge → free passes first

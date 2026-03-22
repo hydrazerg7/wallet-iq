@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2026-03-22T20:39:20Z",
-  "version": "0.0.23",
+  "lastUpdated": "2026-03-22T21:01:20Z",
+  "version": "0.0.24",
   "cards": [
     {
       "id": "amex-gold",
@@ -163,9 +163,9 @@
     { "id": "united-hotels", "card": "United Explorer", "name": "United Hotels Credit", "amount": 100.00, "period": "annual", "note": "$50 credit on each of first 2 prepaid hotel stays per anniversary year via United Hotels.", "color": "#0033A0", "enrolled": true },
     { "id": "united-avis", "card": "United Explorer", "name": "Avis/Budget Rental Credit", "amount": 50.00, "period": "annual", "note": "$25 TravelBank cash on each of first 2 Avis/Budget rentals per year. After credit used, Robinhood 3% beats United 2x.", "color": "#0033A0", "enrolled": true },
     { "id": "united-travelbank", "card": "United Explorer", "name": "TravelBank Bonus ($10K spend)", "amount": 100.00, "period": "annual", "note": "$100 United TravelBank cash after $10K spend in a calendar year. Only usable on United/United Express flights. NOT worth chasing — moving bills to Robinhood Gold 3% saves more than this $100 bonus.", "color": "#0033A0", "enrolled": true },
-    { "id": "freedom-dashpass", "card": "Chase Freedom (Legacy)", "name": "DashPass Membership (6mo free)", "amount": 60.00, "period": "annual", "note": "6 months free DashPass ($9.99/mo = $60 value). $0 delivery fees + lower service fees on DoorDash/Caviar. WARNING: Auto-charges $9.99/mo after 6 months — cancel before month 7! Through 12/31/27.", "color": "#1A73E8", "enrolled": false, "enrollAction": "Download DoorDash app > Add Freedom card as default payment > Accept DashPass prompt", "isCount": true, "setup": "1. Download DoorDash app\n2. Create a free account (no paid subscription needed upfront)\n3. Go to Account > Payment > Add card\n4. Add your Chase Freedom card as DEFAULT payment\n5. DoorDash will prompt you to activate free DashPass — accept it\n6. You get 6 months of free DashPass ($0 delivery fees)\n7. WARNING: After 6 months you'll be charged $9.99/mo automatically\n8. Set a reminder to cancel DashPass before month 7!" },
+    { "id": "freedom-dashpass", "card": "Chase Freedom (Legacy)", "name": "DashPass Membership (6mo free)", "amount": 60.00, "period": "annual", "note": "6 months free DashPass ($9.99/mo = $60 value). $0 delivery fees + lower service fees on DoorDash/Caviar. WARNING: Auto-charges $9.99/mo after 6 months — cancel before month 7! Through 12/31/27.", "color": "#1A73E8", "enrolled": false, "enrollAction": "Download DoorDash app > Add Freedom card as default payment > Accept DashPass prompt", "setup": "1. Download DoorDash app\n2. Create a free account (no paid subscription needed upfront)\n3. Go to Account > Payment > Add card\n4. Add your Chase Freedom card as DEFAULT payment\n5. DoorDash will prompt you to activate free DashPass — accept it\n6. You get 6 months of free DashPass ($0 delivery fees)\n7. WARNING: After 6 months you'll be charged $9.99/mo automatically\n8. Set a reminder to cancel DashPass before month 7!" },
     { "id": "freedom-doordash-promo", "card": "Chase Freedom (Legacy)", "name": "DoorDash Non-Restaurant Promo", "amount": 10.00, "period": "quarterly", "note": "$10 off grocery/retail/convenience DoorDash orders each quarter. Requires active DashPass. Apply promo at checkout. Does NOT roll over — use it or lose it. Through 12/31/27.", "color": "#1A73E8", "enrolled": false, "enrollAction": "Activate DashPass first, then apply promo code at DoorDash checkout on non-restaurant orders", "setup": "1. Must have active DashPass (see above)\n2. Open DoorDash > browse non-restaurant stores (grocery, convenience, retail)\n3. Add items to cart\n4. At checkout, apply the $10 promo code\n5. Up to $10 off per quarter\n6. Does NOT roll over — use it each quarter or lose it\n7. Works through 12/31/27" },
-    { "id": "united-globalentry", "card": "United Explorer", "name": "Global Entry/TSA Pre", "amount": 30.00, "period": "annual", "note": "$120 credit every 4 years (~$30/yr). Charge Global Entry ($120) or TSA Pre ($78) to Explorer card for auto reimbursement.", "color": "#0033A0", "enrolled": true, "isCount": true }
+    { "id": "united-globalentry", "card": "United Explorer", "name": "Global Entry/TSA Pre", "amount": 30.00, "period": "annual", "note": "$120 credit every 4 years (~$30/yr). Charge Global Entry ($120) or TSA Pre ($78) to Explorer card for auto reimbursement.", "color": "#0033A0", "enrolled": true }
   ],
   "spendingGuide": [
     { "category": "U.S. Supermarkets", "card": "Amex Gold", "rate": "4%", "cardId": "amex-gold" },
@@ -181,6 +181,8 @@
     { "category": "Non-United Flights", "card": "Amex Gold", "rate": "3x", "cardId": "amex-gold" },
     { "category": "Rideshare (Lyft/Uber)", "card": "United Explorer", "rate": "2x + $5/mo credit", "cardId": "united-explorer" },
     { "category": "Transit (bus/train)", "card": "Amazon Prime Visa", "rate": "2%", "cardId": "amazon-prime" },
+    { "category": "Hotels (via AmexTravel)", "card": "Amex Gold", "rate": "2x", "cardId": "amex-gold" },
+    { "category": "Hotels (booked elsewhere)", "card": "Robinhood Gold", "rate": "3%", "cardId": "robinhood-gold" },
     { "category": "International Purchases", "card": "Amex Gold / United Explorer", "rate": "varies", "cardId": "amex-gold" },
     { "category": "Quarterly 5% Categories", "card": "Chase Freedom", "rate": "5%", "cardId": "chase-freedom" },
     { "category": "Everything Else", "card": "Robinhood Gold", "rate": "3%", "cardId": "robinhood-gold" }
