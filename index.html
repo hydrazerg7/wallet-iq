@@ -622,6 +622,40 @@ function renderToday() {
     });
   }
 
+  // Reminders
+  if (appData.reminders) {
+    const dismissed = JSON.parse(localStorage.getItem('walletiq_dismissed_reminders') || '[]');
+    const now_str = new Date().toISOString().split('T')[0];
+    const activeReminders = appData.reminders.filter(r => !dismissed.includes(r.id) && r.date <= now_str);
+    const upcomingReminders = appData.reminders.filter(r => !dismissed.includes(r.id) && r.date > now_str);
+    if (activeReminders.length > 0) {
+      creditsHtml += '<div class="section-title">Action Required</div>';
+      activeReminders.forEach(r => {
+        creditsHtml += `<div class="today-card" style="border-color:${r.color}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div style="flex:1"><div class="today-value" style="font-size:14px;color:${r.color}">${r.title}</div>
+            <div class="today-sub">${r.note}</div></div>
+            <button class="btn btn-sm btn-outline" onclick="dismissReminder('${r.id}')" style="margin-left:8px;flex-shrink:0">Done</button>
+          </div>
+        </div>`;
+      });
+    }
+    if (upcomingReminders.length > 0) {
+      creditsHtml += '<div class="section-title">Upcoming</div>';
+      upcomingReminders.forEach(r => {
+        const rDate = new Date(r.date + 'T00:00:00');
+        const daysUntil = Math.max(0, Math.ceil((rDate - new Date()) / 86400000));
+        creditsHtml += `<div class="today-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div style="flex:1"><div class="today-value" style="font-size:14px">${r.title}</div>
+            <div class="today-sub">${r.note}</div></div>
+            <div style="font-size:12px;color:var(--text2);white-space:nowrap;margin-left:8px">${daysUntil}d away</div>
+          </div>
+        </div>`;
+      });
+    }
+  }
+
   // Quick app links
   let appsHtml = '<div class="section-title">Open Card Apps</div><div style="display:flex;gap:8px;flex-wrap:wrap">';
   appData.cards.forEach(c => {
@@ -1049,6 +1083,13 @@ function confirmMarkFull(creditId){
   logs.push({id:Date.now().toString(),creditId,amount:remaining,desc:credit.name+' (marked full)',date:new Date().toISOString(),cardName:credit.card,color:credit.color});
   saveLogs();renderTracker();renderHistory();renderToday();
 }
+function dismissReminder(id) {
+  const dismissed = JSON.parse(localStorage.getItem('walletiq_dismissed_reminders') || '[]');
+  dismissed.push(id);
+  localStorage.setItem('walletiq_dismissed_reminders', JSON.stringify(dismissed));
+  renderToday();
+}
+
 function markEnrolled(creditId){
   const enrolled=JSON.parse(localStorage.getItem('walletiq_enrolled')||'{}');
   enrolled[creditId]=true;
