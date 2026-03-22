@@ -277,4 +277,8 @@
 | Boost Mobile | Amazon (1%) | Robinhood (3%) | $17 | +$4 |
 | King Soopers | Amazon (1%) | Amex Gold (4x) | ~$40 | +$14 |
 | DISH Cafe (lunch) | Amazon (2%) | Amex Gold (4x) | ~$40 | +$10 |
-| **Total annual gain** | | | | **~$188** |
+| Assurant/Homeowners | Amex Gold (1x) | Robinhood (3%) | $221/mo avg | +$53 |
+| Nordstrom | United (1x) | Robinhood (3%) | $105/mo | +$25 |
+| Home Depot | Amex Gold (1x) | Robinhood (3%) | $16/mo | +$4 |
+| TurboTax | United (1x) | Robinhood (3%) | one-time | +$3 |
+| **Total annual gain** | | | | **~$268** |
