@@ -240,9 +240,16 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
       <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
       <input type="text" id="guideSearch" placeholder="Search categories (gas, groceries, amazon...)">
     </div>
-    <div class="ai-chips" id="cardFilters" style="margin-bottom:12px"></div>
+    <div class="ai-chips" id="cardFilters" style="margin-bottom:8px"></div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center">
+      <span style="font-size:11px;color:var(--text2)">Sort:</span>
+      <button class="chip" id="sort-rate" onclick="setGuideSort('rate')" style="font-size:11px;padding:5px 10px">% High→Low</button>
+      <button class="chip" id="sort-card" onclick="setGuideSort('card')" style="font-size:11px;padding:5px 10px">By Card</button>
+      <button class="chip" id="sort-alpha" onclick="setGuideSort('alpha')" style="font-size:11px;padding:5px 10px">A→Z</button>
+    </div>
     <div id="guideList"></div>
     <div class="section-title" style="margin-top:24px">Card Details</div>
+    <div id="cardLegend" style="margin-bottom:12px"></div>
     <div id="cardList"></div>
   </div>
 
@@ -384,7 +391,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-const APP_VERSION = '0.0.9';
+const APP_VERSION = '0.0.10';
 let appData = null;
 let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
 let aiMessages = [];
@@ -444,7 +451,7 @@ function autoResetCredits() {
 function saveLogs() { localStorage.setItem('walletiq_logs', JSON.stringify(logs)); }
 
 // ===== Render All =====
-function renderAll() { renderToday(); renderCardFilters(); renderGuide(); renderCards(); renderTracker(); renderHistory(); renderOffers(); renderChase(); renderMystery(); renderSavings(); }
+function renderAll() { renderToday(); renderCardFilters(); setGuideSort(guideSort); renderCards(); renderTracker(); renderHistory(); renderOffers(); renderChase(); renderMystery(); renderSavings(); }
 
 // ===== TODAY DASHBOARD =====
 function renderToday() {
@@ -634,6 +641,15 @@ const searchAliases = {
 };
 
 let activeCardFilter = null;
+let guideSort = 'rate'; // 'rate', 'card', 'alpha'
+
+function setGuideSort(sort) {
+  guideSort = sort;
+  document.querySelectorAll('[id^="sort-"]').forEach(b => { b.style.background=''; b.style.color=''; b.style.borderColor=''; });
+  const btn = document.getElementById('sort-'+sort);
+  if(btn){btn.style.background='var(--accent)';btn.style.color='#000';btn.style.borderColor='var(--accent)';}
+  renderGuide(document.getElementById('guideSearch').value);
+}
 
 function renderCardFilters() {
   let html = `<button class="chip ${!activeCardFilter?'style="background:var(--accent);color:#000;border-color:var(--accent)"':''}" onclick="setCardFilter(null)">All</button>`;
@@ -661,6 +677,12 @@ function renderGuide(filter='') {
     if (!f) return true;
     return g.category.toLowerCase().includes(f) || g.card.toLowerCase().includes(f) || (aliasMatch && g.category.includes(aliasMatch));
   });
+  // Sort
+  const rateNum = r => { const m = r.match(/(\d+)/); return m ? parseInt(m[1]) : 0; };
+  if (guideSort === 'rate') items.sort((a,b) => rateNum(b.rate) - rateNum(a.rate));
+  else if (guideSort === 'alpha') items.sort((a,b) => a.category.localeCompare(b.category));
+  else if (guideSort === 'card') items.sort((a,b) => a.card.localeCompare(b.card));
+
   let html = '';
   if (f && items.length === 0) {
     html = `<div class="guide-row"><div class="card-dot" style="background:var(--green)"></div><div style="flex:1"><div class="guide-cat">Use Robinhood Gold Card</div><div class="guide-card">3% flat rate — best for uncategorized purchases</div></div><div class="guide-rate">3%</div></div>`;
@@ -675,6 +697,14 @@ function renderGuide(filter='') {
 document.getElementById('guideSearch').addEventListener('input', e => { activeCardFilter = null; renderCardFilters(); renderGuide(e.target.value); });
 
 function renderCards() {
+  // Legend
+  let legendHtml = '<div style="display:flex;flex-wrap:wrap;gap:8px">';
+  appData.cards.forEach(c => {
+    legendHtml += `<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)"><div class="card-dot" style="background:${c.color};width:8px;height:8px"></div>${c.name.replace(' (Legacy)','')}</div>`;
+  });
+  legendHtml += '</div>';
+  document.getElementById('cardLegend').innerHTML = legendHtml;
+
   let html = '';
   // Sort by annual fee descending (most expensive first)
   const feeVal = f => parseInt(f.replace(/[^0-9]/g,'')) || 0;
@@ -687,7 +717,7 @@ function renderCards() {
       cats += `<div class="cat-row"><div><div class="cat-name">${cat.name}</div>${cat.note?`<div class="cat-note">${cat.note}</div>`:''}</div><div class="cat-rate">${cat.rate}</div></div>`;
     });
     const appLink = c.appUrl ? `<a href="${c.appUrl}" class="card-link">Open App &#8599;</a>` : '';
-    html += `<div class="card"><div class="card-header"><div class="card-dot" style="background:${c.color}"></div><div class="card-name">${c.name}</div>${appLink}<div class="card-fee">${c.annualFee}</div></div>${cats}</div>`;
+    html += `<div class="card"><div class="card-header"><div class="card-dot" style="background:${c.color}"></div><div class="card-name">${c.name}</div>${appLink}<div class="card-fee">Fee: ${c.annualFee}</div></div>${cats}</div>`;
   });
   document.getElementById('cardList').innerHTML = html;
 }
@@ -974,7 +1004,9 @@ function renderSavings(){
   const grocery=v('sv-grocery'),dining=v('sv-dining'),amazon=v('sv-amazon'),gas=v('sv-gas'),stream=v('sv-stream'),flights=v('sv-flights'),other=v('sv-other');
   const total=grocery+dining+amazon+gas+stream+flights+other;
   const annualFees = 325 + 150; // Amex Gold + United Explorer
-  const annualCredits = (10+10+7)*12 + 50*2 + 10*12; // dining+uber+dunkin monthly, resy semi, instacart monthly = $544
+  // Amex: dining $120 + uber $120 + dunkin $84 + resy $100 + hotel $100 = $524
+  // United: instacart $120 + JSX $100 + avis $50 + global entry $30/yr avg = $300
+  const annualCredits = 524 + 300; // $824 total if fully used
   // Per-category
   const cats = [
     {name:'Groceries',spend:grocery,rate:.04,card:'Amex Gold'},
