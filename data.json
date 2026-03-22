@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2026-03-22T19:28:41Z",
-  "version": "0.0.22",
+  "lastUpdated": "2026-03-22T20:39:20Z",
+  "version": "0.0.23",
   "cards": [
     {
       "id": "amex-gold",
@@ -30,7 +30,7 @@
       "id": "amazon-prime",
       "name": "Amazon Prime Visa",
       "color": "#232F3E",
-      "annualFee": "$0/yr (Prime $139/yr req'd)",
+      "annualFee": "$0 (Prime $139/yr)",
       "appUrl": "https://apps.apple.com/app/id298867247",
       "categories": [
         { "name": "Amazon.com / Fresh / Whole Foods / Chase Travel", "rate": "5%", "note": "Requires active Prime. Drops to 3% if Prime cancelled" },
@@ -61,7 +61,7 @@
       "id": "robinhood-gold",
       "name": "Robinhood Gold Card",
       "color": "#00C805",
-      "annualFee": "$0/yr (Gold $50/yr req'd)",
+      "annualFee": "$0 (Gold $50/yr)",
       "appUrl": "https://apps.apple.com/app/id6462308655",
       "categories": [
         { "name": "Everything", "rate": "3%", "note": "Flat rate, no caps, no categories to track" },
@@ -82,12 +82,12 @@
       "id": "united-explorer",
       "name": "United Explorer",
       "color": "#0033A0",
-      "annualFee": "$150/yr (was $95, increased Jan 2026)",
+      "annualFee": "$150/yr",
       "appUrl": "https://apps.apple.com/app/id298867247",
       "categories": [
-        { "name": "United Flights (pay w/ card)", "rate": "9x", "note": "As of April 2, 2026: 6x for holding card + 3x for paying with it" },
+        { "name": "United Flights (pay w/ card)", "rate": "2x → 9x Apr 2", "note": "Currently 2x. April 2, 2026: jumps to 9x (6x holding + 3x paying)" },
         { "name": "United Hotels bookings", "rate": "5x", "note": "Increased from 4x" },
-        { "name": "United Purchases (non-flight)", "rate": "3x", "note": "As of April 2, 2026 (was 2x)" },
+        { "name": "United Purchases (non-flight)", "rate": "2x → 3x Apr 2", "note": "Currently 2x. Changes to 3x on April 2, 2026" },
         { "name": "Dining (incl delivery)", "rate": "2x", "note": "" },
         { "name": "Streaming Services", "rate": "2x", "note": "" },
         { "name": "Hotel Stays (non-United)", "rate": "2x", "note": "" },
@@ -165,7 +165,7 @@
     { "id": "united-travelbank", "card": "United Explorer", "name": "TravelBank Bonus ($10K spend)", "amount": 100.00, "period": "annual", "note": "$100 United TravelBank cash after $10K spend in a calendar year. Only usable on United/United Express flights. NOT worth chasing — moving bills to Robinhood Gold 3% saves more than this $100 bonus.", "color": "#0033A0", "enrolled": true },
     { "id": "freedom-dashpass", "card": "Chase Freedom (Legacy)", "name": "DashPass Membership (6mo free)", "amount": 60.00, "period": "annual", "note": "6 months free DashPass ($9.99/mo = $60 value). $0 delivery fees + lower service fees on DoorDash/Caviar. WARNING: Auto-charges $9.99/mo after 6 months — cancel before month 7! Through 12/31/27.", "color": "#1A73E8", "enrolled": false, "enrollAction": "Download DoorDash app > Add Freedom card as default payment > Accept DashPass prompt", "isCount": true, "setup": "1. Download DoorDash app\n2. Create a free account (no paid subscription needed upfront)\n3. Go to Account > Payment > Add card\n4. Add your Chase Freedom card as DEFAULT payment\n5. DoorDash will prompt you to activate free DashPass — accept it\n6. You get 6 months of free DashPass ($0 delivery fees)\n7. WARNING: After 6 months you'll be charged $9.99/mo automatically\n8. Set a reminder to cancel DashPass before month 7!" },
     { "id": "freedom-doordash-promo", "card": "Chase Freedom (Legacy)", "name": "DoorDash Non-Restaurant Promo", "amount": 10.00, "period": "quarterly", "note": "$10 off grocery/retail/convenience DoorDash orders each quarter. Requires active DashPass. Apply promo at checkout. Does NOT roll over — use it or lose it. Through 12/31/27.", "color": "#1A73E8", "enrolled": false, "enrollAction": "Activate DashPass first, then apply promo code at DoorDash checkout on non-restaurant orders", "setup": "1. Must have active DashPass (see above)\n2. Open DoorDash > browse non-restaurant stores (grocery, convenience, retail)\n3. Add items to cart\n4. At checkout, apply the $10 promo code\n5. Up to $10 off per quarter\n6. Does NOT roll over — use it each quarter or lose it\n7. Works through 12/31/27" },
-    { "id": "united-globalentry", "card": "United Explorer", "name": "Global Entry/TSA Pre", "amount": 120.00, "period": "annual", "note": "Up to $120 statement credit every 4 years (~$30/yr value). Charge Global Entry ($120) or TSA Pre ($78) application fee to Explorer card.", "color": "#0033A0", "enrolled": true, "isCount": true }
+    { "id": "united-globalentry", "card": "United Explorer", "name": "Global Entry/TSA Pre", "amount": 30.00, "period": "annual", "note": "$120 credit every 4 years (~$30/yr). Charge Global Entry ($120) or TSA Pre ($78) to Explorer card for auto reimbursement.", "color": "#0033A0", "enrolled": true, "isCount": true }
   ],
   "spendingGuide": [
     { "category": "U.S. Supermarkets", "card": "Amex Gold", "rate": "4%", "cardId": "amex-gold" },
@@ -175,9 +175,9 @@
     { "category": "Amazon.com", "card": "Amazon Prime Visa", "rate": "5%", "cardId": "amazon-prime" },
     { "category": "Amazon Fresh", "card": "Amazon Prime Visa", "rate": "5%", "cardId": "amazon-prime" },
     { "category": "Gas", "card": "Robinhood Gold", "rate": "3%", "cardId": "robinhood-gold" },
-    { "category": "Streaming (Netflix, Spotify)", "card": "United Explorer", "rate": "2x", "cardId": "united-explorer" },
+    { "category": "Streaming (Netflix, Spotify)", "card": "Robinhood Gold", "rate": "3%", "cardId": "robinhood-gold" },
     { "category": "Instacart", "card": "United Explorer", "rate": "credit", "cardId": "united-explorer" },
-    { "category": "United Flights", "card": "United Explorer", "rate": "9x", "cardId": "united-explorer" },
+    { "category": "United Flights", "card": "United Explorer", "rate": "2x (9x Apr 2)", "cardId": "united-explorer" },
     { "category": "Non-United Flights", "card": "Amex Gold", "rate": "3x", "cardId": "amex-gold" },
     { "category": "Rideshare (Lyft/Uber)", "card": "United Explorer", "rate": "2x + $5/mo credit", "cardId": "united-explorer" },
     { "category": "Transit (bus/train)", "card": "Amazon Prime Visa", "rate": "2%", "cardId": "amazon-prime" },
