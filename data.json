@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2026-03-22T19:00:00Z",
-  "version": "0.0.18",
+  "lastUpdated": "2026-03-22T19:05:12Z",
+  "version": "0.0.19",
   "cards": [
     {
       "id": "amex-gold",
@@ -34,6 +34,7 @@
       "appUrl": "https://apps.apple.com/app/id298867247",
       "categories": [
         { "name": "Amazon.com / Fresh / Whole Foods / Chase Travel", "rate": "5%", "note": "Requires active Prime. Drops to 3% if Prime cancelled" },
+        { "name": "Prime Card Bonus (rotating)", "rate": "10%+", "note": "Rotating limited-time exclusive offers for Prime cardmembers" },
         { "name": "Gas Stations", "rate": "2%", "note": "" },
         { "name": "Restaurants", "rate": "2%", "note": "" },
         { "name": "Transit & Rideshare", "rate": "2%", "note": "Uber, Lyft, buses, trains, commuting" },
@@ -45,8 +46,15 @@
         "Auto rental collision/theft coverage",
         "Baggage delay insurance: up to $100/day for 3 days",
         "Lost luggage: up to $3,000/traveler",
+        "Travel accident insurance",
+        "Roadside assistance",
+        "Travel & emergency assistance (24/7)",
+        "Visa Signature Luxury Hotel Collection (900+ hotels, room upgrades, best rate)",
+        "Visa Signature Concierge Service (24/7)",
+        "Shop with Points at Amazon.com",
         "No foreign transaction fees",
-        "0% promo APR: 6mo on $50+, 12mo on $250+"
+        "No blackout dates on Chase Travel redemptions",
+        "Zero liability protection"
       ]
     },
     {
@@ -86,12 +94,25 @@
         { "name": "Everything Else", "rate": "1x", "note": "" }
       ],
       "protections": [
-        "Free first checked bag (you + companion on same reservation)",
+        "Free first checked bag — up to $160/roundtrip (you + companion on same reservation)",
         "Priority boarding on United flights",
-        "25% back on United inflight purchases (food, Wi-Fi, drinks)",
+        "25% back on United inflight + Club premium drink purchases",
         "Basic Economy: MUST hold card to earn ANY miles (as of April 2)",
         "1 PQP per $20 spent (up to 1,000 PQPs/yr)",
-        "No foreign transaction fees"
+        "Auto rental coverage",
+        "Baggage delay insurance",
+        "Extended warranty protection",
+        "Lost luggage reimbursement",
+        "Purchase protection",
+        "Roadside assistance",
+        "Travel accident insurance",
+        "Travel & emergency assistance",
+        "Trip cancellation & interruption insurance",
+        "Trip delay reimbursement",
+        "United Card Events from Chase",
+        "No blackout dates",
+        "No foreign transaction fees",
+        "Zero liability protection"
       ]
     },
     {
