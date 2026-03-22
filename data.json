@@ -80,12 +80,12 @@
     }
   },
   "credits": [
-    { "id": "amex-dining", "card": "Amex Gold", "name": "Dining Credit", "amount": 10.00, "period": "monthly", "note": "Five Guys, Grubhub, Goldbelly, etc.", "color": "#C5A44E" },
-    { "id": "amex-uber", "card": "Amex Gold", "name": "Uber Cash", "amount": 10.00, "period": "monthly", "note": "Add Amex Gold to Uber app. Rides or Uber Eats.", "color": "#C5A44E" },
-    { "id": "amex-resy", "card": "Amex Gold", "name": "Resy Credit", "amount": 50.00, "period": "semi-annual", "note": "Any Resy restaurant. Resets Jun 30 & Dec 31.", "color": "#C5A44E" },
-    { "id": "amex-dunkin", "card": "Amex Gold", "name": "Dunkin' Credit", "amount": 7.00, "period": "monthly", "note": "Enroll on Amex site. Easy to forget.", "color": "#C5A44E" },
-    { "id": "united-instacart", "card": "United Explorer", "name": "Instacart Credit", "amount": 10.00, "period": "monthly", "note": "Use on any Instacart order. Expires 12/31/27.", "color": "#0033A0" },
-    { "id": "united-lounge", "card": "United Explorer", "name": "United Club Passes", "amount": 2, "period": "annual", "note": "2 passes per anniversary year. Use on longer layovers.", "color": "#0033A0", "isCount": true }
+    { "id": "amex-dining", "card": "Amex Gold", "name": "Dining Credit", "amount": 10.00, "period": "monthly", "note": "Five Guys, Grubhub, Goldbelly, etc. Auto-applies, no enrollment needed.", "color": "#C5A44E", "enrolled": true },
+    { "id": "amex-uber", "card": "Amex Gold", "name": "Uber Cash", "amount": 10.00, "period": "monthly", "note": "Rides or Uber Eats. SETUP: Add Amex Gold as payment in the Uber app.", "color": "#C5A44E", "enrolled": false, "enrollAction": "Add Amex Gold card in Uber app > Wallet" },
+    { "id": "amex-resy", "card": "Amex Gold", "name": "Resy Credit", "amount": 50.00, "period": "semi-annual", "note": "Any Resy restaurant. Resets Jun 30 & Dec 31. SETUP: Enroll at amex.com/offers or Resy.com.", "color": "#C5A44E", "enrolled": false, "enrollAction": "Enroll at amex.com/offers or link card on Resy.com" },
+    { "id": "amex-dunkin", "card": "Amex Gold", "name": "Dunkin' Credit", "amount": 7.00, "period": "monthly", "note": "SETUP: Enroll on Amex site under offers. Easy to forget this one exists.", "color": "#C5A44E", "enrolled": false, "enrollAction": "Enroll at amex.com/offers > Dunkin'" },
+    { "id": "united-instacart", "card": "United Explorer", "name": "Instacart Credit", "amount": 10.00, "period": "monthly", "note": "Any Instacart order. Expires 12/31/27. SETUP: Link United Explorer as payment in Instacart app.", "color": "#0033A0", "enrolled": false, "enrollAction": "Link United Explorer in Instacart app > Payment methods" },
+    { "id": "united-lounge", "card": "United Explorer", "name": "United Club Passes", "amount": 2, "period": "annual", "note": "2 passes per anniversary year. No enrollment — just show card at lounge entrance.", "color": "#0033A0", "isCount": true, "enrolled": true }
   ],
   "spendingGuide": [
     { "category": "U.S. Supermarkets", "card": "Amex Gold", "rate": "4%", "cardId": "amex-gold" },

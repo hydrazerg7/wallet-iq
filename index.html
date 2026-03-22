@@ -320,7 +320,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 </div>
 
 <script>
-const APP_VERSION = '0.0.1';
+const APP_VERSION = '0.0.2';
 let appData = null;
 let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
 let aiMessages = [];
@@ -337,6 +337,9 @@ async function init() {
   }
   if (appData) {
     localStorage.setItem('walletiq_data', JSON.stringify(appData));
+    // Restore enrollment state
+    const enrolled=JSON.parse(localStorage.getItem('walletiq_enrolled')||'{}');
+    appData.credits.forEach(c=>{if(enrolled[c.id])c.enrolled=true;});
     const pad = n => String(n).padStart(2,'0');
     const now = new Date();
     const ts = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+' '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
@@ -440,6 +443,21 @@ function renderToday() {
     });
   }
   document.getElementById('todayCredits').innerHTML = creditsHtml;
+
+  // Setup needed
+  const needSetup = appData.credits.filter(c => c.enrolled === false);
+  if (needSetup.length > 0) {
+    creditsHtml += `<div class="section-title">Needs Setup (${needSetup.length})</div>`;
+    needSetup.forEach(c => {
+      creditsHtml += `<div class="today-card" style="border-color:rgba(245,158,11,.3)">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div class="today-value" style="font-size:14px;color:#f59e0b">${c.name}</div>
+          <div class="today-sub">${c.enrollAction||'Enrollment needed'}</div></div>
+          <button class="btn btn-sm" style="background:#f59e0b;color:#000" onclick="markEnrolled('${c.id}')">Done</button>
+        </div>
+      </div>`;
+    });
+  }
 
   // Quick app links
   let appsHtml = '<div class="section-title">Open Card Apps</div><div style="display:flex;gap:8px;flex-wrap:wrap">';
@@ -585,6 +603,10 @@ function renderTracker() {
       <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${barColor}"></div></div>
       <div class="credit-bottom"><div class="credit-remaining">${c.isCount?used+'/'+max+' used':'$'+used.toFixed(2)+' / $'+max.toFixed(2)}</div><div>${c.isCount?remaining+' left':'$'+remaining.toFixed(2)+' left'}</div></div>
       <div style="font-size:11px;color:var(--text2);margin-top:4px">${c.note}</div>
+      ${c.enrolled===false?`<div style="margin-top:6px;padding:6px 10px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;font-size:11px">
+        <span style="color:#f59e0b;font-weight:600">SETUP REQUIRED:</span> <span style="color:var(--text2)">${c.enrollAction||'Enrollment needed'}</span>
+        <button class="btn btn-sm" style="margin-left:6px;padding:3px 8px;background:#f59e0b;color:#000;font-size:10px" onclick="markEnrolled('${c.id}')">Done</button>
+      </div>`:''}
       <div class="credit-actions">
         ${c.isCount ? (remaining>0?`<button class="btn btn-primary btn-sm" onclick="usePass('${c.id}')">Use 1 Pass</button>`:'')
           : `<button class="btn btn-primary btn-sm" onclick="openLog('${c.id}')">Log Spend</button>`}
@@ -640,6 +662,14 @@ function confirmMarkFull(creditId){
   if(remaining<=0)return;
   logs.push({id:Date.now().toString(),creditId,amount:remaining,desc:credit.name+' (marked full)',date:new Date().toISOString(),cardName:credit.card,color:credit.color});
   saveLogs();renderTracker();renderHistory();renderToday();
+}
+function markEnrolled(creditId){
+  const enrolled=JSON.parse(localStorage.getItem('walletiq_enrolled')||'{}');
+  enrolled[creditId]=true;
+  localStorage.setItem('walletiq_enrolled',JSON.stringify(enrolled));
+  const credit=appData.credits.find(c=>c.id===creditId);
+  if(credit)credit.enrolled=true;
+  renderTracker();renderToday();
 }
 function undoLast(creditId){
   const creditLogs=logs.filter(l=>l.creditId===creditId);
