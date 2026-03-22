@@ -1488,12 +1488,152 @@ const aiRules=[
 function getAIResponse(query){
   const q=query.toLowerCase().trim();
   const checkCredit=(id)=>{if(!appData)return null;const c=appData.credits.find(c=>c.id===id);if(!c||c.isCount)return null;return{remaining:Math.max(0,c.amount-getUsedAmount(id)),daysLeft:getDaysLeft(c.period)};};
+  const checkCountCredit=(id)=>{if(!appData)return null;const c=appData.credits.find(c=>c.id===id);if(!c||!c.isCount)return null;const used=logs.filter(l=>l.creditId===id).length;return{remaining:Math.max(0,c.amount-used),total:c.amount};};
+
   // Check for active boost
   const boost=getActiveBoost();
   let boostNote='';
   if(boost&&boost.type==='timed') boostNote='\n\nYou have an ACTIVE Mystery Box boost: '+boost.rate+' — consider using Robinhood Gold Card instead if the boost rate is higher!';
 
-  // Check if there's a matching card offer first
+  // ===== PRIORITY 1: Card-specific credits/free money =====
+  // Always recommend using free credits before earning rates
+
+  // Avis/Budget → United Explorer $50/yr TravelBank credit
+  if(q.match(/avis|budget|rental car|car rental|rent a car/)){
+    const c=checkCredit('united-avis');
+    if(c&&c.remaining>0){
+      let tip=`Use your United Explorer $50/yr Avis/Budget TravelBank credit first! ($${c.remaining.toFixed(2)} remaining). After credit is used, United Explorer earns 2x on travel, or Robinhood Gold for 3% flat.`;
+      if(boostNote)tip+=boostNote;
+      return{card:'United Explorer',rate:'$50/yr credit',color:'#0033A0',tip};
+    }
+    // Credit exhausted — fall through to rate-based
+    let tip='Avis/Budget credit already used this year. United Explorer earns 2x on travel, or Robinhood Gold for 3%.';
+    if(boostNote)tip+=boostNote;
+    return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip};
+  }
+
+  // JSX → United Explorer $100/yr credit
+  if(q.match(/jsx|semi.?private|private flight/)){
+    const c=checkCredit('united-jsx');
+    if(c&&c.remaining>0){
+      let tip=`Use your United Explorer $100/yr JSX credit! ($${c.remaining.toFixed(2)} remaining).`;
+      if(boostNote)tip+=boostNote;
+      return{card:'United Explorer',rate:'$100/yr credit',color:'#0033A0',tip};
+    }
+    let tip='JSX credit already used this year. Amex Gold 3x for flights, or Robinhood Gold for 3%.';
+    if(boostNote)tip+=boostNote;
+    return{card:'Amex Gold',rate:'3x',color:'#C5A44E',tip};
+  }
+
+  // Instacart → United Explorer $10/mo credit first
+  if(q.match(/instacart/)){
+    const c=checkCredit('united-instacart');
+    if(c&&c.remaining>0){
+      let tip=`Use your United Explorer $10/mo Instacart credit first! ($${c.remaining.toFixed(2)} remaining, ${c.daysLeft}d left this month, expires monthly). For the remaining balance after the credit, use Robinhood Gold for 3%.`;
+      if(boostNote)tip+=boostNote;
+      return{card:'United Explorer',rate:'$10/mo credit',color:'#0033A0',tip};
+    }
+    let tip='Instacart credit already used this month. Use Robinhood Gold for 3% on the rest.';
+    if(boostNote)tip+=boostNote;
+    return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip};
+  }
+
+  // Uber/Lyft → Amex $10/mo Uber Cash first
+  if(q.match(/uber|lyft|rideshare|ride share|taxi|cab/)){
+    const c=checkCredit('amex-uber');
+    if(c&&c.remaining>0){
+      let tip=`Use your Amex Gold $10/mo Uber Cash first! ($${c.remaining.toFixed(2)} remaining, ${c.daysLeft}d left this month). After the credit is used, Amazon Prime Visa earns 2% on rideshare.`;
+      if(boostNote)tip+=boostNote;
+      return{card:'Amex Gold',rate:'$10/mo Uber Cash',color:'#C5A44E',tip};
+    }
+    let tip='Uber Cash credit used this month. Amazon Prime Visa earns 2% on rideshare/transit.';
+    if(boostNote)tip+=boostNote;
+    return{card:'Amazon Prime Visa',rate:'2%',color:'#232F3E',tip};
+  }
+
+  // Dunkin → Amex $7/mo credit first
+  if(q.match(/dunkin|donuts/)){
+    const c=checkCredit('amex-dunkin');
+    if(c&&c.remaining>0){
+      let tip=`Use your Amex Gold $7/mo Dunkin credit first! ($${c.remaining.toFixed(2)} remaining, ${c.daysLeft}d left). Enrollment required via Amex app. Plus you earn 4x on top.`;
+      if(boostNote)tip+=boostNote;
+      return{card:'Amex Gold',rate:'4x + $7/mo credit',color:'#C5A44E',tip};
+    }
+    let tip='Dunkin credit used this month. Still use Amex Gold for 4x on dining.';
+    if(boostNote)tip+=boostNote;
+    return{card:'Amex Gold',rate:'4x',color:'#C5A44E',tip};
+  }
+
+  // Resy / nice dinner → Amex $50/semi credit first
+  if(q.match(/resy|nice dinner|fancy dinner|date night|special dinner|anniversary dinner/)){
+    const c=checkCredit('amex-resy');
+    if(c&&c.remaining>0){
+      let tip=`Use your Amex Gold $50 Resy credit! ($${c.remaining.toFixed(2)} remaining this half-year, ${c.daysLeft}d left). Dine at any U.S. Resy restaurant. Plus you earn 4x on top.`;
+      if(boostNote)tip+=boostNote;
+      return{card:'Amex Gold',rate:'4x + Resy credit',color:'#C5A44E',tip};
+    }
+    let tip='Resy credit used this half-year. Still use Amex Gold for 4x on dining.';
+    if(boostNote)tip+=boostNote;
+    return{card:'Amex Gold',rate:'4x',color:'#C5A44E',tip};
+  }
+
+  // Five Guys → Amex $10/mo dining credit first
+  if(q.match(/five guys|5 guys|fiveguys/)){
+    const c=checkCredit('amex-dining');
+    if(c&&c.remaining>0){
+      let tip=`Use your Amex Gold $10/mo dining credit at Five Guys! ($${c.remaining.toFixed(2)} remaining, ${c.daysLeft}d left). Plus you earn 4x on top.`;
+      if(boostNote)tip+=boostNote;
+      return{card:'Amex Gold',rate:'4x + $10/mo credit',color:'#C5A44E',tip};
+    }
+    let tip='Dining credit used this month. Still use Amex Gold for 4x.';
+    if(boostNote)tip+=boostNote;
+    return{card:'Amex Gold',rate:'4x',color:'#C5A44E',tip};
+  }
+
+  // Grubhub / Cheesecake Factory / Goldbelly / Wine.com → Amex $10/mo dining credit first
+  if(q.match(/grubhub|cheesecake factory|goldbelly|wine\.com|wine.com/)){
+    const c=checkCredit('amex-dining');
+    if(c&&c.remaining>0){
+      let tip=`Use your Amex Gold $10/mo dining credit here! ($${c.remaining.toFixed(2)} remaining, ${c.daysLeft}d left). Plus 4x points.`;
+      if(boostNote)tip+=boostNote;
+      return{card:'Amex Gold',rate:'4x + $10/mo credit',color:'#C5A44E',tip};
+    }
+    let tip='Dining credit used this month. Still use Amex Gold for 4x.';
+    if(boostNote)tip+=boostNote;
+    return{card:'Amex Gold',rate:'4x',color:'#C5A44E',tip};
+  }
+
+  // Hotel → Amex $100/yr Hotel Collection credit first
+  if(q.match(/hotel|hilton|marriott|hyatt|resort|motel|lodging|stay|airbnb/)){
+    const c=checkCredit('amex-hotel');
+    if(c&&c.remaining>0){
+      let tip=`Check if this is a Hotel Collection property — you have a $100/yr experience credit ($${c.remaining.toFixed(2)} remaining). Requires 2+ night stay. Book via AmexTravel for Hotel Collection properties. Otherwise, Amex Gold earns 3x on hotels, or check Robinhood travel portal for 5%.`;
+      if(boostNote)tip+=boostNote;
+      return{card:'Amex Gold',rate:'3x + $100 Hotel credit',color:'#C5A44E',tip};
+    }
+    let tip='Hotel Collection credit used this year. Amex Gold earns 3x, or Robinhood travel portal for 5%.';
+    if(boostNote)tip+=boostNote;
+    return{card:'Amex Gold',rate:'3x',color:'#C5A44E',tip};
+  }
+
+  // United Club / airport lounge → free passes first
+  if(q.match(/united club|airport lounge|lounge pass|layover|lounge/)){
+    const c=checkCountCredit('united-lounge');
+    if(c&&c.remaining>0){
+      let tip=`You have ${c.remaining} of ${c.total} United Club passes remaining this year! Just show your United Explorer card at the lounge entrance. Cardholder must be present.`;
+      return{card:'United Explorer',rate:c.remaining+' passes left',color:'#0033A0',tip};
+    }
+    let tip='United Club passes used this year. You can redeem 5,000 Robinhood points for a lounge pass in the Robinhood app.';
+    return{card:'Robinhood Gold Card',rate:'5,000 pts/pass',color:'#00C805',tip};
+  }
+
+  // Global Entry / TSA Pre → United Explorer credit
+  if(q.match(/global entry|tsa pre|nexus|trusted traveler/)){
+    let tip='Charge the application fee to your United Explorer card — you get up to $120 statement credit every 4 years. Automatic, no enrollment needed.';
+    return{card:'United Explorer',rate:'$120 credit',color:'#0033A0',tip};
+  }
+
+  // ===== PRIORITY 2: Active card offers =====
   const offerMatch = findMatchingOffer(q);
   if (offerMatch) {
     const cardData = appData.cards.find(c => c.name === offerMatch.card);
@@ -1505,9 +1645,8 @@ function getAIResponse(query){
     return{card:offerMatch.card,rate:offerMatch.discount,color,tip};
   }
 
-  // Check if Chase Freedom quarterly category applies (5% beats most cards)
+  // ===== PRIORITY 3: Chase Freedom quarterly 5% =====
   const chaseCheck = isChaseQuarterMatch(q);
-  // Don't override gas station food, store food, or categories where another card gets 5%+
   const skipChaseFor = ['food at gas','gas station food','food at sam','costco food','food at ikea','food at target','food at walmart','store food','ikea food','walmart food','amazon','whole foods','wholefoods'];
   const shouldSkipChase = skipChaseFor.some(k => q.includes(k));
 
@@ -1516,23 +1655,23 @@ function getAIResponse(query){
     const endOfQ = new Date(now.getFullYear(), Math.ceil((now.getMonth()+1)/3)*3, 0);
     const daysLeftQ = Math.max(0, Math.ceil((endOfQ - now) / 86400000));
     let tip = `Chase Freedom 5% beats your other cards on "${chaseCheck.category}" this quarter (${daysLeftQ} days left, $1,500 cap). After the quarter ends or cap is hit, switch back to your usual card.`;
-    // Still append credit info
-    if(q.match(/five guys|5 guys|dining|grubhub|restaurant|dinner|lunch|cafeteria|food|sandwich|burger|pizza/)){const c=checkCredit('amex-dining');if(c)tip+=` (Amex Dining credit: $${c.remaining.toFixed(2)} left — use Amex for that specific credit, Chase for everything else)`;}
+    if(q.match(/five guys|5 guys|dining|grubhub|restaurant|dinner|lunch|cafeteria|food|sandwich|burger|pizza/)){const c=checkCredit('amex-dining');if(c&&c.remaining>0)tip+=` (But use Amex at Five Guys/Grubhub/Cheesecake Factory to capture the $${c.remaining.toFixed(2)} dining credit first!)`;}
     if(boostNote)tip+=boostNote;
     return{card:'Chase Freedom (Legacy)',rate:'5%',color:'#1A73E8',tip};
   }
 
+  // ===== PRIORITY 4: Best earning rate =====
   for(const rule of aiRules){
     if(rule.keys.some(k=>q.includes(k))){
       let tip=rule.tip;
-      if(q.match(/five guys|5 guys|dining|grubhub|restaurant|dinner|lunch|cafeteria|food/)){const c=checkCredit('amex-dining');if(c)tip+=` (Dining credit: $${c.remaining.toFixed(2)} left, ${c.daysLeft}d)`;}
-      if(q.match(/uber|lyft/)){const c=checkCredit('amex-uber');if(c)tip+=` (Uber Cash: $${c.remaining.toFixed(2)} left, ${c.daysLeft}d)`;}
-      if(q.match(/dunkin/)){const c=checkCredit('amex-dunkin');if(c)tip+=` (Dunkin: $${c.remaining.toFixed(2)} left, ${c.daysLeft}d)`;}
-      if(q.match(/instacart/)){const c=checkCredit('united-instacart');if(c)tip+=` (Instacart: $${c.remaining.toFixed(2)} left, ${c.daysLeft}d)`;}
+      // Append remaining credit info where relevant
+      if(q.match(/dining|restaurant|dinner|lunch|cafeteria|food|sandwich|burger|pizza/)){const c=checkCredit('amex-dining');if(c)tip+=` (Dining credit: $${c.remaining.toFixed(2)} left, ${c.daysLeft}d — only at Five Guys, Grubhub, Cheesecake Factory, Goldbelly, Wine.com)`;}
       if(boostNote)tip+=boostNote;
       return{card:rule.card,rate:rule.rate,color:rule.color,tip};
     }
   }
+
+  // ===== PRIORITY 5: Default fallback =====
   return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'No specific bonus category matched. Robinhood Gold\'s flat 3% is your best option.'+boostNote};
 }
 
