@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-22T19:08:09Z",
+  "lastUpdated": "2026-03-22T19:13:25Z",
   "version": "0.0.19",
   "cards": [
     {
@@ -146,12 +146,12 @@
     { "id": "amex-dunkin", "card": "Amex Gold", "name": "Dunkin' Credit", "amount": 7.00, "period": "monthly", "note": "New benefit (added with $325 fee increase). Enrollment required via Amex offers.", "color": "#C5A44E", "enrolled": false, "enrollAction": "Enroll at amex.com/offers or Amex app > Benefits > Dunkin'" },
     { "id": "amex-hotel", "card": "Amex Gold", "name": "Hotel Collection Credit", "amount": 100.00, "period": "annual", "note": "$100 experience credit on 2+ night stays at Hotel Collection properties (curated luxury hotels via AmexTravel). Plus room upgrade, early check-in/late check-out.", "color": "#C5A44E", "enrolled": true },
     { "id": "united-instacart", "card": "United Explorer", "name": "Instacart+ Credit", "amount": 10.00, "period": "monthly", "note": "Any Instacart order. Also includes 3mo free Instacart+ then 25% off annual. Expires 12/31/27.", "color": "#0033A0", "enrolled": false, "enrollAction": "Link United Explorer in Instacart app > Payment methods" },
-    { "id": "united-rideshare", "card": "United Explorer", "name": "Rideshare Credit", "amount": 5.00, "period": "monthly", "note": "$5/mo rideshare credit ($60/yr). Requires yearly enrollment/opt-in.", "color": "#0033A0", "enrolled": false, "enrollAction": "Opt in via Chase app or chase.com each year" },
+    { "id": "united-rideshare", "card": "United Explorer", "name": "Rideshare Credit", "amount": 5.00, "period": "monthly", "note": "$5/mo statement credit on rideshare (Uber, Lyft, etc). Yearly opt-in required — re-enroll each January.", "color": "#0033A0", "enrolled": true },
     { "id": "united-lounge", "card": "United Explorer", "name": "United Club Passes", "amount": 2, "period": "annual", "note": "2 passes per anniversary year. Non-transferable — cardholder must be present with guest.", "color": "#0033A0", "isCount": true, "enrolled": true },
     { "id": "united-jsx", "card": "United Explorer", "name": "JSX Flight Credit", "amount": 100.00, "period": "annual", "note": "$100/yr for JSX semi-private flights. JSX = small jets, private terminals, no TSA. Select cities (West Coast, Vegas, Dallas). Unusable if you don't fly JSX.", "color": "#0033A0", "enrolled": true },
     { "id": "united-hotels", "card": "United Explorer", "name": "United Hotels Credit", "amount": 100.00, "period": "annual", "note": "$50 credit on each of first 2 prepaid hotel stays per anniversary year via United Hotels.", "color": "#0033A0", "enrolled": true },
     { "id": "united-avis", "card": "United Explorer", "name": "Avis/Budget Rental Credit", "amount": 50.00, "period": "annual", "note": "$25 TravelBank cash on each of first 2 Avis/Budget rentals per year. After credit used, Robinhood 3% beats United 2x.", "color": "#0033A0", "enrolled": true },
-    { "id": "united-travelbank", "card": "United Explorer", "name": "TravelBank Bonus ($10K spend)", "amount": 100.00, "period": "annual", "note": "$100 United TravelBank cash after spending $10,000 on purchases in a calendar year.", "color": "#0033A0", "enrolled": true },
+    { "id": "united-travelbank", "card": "United Explorer", "name": "TravelBank Bonus ($10K spend)", "amount": 100.00, "period": "annual", "note": "$100 United TravelBank cash after $10K spend in a calendar year. Only usable on United/United Express flights. NOT worth chasing — moving bills to Robinhood Gold 3% saves more than this $100 bonus.", "color": "#0033A0", "enrolled": true },
     { "id": "united-globalentry", "card": "United Explorer", "name": "Global Entry/TSA Pre", "amount": 120.00, "period": "annual", "note": "Up to $120 statement credit every 4 years (~$30/yr value). Charge Global Entry ($120) or TSA Pre ($78) application fee to Explorer card.", "color": "#0033A0", "enrolled": true, "isCount": true }
   ],
   "spendingGuide": [
