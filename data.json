@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-23T05:43:00Z",
+  "lastUpdated": "2026-03-23T05:53:34Z",
   "version": "0.0.1",
   "cards": [
     {
@@ -15,6 +15,12 @@
         { "name": "Prepaid Hotels (AmexTravel)", "rate": "2x", "note": "Only via amextravel.com" },
         { "name": "Everything Else", "rate": "1x", "note": "No foreign transaction fees" }
       ],
+      "benefits": [
+        "Amex Presale & Reserved Tickets: early access to concerts, sports, events",
+        "Hotel Collection: room upgrades, early check-in, late check-out",
+        "No foreign transaction fees",
+        "5 free authorized users"
+      ],
       "protections": [
         "Purchase protection: up to $10K/item, $50K/yr (90 days)",
         "Extended warranty: +1 year on warranties up to 5 years",
@@ -22,8 +28,7 @@
         "Trip delay insurance: up to $300 after 12+ hour delay",
         "Baggage insurance: $1,250 carry-on, $500 checked",
         "Travel accident insurance: up to $100K",
-        "Global Assist Hotline (24/7, when 100+ mi from home)",
-        "Amex Presale & Reserved Tickets: early access to concerts, sports, events (americanexpress.com/experiences)",
+        "Global Assist Hotline (24/7, 100+ mi from home)",
         "No return protection, no trip cancellation"
       ]
     },
@@ -42,20 +47,23 @@
         { "name": "Transit & Rideshare", "rate": "2%", "note": "Uber, Lyft, buses, trains, commuting" },
         { "name": "Everything Else", "rate": "1%", "note": "" }
       ],
+      "benefits": [
+        "Shop with Points at Amazon.com",
+        "Visa Signature Luxury Hotel Collection (900+ hotels, upgrades)",
+        "Visa Signature Concierge Service (24/7)",
+        "No foreign transaction fees",
+        "No blackout dates on Chase Travel",
+        "0% promo APR: 6mo on $50+, 12mo on $250+"
+      ],
       "protections": [
-        "Purchase protection: 120 days, up to $500/item, $50K/account",
-        "Extended warranty: +1 year on warranties up to 3 years",
+        "Purchase protection: 120 days, up to $500/item",
+        "Extended warranty: +1 year (up to 3 yr warranties)",
         "Auto rental collision/theft coverage",
-        "Baggage delay insurance: up to $100/day for 3 days",
+        "Baggage delay: up to $100/day for 3 days",
         "Lost luggage: up to $3,000/traveler",
         "Travel accident insurance",
         "Roadside assistance",
         "Travel & emergency assistance (24/7)",
-        "Visa Signature Luxury Hotel Collection (900+ hotels, room upgrades, best rate)",
-        "Visa Signature Concierge Service (24/7)",
-        "Shop with Points at Amazon.com",
-        "No foreign transaction fees",
-        "No blackout dates on Chase Travel redemptions",
         "Zero liability protection"
       ]
     },
@@ -70,15 +78,21 @@
         { "name": "Everything", "rate": "3%", "note": "Flat rate, no caps, no categories to track" },
         { "name": "Robinhood Travel Portal", "rate": "5%", "note": "Flights, hotels booked via portal" }
       ],
+      "benefits": [
+        "Mystery Box: spin for 4-10% temporary cash back boosts",
+        "Card upgrades: 24K gold-plated (100K pts), Solid Gold (850K pts)",
+        "Lounge passes: 5,000 pts per pass",
+        "Visa Signature Concierge (24/7)",
+        "No foreign transaction fees",
+        "3.35% APY on brokerage cash via Gold"
+      ],
       "protections": [
         "Trip interruption: up to $2,000/person",
         "Rental car insurance",
         "Extended warranty protection",
         "Return protection",
         "Purchase security",
-        "Roadside dispatch",
-        "Visa Signature concierge",
-        "No foreign transaction fees"
+        "Roadside dispatch"
       ]
     },
     {
@@ -96,12 +110,17 @@
         { "name": "Hotel Stays (non-United)", "rate": "2x", "note": "" },
         { "name": "Everything Else", "rate": "1x", "note": "" }
       ],
-      "protections": [
-        "Free first checked bag — up to $160/roundtrip (you + companion on same reservation)",
+      "benefits": [
+        "Free first checked bag — up to $160/roundtrip (you + companion)",
         "Priority boarding on United flights",
-        "25% back on United inflight + Club premium drink purchases",
+        "25% back on United inflight + Club premium drinks",
         "Basic Economy: MUST hold card to earn ANY miles (as of April 2)",
         "1 PQP per $20 spent (up to 1,000 PQPs/yr)",
+        "United Card Events from Chase",
+        "No blackout dates",
+        "No foreign transaction fees"
+      ],
+      "protections": [
         "Auto rental coverage",
         "Baggage delay insurance",
         "Extended warranty protection",
@@ -112,9 +131,6 @@
         "Travel & emergency assistance",
         "Trip cancellation & interruption insurance",
         "Trip delay reimbursement",
-        "United Card Events from Chase",
-        "No blackout dates",
-        "No foreign transaction fees",
         "Zero liability protection"
       ]
     },
@@ -129,6 +145,13 @@
         { "name": "Lyft Rides", "rate": "2%", "note": "Extra 1% on top of base 1%. Expires Sept 30, 2027 — not permanent" },
         { "name": "Everything Else", "rate": "1%", "note": "No fixed 3% dining or 5% Chase Travel like Flex has. NEVER cancel — oldest account" }
       ],
+      "benefits": [
+        "Chase Offers (targeted merchant discounts)",
+        "Visa Signature Concierge Service (24/7)",
+        "No blackout dates on Chase Travel",
+        "Rewards don't expire",
+        "No longer open to new applicants (closed Sept 2020)"
+      ],
       "protections": [
         "Auto rental coverage",
         "Extended warranty protection",
@@ -136,12 +159,7 @@
         "Roadside assistance",
         "Travel & emergency assistance",
         "Trip cancellation & interruption insurance",
-        "Visa Signature Concierge Service",
-        "Chase Offers (targeted merchant discounts)",
-        "No blackout dates on Chase Travel",
-        "Rewards don't expire",
-        "Zero liability protection",
-        "No longer open to new applicants (closed Sept 2020)"
+        "Zero liability protection"
       ]
     }
   ],
@@ -174,15 +192,14 @@
     { "category": "U.S. Supermarkets", "card": "Amex Gold", "rate": "4%", "cardId": "amex-gold" },
     { "category": "Whole Foods", "card": "Amazon Prime Visa", "rate": "5%", "cardId": "amazon-prime" },
     { "category": "Dining / Restaurants", "card": "Amex Gold", "rate": "4%", "cardId": "amex-gold" },
-    { "category": "Five Guys", "card": "Amex Gold", "rate": "4% + credit", "cardId": "amex-gold" },
+    { "category": "Five Guys", "card": "Amex Gold", "rate": "4x", "cardId": "amex-gold" },
     { "category": "Amazon.com", "card": "Amazon Prime Visa", "rate": "5%", "cardId": "amazon-prime" },
     { "category": "Amazon Fresh", "card": "Amazon Prime Visa", "rate": "5%", "cardId": "amazon-prime" },
     { "category": "Gas", "card": "Robinhood Gold", "rate": "3%", "cardId": "robinhood-gold" },
     { "category": "Streaming (Netflix, Spotify)", "card": "Robinhood Gold", "rate": "3%", "cardId": "robinhood-gold" },
-    { "category": "Instacart", "card": "United Explorer", "rate": "credit", "cardId": "united-explorer" },
     { "category": "United Flights", "card": "United Explorer", "rate": "2x (9x Apr 2)", "cardId": "united-explorer" },
     { "category": "Non-United Flights", "card": "Amex Gold", "rate": "3x", "cardId": "amex-gold" },
-    { "category": "Rideshare (Lyft/Uber)", "card": "United Explorer", "rate": "2x + $5/mo credit", "cardId": "united-explorer" },
+    { "category": "Rideshare (Lyft/Uber)", "card": "United Explorer", "rate": "2x", "cardId": "united-explorer" },
     { "category": "Transit (bus/train)", "card": "Amazon Prime Visa", "rate": "2%", "cardId": "amazon-prime" },
     { "category": "Hotels (via AmexTravel)", "card": "Amex Gold", "rate": "2x", "cardId": "amex-gold" },
     { "category": "Hotels (booked elsewhere)", "card": "Robinhood Gold", "rate": "3%", "cardId": "robinhood-gold" },
