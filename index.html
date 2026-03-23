@@ -256,6 +256,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
       <button class="chip" onclick="askAI('Random purchase at Target')">Target/Other</button>
       <button class="chip" onclick="askAI('Coffee')">Coffee</button>
       <button class="chip" onclick="askAI('Hotel booking')">Hotel</button>
+      <button class="chip" onclick="nearMe()" style="background:var(--green);color:#000;border-color:var(--green)">Near Me</button>
     </div>
     <div class="ai-clear-wrap" id="aiClearWrap" style="display:none">
       <button class="ai-clear" onclick="clearAI()">Clear Chat</button>
@@ -1551,13 +1552,27 @@ function isChaseQuarterMatch(query) {
 }
 
 // ===== AI ENGINE =====
+// RULE ORDER MATTERS — store-specific overrides MUST come before generic food/grocery rules
+const storeOverrides = ['target','walmart','costco','sams club','sam\'s club','home depot','lowes','best buy','ikea','buc-ee'];
 const aiRules=[
-  {keys:['five guys','5 guys','fiveguys'],card:'Amex Gold',rate:'4x + $10/mo credit',color:'#C5A44E',tip:'Five Guys is one of the $10/mo dining credit merchants. Check Tracker for remaining credit. (Note: Chase Freedom 5% may beat this if dining is an active quarterly category.)'},
+  // Store overrides first — these are NOT supermarkets even if buying food there
+  {keys:['target','walmart','costco','sams club','sam\'s club','home depot','lowes','best buy','nordstrom','clothing','clothes','shoes','furniture','electronics','hardware'],
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Target, Walmart, Costco, Sam\'s Club, and retail stores do NOT code as supermarkets or dining. Amex Gold 4x will NOT work here. Robinhood Gold 3% is your best option.'},
+  // Specific food-at-store overrides
+  {keys:['food at gas','snack at gas','gas station food','gas station snack','food at shell','food at chevron','food at exxon','food at bp','food at circle k','7-eleven food','7 eleven food','convenience store food','convenience store snack'],
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Food at a gas station or convenience store codes under the store, NOT dining. Use Robinhood 3%.'},
+  {keys:['food at sam','food at costco','costco food','sams food','costco food court','sams food court','costco hot dog','sams club food','warehouse food'],
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Costco/Sam\'s food court codes as "warehouse club," not dining. Use Robinhood 3%.'},
+  {keys:['food at ikea','ikea food','ikea cafe','food at target','target food','target cafe','food at walmart','walmart food','store food','target groceries','walmart groceries'],
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Food/groceries at retail stores (Target, Walmart, IKEA) codes under the store category, NOT as supermarket or dining. Amex Gold 4x will NOT apply. Use Robinhood 3%.'},
+  // Named dining merchants
+  {keys:['five guys','5 guys','fiveguys'],card:'Amex Gold',rate:'4x + $10/mo credit',color:'#C5A44E',tip:'Five Guys is one of the $10/mo dining credit merchants. Check Tracker for remaining credit.'},
+  // Generic dining (only matches if no store override matched first)
   {keys:['grubhub','goldbelly','shake shack','chipotle','restaurant','dining','dinner','lunch','brunch','bar','pub','eat out','takeout','take out','food delivery','doordash','postmates',
     'sandwich','burger','pizza','taco','burrito','sushi','wings','salad','soup','wrap','sub','meal','food','snack','cafeteria','cafe','deli','bakery','noodle','ramen','pho','thai','chinese','mexican','italian','indian','korean','bbq','barbecue','buffet','diner','bistro','grill','kitchen','eatery','food truck','food court','panera','subway','mcdonalds','wendys','chick-fil-a','chickfila','popeyes','panda express','taco bell','kfc','arbys','sonic','jack in the box','in-n-out','whataburger','noodles','wingstop','canes','raising cane','zaxby','jersey mike','firehouse','jimmy john','qdoba','moe','chili','applebee','olive garden','outback','red lobster','ihop','waffle house','denny'],
     card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Food purchases almost always code as dining. Note: the $10/mo dining credit only works at Grubhub, Cheesecake Factory, Goldbelly, Wine.com, and Five Guys — not all restaurants.'},
-  {keys:['grocery','groceries','supermarket','safeway','king soopers','kroger','trader joe','aldi','sprouts','hmart','costco food'],
-    card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Must be a U.S. supermarket. Capped at $25K/yr.'},
+  {keys:['grocery','groceries','supermarket','safeway','king soopers','kroger','trader joe','aldi','sprouts','hmart'],
+    card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Must be a U.S. supermarket (King Soopers, Safeway, etc.). NOT Target, Walmart, Costco, or Sam\'s Club — those code as retail, not grocery. Capped at $25K/yr.'},
   {keys:['whole foods','wholefoods'],card:'Amazon Prime Visa',rate:'5%',color:'#232F3E',tip:'Whole Foods codes separately. Amazon card beats Amex Gold here.'},
   {keys:['amazon'],card:'Amazon Prime Visa',rate:'5%',color:'#232F3E',tip:'Also covers Amazon Fresh and Subscribe & Save.'},
   {keys:['food at gas','snack at gas','gas station food','gas station snack','food at shell','food at chevron','food at exxon','food at bp','food at circle k','7-eleven food','7 eleven food','convenience store food','convenience store snack'],
@@ -1581,8 +1596,6 @@ const aiRules=[
   {keys:['resy','nice dinner','fancy dinner','date night'],card:'Amex Gold',rate:'4x + $50 Resy credit',color:'#C5A44E',tip:'$50 Resy credit per half-year (resets Jun 30 & Dec 31).'},
   {keys:['concert','tickets','event','show','sports','ball arena','game','venue','ticketmaster','axs','vivid seats','stubhub'],
     card:'Amex Gold',rate:'1x + Presale',color:'#C5A44E',tip:'Use Amex Gold for ticket purchases to unlock Amex Presale & Reserved Tickets — early access before general public. Visit americanexpress.com/experiences. The card only earns 1x on tickets, but the early access is the real value.'},
-  {keys:['target','walmart','costco','sams club','home depot','lowes','best buy','clothing','clothes','shoes','furniture','electronics','hardware'],
-    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Robinhood Gold\'s flat 3% is your best bet for retail.'},
   {keys:['phone','cell','t-mobile','verizon','att','at&t','internet','cable','utility','utilities','electric','water','sewer','insurance','rent','mortgage'],
     card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Bills and utilities earn 1% on most cards. Robinhood Gold gives you 3%.'},
   {keys:['coffee','starbucks','dutch bros'],card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Coffee shops code as dining. If Dunkin\', you also have a $7/mo credit!'},
@@ -1809,7 +1822,12 @@ function getAIResponse(query){
   }
 
   // ===== PRIORITY 4: Best earning rate =====
+  // Check if query mentions a store that overrides food/grocery rules
+  const hasStoreOverride = storeOverrides.some(s => q.includes(s));
   for(const rule of aiRules){
+    // If query has a store name, skip generic food/grocery/dining rules
+    if(hasStoreOverride && (rule.tip||'').includes('almost always code as dining')) continue;
+    if(hasStoreOverride && (rule.tip||'').includes('Must be a U.S. supermarket')) continue;
     if(rule.keys.some(k=>q.includes(k))){
       let tip=rule.tip;
       // Append remaining credit info where relevant
@@ -1860,6 +1878,93 @@ function sendAI(){const q=document.getElementById('aiInput').value.trim();if(q)a
 function clearAI(){aiMessages=[];renderAI();}
 document.getElementById('aiInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendAI();});
 function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ===== NEAR ME — GPS Card Recommender =====
+function nearMe() {
+  if (!navigator.geolocation) {
+    askAI('(Location not supported on this device)');
+    return;
+  }
+  // Show loading message
+  aiMessages.push({role:'pair',html:'<div class="ai-msg user">Near Me</div><div class="ai-msg bot"><div class="ai-tip" id="nearme-loading">Detecting your location...</div></div>'});
+  renderAI();
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      try {
+        // Reverse geocode with OpenStreetMap Nominatim
+        const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=18&addressdetails=1`, {
+          headers: {'Accept-Language': 'en'}
+        });
+        const data = await resp.json();
+
+        // Try to get business name, then road, then general area
+        const place = data.name || data.address?.shop || data.address?.amenity || data.address?.building || '';
+        const road = data.address?.road || '';
+        const suburb = data.address?.suburb || data.address?.neighbourhood || data.address?.city || '';
+        const display = place || road + (suburb ? ', ' + suburb : '');
+
+        // Try to match against known stores/categories
+        const searchTerms = (place + ' ' + road + ' ' + (data.address?.shop || '') + ' ' + (data.namedetails?.name || '')).toLowerCase();
+
+        // Known store mappings
+        const nearbyMap = [
+          {match: ['king soopers','kroger','safeway','sprouts','trader joe','aldi','hmart'], card: 'Amex Gold', rate: '4x', tip: 'U.S. supermarket — use Amex Gold for 4x points.'},
+          {match: ['whole foods','wholefoods'], card: 'Amazon Prime Visa', rate: '5%', tip: 'Whole Foods — use Amazon Prime Visa for 5% back.'},
+          {match: ['target'], card: 'Robinhood Gold Card', rate: '3%', tip: 'Target codes as retail, NOT grocery. Use Robinhood Gold for 3%.'},
+          {match: ['walmart','sam\'s club','samsclub','sams club','costco'], card: 'Robinhood Gold Card', rate: '3%', tip: 'Warehouse/retail store — use Robinhood Gold for 3%.'},
+          {match: ['shell','chevron','exxon','phillips 66','conoco','bp','circle k','7-eleven','7 eleven'], card: 'Robinhood Gold Card', rate: '3%', tip: 'Gas station — use Robinhood Gold for 3% (beats Amazon\'s 2%).'},
+          {match: ['home depot','lowes','lowe\'s','ace hardware'], card: 'Robinhood Gold Card', rate: '3%', tip: 'Home improvement — use Robinhood Gold for 3%.'},
+          {match: ['five guys','5 guys'], card: 'Amex Gold', rate: '4x + credit', tip: 'Five Guys — use Amex Gold for 4x + $10/mo dining credit!'},
+          {match: ['dunkin'], card: 'Amex Gold', rate: '4x + credit', tip: 'Dunkin\' — use Amex Gold for 4x + $7/mo credit!'},
+          {match: ['starbucks','dutch bros','coffee'], card: 'Amex Gold', rate: '4x', tip: 'Coffee shop codes as dining — use Amex Gold for 4x.'},
+          {match: ['mcdonald','wendy','chick-fil','taco bell','chipotle','subway','panera','panda express','popeyes','kfc','arby','sonic','whataburger','wingstop','cane\'s','jersey mike','firehouse','jimmy john','qdoba'], card: 'Amex Gold', rate: '4x', tip: 'Fast food/restaurant — use Amex Gold for 4x dining.'},
+          {match: ['restaurant','grill','bistro','cafe','diner','bar ','pub ','kitchen','eatery','sushi','thai','chinese','mexican','indian','korean','italian','pizza','burger','bbq','barbecue','buffet','ramen','pho','noodle','bakery','deli'], card: 'Amex Gold', rate: '4x', tip: 'Restaurant — use Amex Gold for 4x dining.'},
+          {match: ['united club','united airlines'], card: 'United Explorer', rate: '2x + perks', tip: 'United — use Explorer for free bag + priority boarding.'},
+          {match: ['airport','terminal','concourse'], card: 'Robinhood Gold Card', rate: '3%', tip: 'Airport purchases — use Robinhood Gold for 3% unless dining (Amex Gold 4x).'},
+          {match: ['nordstrom','best buy','apple store','nike','foot locker','old navy','gap','ross','tjmaxx','marshalls','burlington'], card: 'Robinhood Gold Card', rate: '3%', tip: 'Retail store — use Robinhood Gold for 3%.'},
+        ];
+
+        let matched = null;
+        for (const entry of nearbyMap) {
+          if (entry.match.some(m => searchTerms.includes(m))) {
+            matched = entry;
+            break;
+          }
+        }
+
+        // Update the loading message with result
+        const el = document.getElementById('nearme-loading');
+        if (el) {
+          const cardData = matched ? appData.cards.find(c => c.name === matched.card) : null;
+          const color = cardData ? cardData.color : '#00C805';
+          if (matched) {
+            el.outerHTML = `<div style="font-size:12px;color:var(--text2);margin-bottom:6px">You're near: ${escapeHtml(display || 'Unknown')}</div>
+              <div class="card-rec"><div class="rec-dot" style="background:${color}"></div><div class="rec-name">${matched.card}</div><div class="rec-rate">${matched.rate}</div></div>
+              <div class="ai-tip">${matched.tip}</div>`;
+          } else {
+            el.outerHTML = `<div style="font-size:12px;color:var(--text2);margin-bottom:6px">You're near: ${escapeHtml(display || 'Unknown')}</div>
+              <div class="card-rec"><div class="rec-dot" style="background:#00C805"></div><div class="rec-name">Robinhood Gold Card</div><div class="rec-rate">3%</div></div>
+              <div class="ai-tip">No specific store match found. Robinhood Gold's flat 3% is your safest bet for any purchase here.</div>`;
+          }
+        }
+      } catch(err) {
+        const el = document.getElementById('nearme-loading');
+        if (el) el.textContent = 'Could not determine location. Try typing the store name instead.';
+      }
+    },
+    (err) => {
+      const el = document.getElementById('nearme-loading');
+      if (el) {
+        if (err.code === 1) el.textContent = 'Location access denied. Go to Settings > Safari > Location Services to enable.';
+        else el.textContent = 'Could not get location. Try typing the store name instead.';
+      }
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
 
 // ===== Unregister old service worker =====
 // Service worker cleanup handled in <head>
