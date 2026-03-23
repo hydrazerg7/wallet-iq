@@ -1856,8 +1856,37 @@ function renderAI(){
   chat.scrollTop=chat.scrollHeight;
 }
 
-function askAI(query){
-  const result=getAIResponse(query);
+const WORKER_URL = 'https://wallet-iq-ai.grant-h-lange.workers.dev';
+
+async function askAI(query){
+  // Show user message + loading indicator immediately
+  const msgId = 'ai-' + Date.now();
+  aiMessages.push({role:'pair',html:`<div class="ai-msg user">${escapeHtml(query)}</div><div class="ai-msg bot" id="${msgId}"><div class="ai-tip" style="color:var(--text2)">Thinking...</div></div>`});
+  renderAI();
+  document.getElementById('aiInput').value='';
+
+  try {
+    const resp = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question: query})
+    });
+    const data = await resp.json();
+    if (data.answer) {
+      const el = document.getElementById(msgId);
+      if (el) el.innerHTML = `<div class="ai-tip" style="white-space:pre-line">${escapeHtml(data.answer)}</div>
+        <div style="margin-top:6px;font-size:9px;color:var(--text2)">Powered by Gemini</div>`;
+      return;
+    }
+  } catch(e) {
+    // Gemini failed — fall back to rules engine
+  }
+
+  // Fallback to local rules engine
+  const result = getAIResponse(query);
+  const el = document.getElementById(msgId);
+  if (!el) return;
+
   let altsHtml='';
   if(result.alts&&result.alts.length>0){
     altsHtml='<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:11px;color:var(--text2);margin-bottom:6px">Other options:</div>';
@@ -1866,15 +1895,13 @@ function askAI(query){
     });
     altsHtml+='</div>';
   }
-  let botHtml;
   if(result.isInfo){
-    // Informational response — no card recommendation header
-    botHtml=`<div class="ai-msg bot"><div class="ai-tip" style="white-space:pre-line">${result.tip}</div></div>`;
+    el.innerHTML=`<div class="ai-tip" style="white-space:pre-line">${result.tip}</div>
+      <div style="margin-top:6px;font-size:9px;color:var(--text2)">Offline mode</div>`;
   } else {
-    botHtml=`<div class="ai-msg bot"><div style="margin-bottom:4px;font-size:12px;color:var(--text2)">Best card:</div><div class="card-rec"><div class="rec-dot" style="background:${result.color}"></div><div class="rec-name">${result.card}</div><div class="rec-rate">${result.rate}</div></div><div class="ai-tip" style="white-space:pre-line">${result.tip}</div>${altsHtml}</div>`;
+    el.innerHTML=`<div style="margin-bottom:4px;font-size:12px;color:var(--text2)">Best card:</div><div class="card-rec"><div class="rec-dot" style="background:${result.color}"></div><div class="rec-name">${result.card}</div><div class="rec-rate">${result.rate}</div></div><div class="ai-tip" style="white-space:pre-line">${result.tip}</div>${altsHtml}
+      <div style="margin-top:6px;font-size:9px;color:var(--text2)">Offline mode</div>`;
   }
-  aiMessages.push({role:'pair',html:`<div class="ai-msg user">${escapeHtml(query)}</div>${botHtml}`});
-  renderAI();document.getElementById('aiInput').value='';
 }
 function sendAI(){const q=document.getElementById('aiInput').value.trim();if(q)askAI(q);}
 function clearAI(){aiMessages=[];renderAI();}
