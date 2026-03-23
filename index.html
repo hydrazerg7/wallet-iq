@@ -150,7 +150,8 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 .danger{color:var(--red) !important}
 .empty{text-align:center;padding:40px 20px;color:var(--text2);font-size:14px}
 /* AI */
-.ai-input-wrap{display:flex;gap:8px;padding-bottom:8px}
+.ai-bottom{flex-shrink:0;border-top:1px solid var(--border);padding-top:8px}
+.ai-input-wrap{display:flex;gap:8px;padding-bottom:calc(8px + var(--safe-bottom))}
 .ai-input{flex:1;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:15px;outline:none}
 .ai-input:focus{border-color:var(--accent)}
 .ai-send{width:48px;height:48px;border-radius:14px;border:none;background:var(--accent);color:#000;font-size:18px;cursor:pointer;flex-shrink:0}
@@ -238,34 +239,36 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 
   <!-- ASK AI -->
   <div class="panel" id="panel-ai">
-    <div class="ai-input-wrap">
-      <input type="text" id="aiInput" placeholder="I'm buying..." class="ai-input" enterkeyhint="send">
-      <button class="ai-send" onclick="sendAI()">&#9654;</button>
-    </div>
-    <div class="ai-chips">
-      <button class="chip" onclick="askAI('Gas fill-up')">Gas</button>
-      <button class="chip" onclick="askAI('Groceries')">Groceries</button>
-      <button class="chip" onclick="askAI('Five Guys')">Five Guys</button>
-      <button class="chip" onclick="askAI('Amazon order')">Amazon</button>
-      <button class="chip" onclick="askAI('Whole Foods')">Whole Foods</button>
-      <button class="chip" onclick="askAI('Netflix subscription')">Streaming</button>
-      <button class="chip" onclick="askAI('Uber ride')">Uber</button>
-      <button class="chip" onclick="askAI('United flight')">United Flight</button>
-      <button class="chip" onclick="askAI('Instacart delivery')">Instacart</button>
-      <button class="chip" onclick="askAI('Sandwich at cafeteria')">Cafeteria</button>
-      <button class="chip" onclick="askAI('Random purchase at Target')">Target/Other</button>
-      <button class="chip" onclick="askAI('Coffee')">Coffee</button>
-      <button class="chip" onclick="askAI('Hotel booking')">Hotel</button>
-      <button class="chip" onclick="nearMe()" style="background:var(--green);color:#000;border-color:var(--green)">Near Me</button>
-    </div>
-    <div class="ai-clear-wrap" id="aiClearWrap" style="display:none">
-      <button class="ai-clear" onclick="clearAI()">Clear Chat</button>
-    </div>
     <div class="ai-chat" id="aiChat">
       <div class="ai-welcome">
         <div style="font-size:28px;margin-bottom:8px">&#127183;</div>
         <div style="font-size:16px;font-weight:600;margin-bottom:4px">What are you buying?</div>
-        <div style="font-size:13px;color:var(--text2)">Type above or tap a quick button</div>
+        <div style="font-size:13px;color:var(--text2)">Type below or tap a quick button</div>
+      </div>
+    </div>
+    <div class="ai-bottom">
+      <div class="ai-clear-wrap" id="aiClearWrap" style="display:none">
+        <button class="ai-clear" onclick="clearAI()">Clear Chat</button>
+      </div>
+      <div class="ai-chips">
+        <button class="chip" onclick="askAI('Gas fill-up')">Gas</button>
+        <button class="chip" onclick="askAI('Groceries')">Groceries</button>
+        <button class="chip" onclick="askAI('Five Guys')">Five Guys</button>
+        <button class="chip" onclick="askAI('Amazon order')">Amazon</button>
+        <button class="chip" onclick="askAI('Whole Foods')">Whole Foods</button>
+        <button class="chip" onclick="askAI('Netflix subscription')">Streaming</button>
+        <button class="chip" onclick="askAI('Uber ride')">Uber</button>
+        <button class="chip" onclick="askAI('United flight')">United Flight</button>
+        <button class="chip" onclick="askAI('Instacart delivery')">Instacart</button>
+        <button class="chip" onclick="askAI('Sandwich at cafeteria')">Cafeteria</button>
+        <button class="chip" onclick="askAI('Random purchase at Target')">Target/Other</button>
+        <button class="chip" onclick="askAI('Coffee')">Coffee</button>
+        <button class="chip" onclick="askAI('Hotel booking')">Hotel</button>
+        <button class="chip" onclick="nearMe()" style="background:var(--green);color:#000;border-color:var(--green)">Near Me</button>
+      </div>
+      <div class="ai-input-wrap">
+        <input type="text" id="aiInput" placeholder="I'm buying..." class="ai-input" enterkeyhint="send">
+        <button class="ai-send" onclick="sendAI()">&#9654;</button>
       </div>
     </div>
   </div>
@@ -1863,9 +1866,12 @@ async function askAI(query){
   if (aiPending) return; // prevent duplicate submissions
   aiPending = true;
   // Show user message + loading indicator immediately
-  const msgId = 'ai-' + Date.now();
+  const msgId = 'ai-' + Date.now() + '-' + Math.random().toString(36).substr(2,5);
   aiMessages.push({role:'pair',html:`<div class="ai-msg user">${escapeHtml(query)}</div><div class="ai-msg bot" id="${msgId}"><div class="ai-tip" style="color:var(--text2)">Thinking...</div></div>`});
   renderAI();
+  // Auto-scroll to bottom
+  const chatEl = document.getElementById('aiChat');
+  if (chatEl) chatEl.scrollTop = chatEl.scrollHeight;
   document.getElementById('aiInput').value='';
 
   try {
@@ -1876,8 +1882,13 @@ async function askAI(query){
     });
     const data = await resp.json();
     if (data.answer) {
+      const newHtml = `<div class="ai-tip" style="white-space:pre-line">${escapeHtml(data.answer)}</div>`;
       const el = document.getElementById(msgId);
-      if (el) el.innerHTML = `<div class="ai-tip" style="white-space:pre-line">${escapeHtml(data.answer)}</div>`;
+      if (el) el.innerHTML = newHtml;
+      // Update stored message so re-renders don't revert to Thinking
+      const msg = aiMessages[aiMessages.length-1];
+      if (msg) msg.html = `<div class="ai-msg user">${escapeHtml(query)}</div><div class="ai-msg bot">${newHtml}</div>`;
+      aiPending = false;
       return;
     }
   } catch(e) {
@@ -1897,13 +1908,15 @@ async function askAI(query){
     });
     altsHtml+='</div>';
   }
+  let fallbackHtml;
   if(result.isInfo){
-    el.innerHTML=`<div class="ai-tip" style="white-space:pre-line">${result.tip}</div>
-      `;
+    fallbackHtml=`<div class="ai-tip" style="white-space:pre-line">${result.tip}</div>`;
   } else {
-    el.innerHTML=`<div style="margin-bottom:4px;font-size:12px;color:var(--text2)">Best card:</div><div class="card-rec"><div class="rec-dot" style="background:${result.color}"></div><div class="rec-name">${result.card}</div><div class="rec-rate">${result.rate}</div></div><div class="ai-tip" style="white-space:pre-line">${result.tip}</div>${altsHtml}
-      `;
+    fallbackHtml=`<div style="margin-bottom:4px;font-size:12px;color:var(--text2)">Best card:</div><div class="card-rec"><div class="rec-dot" style="background:${result.color}"></div><div class="rec-name">${result.card}</div><div class="rec-rate">${result.rate}</div></div><div class="ai-tip" style="white-space:pre-line">${result.tip}</div>${altsHtml}`;
   }
+  if (el) el.innerHTML = fallbackHtml;
+  const msg = aiMessages[aiMessages.length-1];
+  if (msg) msg.html = `<div class="ai-msg user">${escapeHtml(query)}</div><div class="ai-msg bot">${fallbackHtml}</div>`;
   aiPending = false;
 }
 function sendAI(){const q=document.getElementById('aiInput').value.trim();if(q)askAI(q);}
