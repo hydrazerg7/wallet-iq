@@ -278,8 +278,8 @@
 | King Soopers | Amazon (1%) | Amex Gold (4x) | ~$40 | +$14 |
 | DISH Cafe (lunch) | Amazon (2%) | Amex Gold (4x) | ~$40 | +$10 |
 | Assurant/Homeowners | Amex Gold (1x) | Robinhood (3%) | $221/mo avg | +$53 |
-| WM Waste Management | United (1x) | Robinhood (3%) | $53/mo | +$13 |
+| WM Waste Management | United (1x) | KEEP ON UNITED — grandfathered no CC fee, new cards will get charged convenience fee | $53/mo | $0 |
 | Nordstrom | United (1x) | Robinhood (3%) | $105/mo | +$25 |
 | Home Depot | Amex Gold (1x) | Robinhood (3%) | $16/mo | +$4 |
 | TurboTax | United (1x) | Robinhood (3%) | one-time | +$3 |
-| **Total annual gain** | | | | **~$281** |
+| **Total annual gain** | | | | **~$268** |

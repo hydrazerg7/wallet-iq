@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-23T01:01:03Z",
+  "lastUpdated": "2026-03-23T01:03:04Z",
   "version": "0.0.1",
   "cards": [
     {
@@ -194,7 +194,7 @@
     { "id": "united-check-offer", "date": "2026-04-02", "title": "Check new United Explorer offer", "note": "The United card refresh goes live today. Check the new welcome bonus — may be higher than 70K+10K. Visit chase.com/united", "color": "#0033A0", "dismissed": false },
     { "id": "united-cancel", "date": "2026-07-15", "title": "Cancel United Explorer card", "note": "Cancel BEFORE Sept 1 to avoid $150 annual fee. Call Chase: 800-432-3117. Miles stay safe in MileagePlus. Wait 30 days then reapply for new bonus.", "color": "#ff4444", "dismissed": false },
     { "id": "united-reapply", "date": "2026-08-15", "title": "Reapply for United Explorer", "note": "30 days since cancellation. Apply for new United Explorer at chase.com/united. You're eligible for the full welcome bonus (48+ months since last bonus). First year $0 fee. Hit $3K spend in 3 months.", "color": "#00C805", "dismissed": false },
-    { "id": "switch-online", "date": "2026-03-23", "title": "Switch online bills to Robinhood Gold (use virtual card now)", "note": "GEICO auto ($188/mo) | Claude AI ($200/mo) | WM Waste Management ($53/mo, check convenience fee) | OpenAI ($20/mo) | DISH TV ($24/mo) | Sling TV ($5/mo) | Apple.com ($30/mo) | Boost Mobile ($13/mo) | Water bill ($90/mo) | Assurant/homeowners ($2,650/yr) | TurboTax | Daily Wire | Gorilla Mind — all earning 1% on wrong cards, should be 3% on Robinhood", "color": "#00C805", "dismissed": false },
+    { "id": "switch-online", "date": "2026-03-23", "title": "Switch online bills to Robinhood Gold (use virtual card now)", "note": "GEICO auto ($188/mo) | Claude AI ($200/mo) | Walmart.com (if any purchases) | OpenAI ($20/mo) | DISH TV ($24/mo) | Sling TV ($5/mo) | Apple.com ($30/mo) | Boost Mobile ($13/mo) | Water bill ($90/mo) | Assurant/homeowners ($2,650/yr) | TurboTax | Daily Wire | Gorilla Mind — all earning 1% on wrong cards, should be 3% on Robinhood", "color": "#00C805", "dismissed": false },
     { "id": "switch-instore", "date": "2026-03-23", "title": "Switch in-store payments when physical Robinhood card arrives", "note": "Sam's Club ($247/mo) | Shell gas ($40/mo) | Target ($37/mo) | Home Depot | Nordstrom — use Apple Wallet tap-to-pay or physical card", "color": "#00C805", "dismissed": false },
     { "id": "switch-amex", "date": "2026-03-23", "title": "Switch to Amex Gold for dining/groceries", "note": "King Soopers → Amex Gold (4x, currently on Amazon at 1%) | Parry's, TopGolf, Davidsons, all restaurants → already on Amex Gold (correct)", "color": "#C5A44E", "dismissed": false }
   ],
