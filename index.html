@@ -1857,8 +1857,11 @@ function renderAI(){
 }
 
 const WORKER_URL = 'https://wallet-iq-ai.grant-h-lange.workers.dev';
+let aiPending = false;
 
 async function askAI(query){
+  if (aiPending) return; // prevent duplicate submissions
+  aiPending = true;
   // Show user message + loading indicator immediately
   const msgId = 'ai-' + Date.now();
   aiMessages.push({role:'pair',html:`<div class="ai-msg user">${escapeHtml(query)}</div><div class="ai-msg bot" id="${msgId}"><div class="ai-tip" style="color:var(--text2)">Thinking...</div></div>`});
@@ -1874,8 +1877,7 @@ async function askAI(query){
     const data = await resp.json();
     if (data.answer) {
       const el = document.getElementById(msgId);
-      if (el) el.innerHTML = `<div class="ai-tip" style="white-space:pre-line">${escapeHtml(data.answer)}</div>
-        <div style="margin-top:6px;font-size:9px;color:var(--text2)">Powered by Gemini</div>`;
+      if (el) el.innerHTML = `<div class="ai-tip" style="white-space:pre-line">${escapeHtml(data.answer)}</div>`;
       return;
     }
   } catch(e) {
@@ -1897,11 +1899,12 @@ async function askAI(query){
   }
   if(result.isInfo){
     el.innerHTML=`<div class="ai-tip" style="white-space:pre-line">${result.tip}</div>
-      <div style="margin-top:6px;font-size:9px;color:var(--text2)">Offline mode</div>`;
+      `;
   } else {
     el.innerHTML=`<div style="margin-bottom:4px;font-size:12px;color:var(--text2)">Best card:</div><div class="card-rec"><div class="rec-dot" style="background:${result.color}"></div><div class="rec-name">${result.card}</div><div class="rec-rate">${result.rate}</div></div><div class="ai-tip" style="white-space:pre-line">${result.tip}</div>${altsHtml}
-      <div style="margin-top:6px;font-size:9px;color:var(--text2)">Offline mode</div>`;
+      `;
   }
+  aiPending = false;
 }
 function sendAI(){const q=document.getElementById('aiInput').value.trim();if(q)askAI(q);}
 function clearAI(){aiMessages=[];renderAI();}
