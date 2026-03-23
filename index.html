@@ -1565,11 +1565,14 @@ const aiRules=[
     card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Costco/Sam\'s food court codes as "warehouse club," not dining. Use Robinhood 3%.'},
   {keys:['food at ikea','ikea food','ikea cafe','food at target','target food','target cafe','food at walmart','walmart food','store food','target groceries','walmart groceries'],
     card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Food/groceries at retail stores (Target, Walmart, IKEA) codes under the store category, NOT as supermarket or dining. Amex Gold 4x will NOT apply. Use Robinhood 3%.'},
+  // Streaming/subscriptions — must be BEFORE dining rules (or 'subscription' matches 'sub' in dining)
+  {keys:['netflix','hulu','spotify','disney','hbo','max','youtube','apple tv','peacock','paramount','streaming','subscription','subscriptions','crunchyroll','audible','sling'],
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Streaming/digital subscriptions earn 3% on Robinhood Gold. Beats United Explorer 2x miles (~2.4 cents) since 3% cash is guaranteed value.'},
   // Named dining merchants
   {keys:['five guys','5 guys','fiveguys'],card:'Amex Gold',rate:'4x + $10/mo credit',color:'#C5A44E',tip:'Five Guys is one of the $10/mo dining credit merchants. Check Tracker for remaining credit.'},
   // Generic dining (only matches if no store override matched first)
   {keys:['grubhub','goldbelly','shake shack','chipotle','restaurant','dining','dinner','lunch','brunch','bar','pub','eat out','takeout','take out','food delivery','doordash','postmates',
-    'sandwich','burger','pizza','taco','burrito','sushi','wings','salad','soup','wrap','sub','meal','food','snack','cafeteria','cafe','deli','bakery','noodle','ramen','pho','thai','chinese','mexican','italian','indian','korean','bbq','barbecue','buffet','diner','bistro','grill','kitchen','eatery','food truck','food court','panera','subway','mcdonalds','wendys','chick-fil-a','chickfila','popeyes','panda express','taco bell','kfc','arbys','sonic','jack in the box','in-n-out','whataburger','noodles','wingstop','canes','raising cane','zaxby','jersey mike','firehouse','jimmy john','qdoba','moe','chili','applebee','olive garden','outback','red lobster','ihop','waffle house','denny'],
+    'sandwich','burger','pizza','taco','burrito','sushi','wings','salad','soup','wrap','sub sandwich','hoagie','meal','food','snack','cafeteria','cafe','deli','bakery','noodle','ramen','pho','thai','chinese','mexican','italian','indian','korean','bbq','barbecue','buffet','diner','bistro','grill','kitchen','eatery','food truck','food court','panera','subway','mcdonalds','wendys','chick-fil-a','chickfila','popeyes','panda express','taco bell','kfc','arbys','sonic','jack in the box','in-n-out','whataburger','noodles','wingstop','canes','raising cane','zaxby','jersey mike','firehouse','jimmy john','qdoba','moe','chili','applebee','olive garden','outback','red lobster','ihop','waffle house','denny'],
     card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Food purchases almost always code as dining. Note: the $10/mo dining credit only works at Grubhub, Cheesecake Factory, Goldbelly, Wine.com, and Five Guys — not all restaurants.'},
   {keys:['grocery','groceries','supermarket','safeway','king soopers','kroger','trader joe','aldi','sprouts','hmart'],
     card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Must be a U.S. supermarket (King Soopers, Safeway, etc.). NOT Target, Walmart, Costco, or Sam\'s Club — those code as retail, not grocery. Capped at $25K/yr.'},
@@ -1583,8 +1586,7 @@ const aiRules=[
     card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Food at retail stores codes under the store category, not dining. Use Robinhood 3%. Exception: if the restaurant has its own register, it might code as dining.'},
   {keys:['gas','gas station','fuel','shell','chevron','exxon','mobil','bp','conoco','circle k','costco gas','sams gas','pump','fill up','fillup','gasoline','petrol'],
     card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Amazon card only gets 2%. Robinhood Gold wins. Check Mystery Box for a boost before filling up!'},
-  {keys:['netflix','hulu','spotify','disney','hbo','max','youtube','apple tv','peacock','paramount','streaming','subscription','subscriptions','crunchyroll','audible'],
-    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Robinhood Gold 3% beats United Explorer 2x miles (~2-2.4 cents) on streaming since 3% cash is guaranteed value.'},
+  // streaming moved earlier in rules
   {keys:['ride'],card:'United Explorer',rate:'2x',color:'#0033A0',tip:'United Explorer earns 2x on rideshare. Check for $5/mo rideshare credit and Uber Cash first.'},
   {keys:['united','united airlines','united flight'],card:'United Explorer',rate:'2x (9x Apr 2)',color:'#0033A0',tip:'Must pay with Explorer for free checked bag + priority boarding. Currently 2x, jumps to 9x on April 2, 2026.'},
   {keys:['instacart'],card:'United Explorer',rate:'$10/mo credit',color:'#0033A0',tip:'Use the $10/mo credit first (expires monthly, through 12/31/27).'},
