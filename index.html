@@ -275,6 +275,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
 
   <!-- ALL CARDS -->
   <div class="panel" id="panel-cards">
+    <div class="ai-chips" id="cardFilters" style="margin-bottom:8px"></div>
     <div style="display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px">
       <button class="subtab active" data-subtab="rates" onclick="switchSubtab('rates')">Earn Rates</button>
       <button class="subtab" data-subtab="perks" onclick="switchSubtab('perks')">Credits & Benefits</button>
@@ -285,7 +286,6 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
         <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
         <input type="text" id="guideSearch" placeholder="Search categories (gas, groceries, amazon...)">
       </div>
-      <div class="ai-chips" id="cardFilters" style="margin-bottom:8px"></div>
       <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center">
         <span style="font-size:11px;color:var(--text2)">Sort:</span>
         <button class="chip" id="sort-rate" onclick="setGuideSort('rate')" style="font-size:11px;padding:5px 10px">% High→Low</button>
@@ -800,10 +800,13 @@ function renderCardFilters() {
 
 function setCardFilter(cardId) {
   activeCardFilter = cardId;
-  document.getElementById('guideSearch').value = '';
+  const searchEl = document.getElementById('guideSearch');
+  if (searchEl) searchEl.value = '';
   renderCardFilters();
   renderGuide('');
   renderCards();
+  renderPerks();
+  renderFees();
 }
 
 function renderGuide(filter='') {
@@ -874,7 +877,8 @@ function renderCards() {
 function renderPerks() {
   const enrolled = JSON.parse(localStorage.getItem('walletiq_enrolled') || '{}');
   const feeVal = f => parseInt(f.replace(/[^0-9]/g,'')) || 0;
-  const sorted = [...appData.cards].sort((a,b) => feeVal(b.annualFee) - feeVal(a.annualFee));
+  const allSorted = [...appData.cards].sort((a,b) => feeVal(b.annualFee) - feeVal(a.annualFee));
+  const sorted = activeCardFilter ? allSorted.filter(c => c.id === activeCardFilter) : allSorted;
   let html = '';
 
   sorted.forEach(card => {
@@ -956,7 +960,8 @@ function renderPerks() {
 function renderFees() {
   const enrolled = JSON.parse(localStorage.getItem('walletiq_enrolled') || '{}');
   const feeVal = f => parseInt(f.replace(/[^0-9]/g,'')) || 0;
-  const sorted = [...appData.cards].sort((a,b) => feeVal(b.annualFee) - feeVal(a.annualFee));
+  const allSorted = [...appData.cards].sort((a,b) => feeVal(b.annualFee) - feeVal(a.annualFee));
+  const sorted = activeCardFilter ? allSorted.filter(c => c.id === activeCardFilter) : allSorted;
   let html = '';
   let grandFees = 0, grandCredits = 0;
 
