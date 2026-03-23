@@ -268,7 +268,7 @@
 | Sam's Club | United (1x) | Robinhood (3%) | ~$150 | +$32 |
 | GEICO Auto | United (1x) | Robinhood (3%) | ~$154 | +$33 |
 | Claude AI | United (1x) | Robinhood (3%) | $200 | +$43 |
-| Walmart.com | United (1x) | Robinhood (3%) | ~$53 | +$11 |
+| (was Walmart — actually WM Waste Mgmt, already counted above) | — | — | — | — |
 | Water Bill | United (1x) | Robinhood (3%) | ~$150 | +$32 |
 | DISH Network | Freedom (1%) | Robinhood (3%) | $24 | +$5 |
 | Sling TV | Freedom (1%) | Robinhood (3%) | $5 | +$1 |
