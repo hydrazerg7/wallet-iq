@@ -1,0 +1,9 @@
+# Personal analysis scripts — never push to public repo
+*analysis*.py
+*spending*.py
+*budget*.py
+CARD_REFERENCE.md
+
+# Environment / secrets
+.env
+*.key
