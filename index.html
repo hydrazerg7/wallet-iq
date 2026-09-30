@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0a0a0f">
+<meta name="theme-color" content="#0f1522">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -22,228 +22,308 @@ if('serviceWorker' in navigator){
       // Force reload from network after clearing
       setTimeout(function(){location.reload(true);},500);
     }
-  });
+  }).catch(function(){});
 }
 </script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{
-  --bg:#0a0a0f;--surface:#14141f;--surface2:#1c1c2e;--border:#2a2a3d;
-  --text:#e8e8f0;--text2:#8888a0;--accent:#c9a84c;--accent2:#e8c55a;
-  --green:#00c805;--blue:#1a73e8;--navy:#0033a0;--amazon:#232f3e;
-  --red:#ff4444;--orange:#ff8c00;
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bottom:env(safe-area-inset-bottom,0px);
-}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,system-ui,sans-serif;overflow:hidden}
-body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
-.header{padding:16px 20px 12px;background:var(--bg);border-bottom:1px solid var(--border)}
-.header h1{font-size:22px;font-weight:700;background:linear-gradient(135deg,#c9a84c,#e8c55a,#f0d878,#c9a84c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline}
-.header h1 .refresh{-webkit-text-fill-color:#10b981;font-size:18px;margin-left:4px}
-.header .subtitle{font-size:11px;color:var(--text2);margin-top:2px}
-.header .updated{font-size:10px;color:var(--text2);float:right;margin-top:-28px;text-align:right}
-.tabs{display:flex;gap:8px;background:var(--bg);padding:10px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0;scrollbar-width:none;border-bottom:1px solid var(--border)}
-.tabs::-webkit-scrollbar{display:none}
-.tab{flex:0 0 auto;padding:8px 16px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s;border-radius:99px;border:1px solid}
-.tab[data-tab="today"]{color:#10b981;border-color:#10b98133;background:rgba(16,185,129,.08)}
-.tab[data-tab="today"].active{color:#000;background:#10b981;border-color:#10b981}
-.tab[data-tab="ai"]{color:#c9a84c;border-color:#c9a84c33;background:rgba(201,168,76,.08)}
-.tab[data-tab="ai"].active{color:#000;background:#c9a84c;border-color:#c9a84c}
-.tab[data-tab="cards"]{color:#8b5cf6;border-color:#8b5cf633;background:rgba(139,92,246,.08)}
-.tab[data-tab="cards"].active{color:#fff;background:#8b5cf6;border-color:#8b5cf6}
-.tab[data-tab="tracker"]{color:#00c805;border-color:#00c80533;background:rgba(0,200,5,.08)}
-.tab[data-tab="tracker"].active{color:#000;background:#00c805;border-color:#00c805}
-.tab[data-tab="history"]{color:#3b82f6;border-color:#3b82f633;background:rgba(59,130,246,.08)}
-.tab[data-tab="history"].active{color:#fff;background:#3b82f6;border-color:#3b82f6}
-.tab[data-tab="mystery"]{color:#f59e0b;border-color:#f59e0b33;background:rgba(245,158,11,.08)}
-.tab[data-tab="mystery"].active{color:#000;background:#f59e0b;border-color:#f59e0b}
-.tab[data-tab="savings"]{color:#ec4899;border-color:#ec489933;background:rgba(236,72,153,.08)}
-.tab[data-tab="savings"].active{color:#fff;background:#ec4899;border-color:#ec4899}
-.tab[data-tab="offers"]{color:#14b8a6;border-color:#14b8a633;background:rgba(20,184,166,.08)}
-.tab[data-tab="offers"].active{color:#000;background:#14b8a6;border-color:#14b8a6}
-.tab[data-tab="chase"]{color:#6b7280;border-color:#6b728033;background:rgba(107,114,128,.08)}
-.tab[data-tab="chase"].active{color:#fff;background:#6b7280;border-color:#6b7280}
+/* hub-page-standard palette (section 2): dark default, light from the menubar, shared key hub-theme */
+:root{--bg:#0f1522;--card:#1a2332;--ink:#e2e8f2;--muted:#93a1b5;--accent:#4a9df0;--heading:#74b3f2;
+  --border:#2e3b52;--green:#7dd8a0;--amber:#f0c674;--red:#f08a8a;--code:#141b2b;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
+[data-theme="light"]{--bg:#f4f6fa;--card:#fff;--ink:#1c2533;--muted:#5a6a80;--accent:#2568c8;--heading:#1d4f96;
+  --border:#d5dce8;--green:#1d7a45;--amber:#8a6210;--red:#b3352f;--code:#eaeef5}
+html{background:var(--bg)}
+body{background:var(--bg);color:var(--ink);font-family:Segoe UI,system-ui,Arial,sans-serif;font-size:1rem}
+/* home screen app on iPhone: the status bar is see-through, so the sticky menubar carries the notch inset */
+body>.menubar{padding-top:calc(7px + var(--safe-top))}
+/* 800 (not 760) so all nine tabs fit on a desktop without the overflow fade (strip is 752px wide) */
+main{max-width:800px;margin:0 auto;padding:0 16px calc(28px + var(--safe-bottom))}
+.mast h1{cursor:pointer}
+.mast h1 .refresh{font-size:.55em;color:var(--accent);margin-left:8px;vertical-align:middle}
+main h2{font-size:1.3rem;line-height:1.25;color:var(--ink);margin:26px 0 10px}
+main h2:first-child,#activeBoostSection:empty+h2{margin-top:0}
+/* All Cards keeps its own small strip (Earn Rates, Credits, Fees); it scrolls with the page */
+#cards .tabs{position:static;margin:4px 0 16px}
+/* Ask AI is a chat: the pane fills the screen under the sticky tab strip, the chat scrolls inside,
+   the quick buttons and the input stay at the bottom */
+#ask.pane.on{display:flex;flex-direction:column;height:calc(100vh - var(--mbh,48px) - 60px);min-height:360px}
+@supports (height:100dvh){#ask.pane.on{height:calc(100dvh - var(--mbh,48px) - 60px)}}
+body #totop{bottom:calc(14px + var(--safe-bottom))}
+/* a faint ring so a dark brand dot (Amazon navy) still shows on the dark ground */
+[data-theme="dark"] .card-dot,[data-theme="dark"] .rec-dot,[data-theme="dark"] .log-dot{box-shadow:0 0 0 1px rgba(226,232,242,.3)}
 /* Offers */
-.offer-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;position:relative}
-.offer-card.expiring-soon{border-color:var(--orange)}
+.offer-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;position:relative}
+.offer-card.expiring-soon{border-color:var(--amber)}
 .offer-card.expired{opacity:.5;border-color:var(--red)}
-.offer-merchant{font-size:16px;font-weight:700}
-.offer-discount{font-size:14px;font-weight:700;color:var(--green)}
-.offer-meta{font-size:11px;color:var(--text2);margin-top:4px}
-.offer-delete{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer;padding:4px 8px}
-.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + var(--safe-bottom))}
-.panel{display:none;padding:16px}
-.panel.active{display:block}
-.panel#panel-ai.active{display:flex}
-.panel#panel-ai:not(.active){display:none}
-.panel#panel-ai{flex-direction:column;height:calc(100vh - 160px)}
+.offer-merchant{font-size:1rem;font-weight:700}
+.offer-discount{font-size:.875rem;font-weight:700;color:var(--green)}
+.offer-meta{font-size:.6875rem;color:var(--muted);margin-top:4px}
+.offer-delete{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:4px 8px}
 .search-wrap{position:relative;margin-bottom:16px}
-.search-wrap input{width:100%;padding:12px 16px 12px 40px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:15px;outline:none}
+.search-wrap input{width:100%;padding:12px 16px 12px 40px;background:var(--code);border:1px solid var(--border);border-radius:12px;color:var(--ink);font-size:.9375rem;outline:none}
 .search-wrap input:focus{border-color:var(--accent)}
-.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;fill:var(--text2)}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;fill:var(--muted)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
 .card-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .card-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.card-name{font-weight:700;font-size:15px}
-.card-fee{font-size:11px;color:var(--text2);margin-left:auto}
-.card-link{font-size:11px;color:var(--blue);text-decoration:none;margin-left:8px}
+.card-name{font-weight:700;font-size:.9375rem}
+.card-fee{font-size:.6875rem;color:var(--muted);margin-left:auto}
+.card-link{font-size:.6875rem;color:var(--accent);text-decoration:none;margin-left:8px}
 .cat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--border)}
-.cat-name{font-size:13px;flex:1}
-.cat-rate{font-size:13px;font-weight:700;color:var(--accent);min-width:60px;text-align:right}
-.cat-note{font-size:11px;color:var(--text2);margin-top:2px}
-.guide-row{display:flex;align-items:center;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;gap:10px}
-.guide-cat{flex:1;font-size:14px;font-weight:500}
-.guide-card{font-size:12px;color:var(--text2)}
-.guide-rate{font-size:14px;font-weight:700;color:var(--accent);min-width:50px;text-align:right}
-.credit-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px}
+.cat-name{font-size:.8125rem;flex:1}
+.cat-rate{font-size:.8125rem;font-weight:700;color:var(--accent);min-width:60px;text-align:right}
+.cat-note{font-size:.6875rem;color:var(--muted);margin-top:2px}
+.guide-row{display:flex;align-items:center;padding:11px 2px;border-top:1px solid var(--border);gap:10px}
+#guideList:not(:empty),#historyList:not(:empty),#tipList:not(:empty){border-bottom:1px solid var(--border)}
+.guide-cat{flex:1;font-size:.875rem;font-weight:500}
+.guide-card{font-size:.75rem;color:var(--muted)}
+.guide-rate{font-size:.875rem;font-weight:700;color:var(--accent);min-width:50px;text-align:right}
+.credit-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px}
 .credit-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
-.credit-name{font-weight:600;font-size:14px}
-.credit-badge{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--surface2);color:var(--text2)}
-.credit-card-label{font-size:11px;color:var(--text2);margin-bottom:8px}
-.progress-wrap{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:4px}
+.credit-name{font-weight:600;font-size:.875rem}
+.credit-badge{font-size:.6875rem;padding:2px 8px;border-radius:99px;background:var(--code);color:var(--muted)}
+.credit-card-label{font-size:.6875rem;color:var(--muted);margin-bottom:8px}
+.progress-wrap{height:8px;background:var(--code);border-radius:99px;overflow:hidden;margin-bottom:4px}
 .progress-bar{height:100%;border-radius:99px;transition:width .3s}
-.time-bar-wrap{height:4px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:6px;position:relative}
+.time-bar-wrap{height:4px;background:var(--code);border-radius:99px;overflow:hidden;margin-bottom:6px;position:relative}
 .time-bar{height:100%;border-radius:99px;transition:width .3s}
-.time-bar-label{font-size:10px;color:var(--text2);margin-bottom:4px;display:flex;justify-content:space-between}
-.credit-bottom{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text2)}
-.credit-remaining{font-weight:600;color:var(--text)}
+.time-bar-label{font-size:.625rem;color:var(--muted);margin-bottom:4px;display:flex;justify-content:space-between}
+.credit-bottom{display:flex;justify-content:space-between;align-items:center;font-size:.75rem;color:var(--muted)}
+.credit-remaining{font-weight:600;color:var(--ink)}
 .credit-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-.btn{padding:8px 14px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
-.btn-primary{background:var(--accent);color:#000}
-.btn-primary:active{background:var(--accent2)}
-.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
-.btn-outline:active{background:var(--surface2)}
-.btn-sm{padding:6px 10px;font-size:11px}
+.btn{padding:8px 14px;border-radius:8px;border:none;font-size:.75rem;font-weight:600;cursor:pointer;transition:.2s}
+.btn-primary{background:var(--accent);color:var(--bg)}
+.btn-primary:active{background:var(--heading)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--ink)}
+.btn-outline:active{background:var(--code)}
+.btn-sm{padding:6px 10px;font-size:.6875rem}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:flex-end;justify-content:center}
 .modal-overlay.show{display:flex}
-.modal{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px calc(24px + var(--safe-bottom));width:100%;max-width:500px;max-height:80vh;overflow-y:auto}
-.modal h3{font-size:18px;margin-bottom:16px;color:var(--accent)}
+.modal{background:var(--card);border-radius:20px 20px 0 0;padding:24px 20px calc(24px + var(--safe-bottom));width:100%;max-width:500px;max-height:80vh;overflow-y:auto}
+.modal h3{font-size:1.125rem;margin-bottom:16px;color:var(--accent)}
 .form-group{margin-bottom:14px}
-.form-group label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px}
-.form-group input,.form-group select{width:100%;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;outline:none;-webkit-appearance:none}
+.form-group label{display:block;font-size:.75rem;color:var(--muted);margin-bottom:6px}
+.form-group input,.form-group select{width:100%;padding:12px;background:var(--code);border:1px solid var(--border);border-radius:10px;color:var(--ink);font-size:.9375rem;outline:none;-webkit-appearance:none}
 .form-group input:focus,.form-group select:focus{border-color:var(--accent)}
-.summary{display:flex;gap:8px;margin-bottom:16px;padding:14px;background:linear-gradient(135deg,var(--surface),var(--surface2));border:1px solid var(--border);border-radius:14px}
+.summary{display:flex;gap:8px;margin-bottom:16px;padding:14px;background:linear-gradient(135deg,var(--card),var(--code));border:1px solid var(--border);border-radius:14px}
 .summary-item{flex:1;text-align:center}
-.summary-value{font-size:20px;font-weight:700;color:var(--accent)}
-.summary-label{font-size:10px;color:var(--text2);margin-top:2px}
-.log-entry{display:flex;align-items:center;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;gap:10px}
+.summary-value{font-size:1.25rem;font-weight:700;color:var(--accent)}
+.summary-label{font-size:.625rem;color:var(--muted);margin-top:2px}
+.log-entry{display:flex;align-items:center;padding:11px 2px;border-top:1px solid var(--border);gap:10px}
 .log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .log-info{flex:1}
-.log-credit{font-size:13px;font-weight:500}
-.log-date{font-size:11px;color:var(--text2)}
-.log-amount{font-size:14px;font-weight:700;color:var(--accent)}
-.log-delete{background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer;padding:4px 8px}
-.quarter-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px}
+.log-credit{font-size:.8125rem;font-weight:500}
+.log-date{font-size:.6875rem;color:var(--muted)}
+.log-amount{font-size:.875rem;font-weight:700;color:var(--accent)}
+.log-delete{background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:4px 8px}
+.quarter-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px}
 .quarter-card.active-q{border-color:var(--green)}
-.quarter-label{font-size:12px;color:var(--text2);margin-bottom:4px}
-.quarter-cats{font-size:16px;font-weight:700;margin-bottom:4px}
-.quarter-status{display:inline-block;font-size:11px;padding:3px 10px;border-radius:99px;margin-top:8px;font-weight:600}
+.quarter-label{font-size:.75rem;color:var(--muted);margin-bottom:4px}
+.quarter-cats{font-size:1rem;font-weight:700;margin-bottom:4px}
+.quarter-status{display:inline-block;font-size:.6875rem;padding:3px 10px;border-radius:99px;margin-top:8px;font-weight:600}
 .status-active{background:rgba(0,200,5,.15);color:var(--green)}
-.status-upcoming{background:rgba(26,115,232,.15);color:var(--blue)}
-.status-future{background:var(--surface2);color:var(--text2)}
-.prize-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.status-upcoming{background:rgba(26,115,232,.15);color:var(--accent)}
+.status-future{background:var(--code);color:var(--muted)}
+.prize-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:.8125rem}
 .prize-row:last-child{border-bottom:none}
 .prize-odds{color:var(--accent);font-weight:600;min-width:60px;text-align:right}
-.tip-item{padding:10px 14px;background:var(--surface2);border-radius:10px;margin-bottom:6px;font-size:13px;line-height:1.4}
-.section-title{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin:20px 0 10px}
+.tip-item{padding:10px 2px;border-top:1px solid var(--border);font-size:.8125rem;line-height:1.5}
+.section-title{font-size:.7rem;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.16em;margin:24px 0 10px}
 .section-title:first-child{margin-top:0}
 .danger{color:var(--red) !important}
-.empty{text-align:center;padding:40px 20px;color:var(--text2);font-size:14px}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:.875rem}
 /* AI */
 .ai-bottom{flex-shrink:0;border-top:1px solid var(--border);padding-top:8px}
 .ai-input-wrap{display:flex;gap:8px;padding-bottom:calc(8px + var(--safe-bottom))}
-.ai-input{flex:1;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:15px;outline:none}
+.ai-input{flex:1;padding:14px 16px;background:var(--code);border:1px solid var(--border);border-radius:14px;color:var(--ink);font-size:.9375rem;outline:none}
 .ai-input:focus{border-color:var(--accent)}
-.ai-send{width:48px;height:48px;border-radius:14px;border:none;background:var(--accent);color:#000;font-size:18px;cursor:pointer;flex-shrink:0}
-.ai-send:active{background:var(--accent2)}
+.ai-send{width:48px;height:48px;border-radius:14px;border:none;background:var(--accent);color:var(--bg);font-size:1.125rem;cursor:pointer;flex-shrink:0}
+.ai-send:active{background:var(--heading)}
 .ai-chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0}
-.chip{padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:99px;color:var(--text);font-size:12px;font-weight:500;cursor:pointer}
-.chip:active{background:var(--accent);color:#000;border-color:var(--accent)}
+.chip{padding:8px 14px;background:var(--code);border:1px solid var(--border);border-radius:99px;color:var(--ink);font-size:.75rem;font-weight:500;cursor:pointer}
+.chip:active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 .ai-chat{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:8px;padding-top:8px}
 .ai-welcome{text-align:center;padding:40px 20px}
-.ai-msg{padding:12px 16px;border-radius:14px;font-size:14px;line-height:1.5;max-width:90%;animation:fadeIn .2s}
-.ai-msg.user{background:var(--accent);color:#000;align-self:flex-end;border-bottom-right-radius:4px;font-weight:500}
-.ai-msg.bot{background:var(--surface);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px}
-.ai-msg .card-rec{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border-radius:10px;margin-top:8px}
+.ai-msg{padding:12px 16px;border-radius:14px;font-size:.875rem;line-height:1.5;max-width:90%;animation:fadeIn .2s}
+.ai-msg.user{background:var(--accent);color:var(--bg);align-self:flex-end;border-bottom-right-radius:4px;font-weight:500}
+.ai-msg.bot{background:var(--card);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px}
+.ai-msg .card-rec{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--code);border-radius:10px;margin-top:8px}
 .ai-msg .card-rec .rec-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.ai-msg .card-rec .rec-name{font-weight:700;font-size:14px}
-.ai-msg .card-rec .rec-rate{margin-left:auto;font-weight:700;color:var(--accent);font-size:16px}
-.ai-msg .ai-tip{font-size:12px;color:var(--text2);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
+.ai-msg .card-rec .rec-name{font-weight:700;font-size:.875rem}
+.ai-msg .card-rec .rec-rate{margin-left:auto;font-weight:700;color:var(--accent);font-size:1rem}
+.ai-msg .ai-tip{font-size:.75rem;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
 .ai-clear-wrap{display:flex;justify-content:flex-end;padding:4px 0}
-.ai-clear{font-size:11px;color:var(--text2);background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer}
+.ai-clear{font-size:.6875rem;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 /* Today */
-.today-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px}
+.today-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px}
 .today-card.urgent{border-color:var(--red)}
 .today-card.boost{border-color:var(--green);background:rgba(0,200,5,.05)}
-.today-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.today-value{font-size:16px;font-weight:700}
-.today-sub{font-size:12px;color:var(--text2);margin-top:4px}
-.boost-timer{font-size:24px;font-weight:700;color:var(--green);text-align:center;padding:8px 0}
+.today-label{font-size:.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.today-value{font-size:1rem;font-weight:700}
+.today-sub{font-size:.75rem;color:var(--muted);margin-top:4px}
+.boost-timer{font-size:1.5rem;font-weight:700;color:var(--green);text-align:center;padding:8px 0}
 /* Savings */
 .savings-input{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
-.savings-label{flex:1;font-size:14px}
-.savings-field{width:90px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;text-align:right;outline:none}
+.savings-label{flex:1;font-size:.875rem}
+.savings-field{width:90px;padding:8px 10px;background:var(--code);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-size:.875rem;text-align:right;outline:none}
 .savings-field:focus{border-color:var(--accent)}
 .savings-result{padding:16px;background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(0,200,5,.1));border:1px solid var(--accent);border-radius:14px;margin-top:16px;text-align:center}
-.savings-big{font-size:32px;font-weight:700;color:var(--green)}
-.savings-sub{font-size:13px;color:var(--text2);margin-top:4px}
-/* Sub-tabs */
-.subtab{padding:8px 18px;font-size:13px;font-weight:600;border:1px solid var(--border);border-radius:99px;background:var(--surface);color:var(--text2);cursor:pointer;transition:.2s}
-.subtab.active{background:var(--accent);color:#000;border-color:var(--accent)}
+.savings-big{font-size:2rem;font-weight:700;color:var(--green)}
+.savings-sub{font-size:.8125rem;color:var(--muted);margin-top:4px}
 /* Perks */
-.perk-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden}
+.perk-card{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden}
 .perk-card-header{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
-.perk-card-header .card-name{font-weight:700;font-size:15px;flex:1}
+.perk-card-header .card-name{font-weight:700;font-size:.9375rem;flex:1}
 .perk-item{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);gap:10px}
 .perk-item:last-child{border-bottom:none}
 .perk-info{flex:1}
-.perk-name{font-size:13px;font-weight:600}
-.perk-detail{font-size:11px;color:var(--text2);margin-top:2px}
-.perk-value{font-size:14px;font-weight:700;color:var(--accent);min-width:70px;text-align:right}
-.perk-badge{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600}
+.perk-name{font-size:.8125rem;font-weight:600}
+.perk-detail{font-size:.6875rem;color:var(--muted);margin-top:2px}
+.perk-value{font-size:.875rem;font-weight:700;color:var(--accent);min-width:70px;text-align:right}
+.perk-badge{font-size:.625rem;padding:2px 8px;border-radius:99px;font-weight:600}
 .perk-badge.enrolled{background:rgba(0,200,5,.15);color:var(--green)}
-.perk-badge.needs-setup{background:rgba(245,158,11,.15);color:#f59e0b}
+.perk-badge.needs-setup{background:rgba(245,158,11,.15);color:var(--amber)}
 /* Fees */
-.fee-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
-.fee-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid var(--border)}
+.fee-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+.fee-row{display:flex;justify-content:space-between;padding:6px 0;font-size:.8125rem;border-bottom:1px solid var(--border)}
 .fee-row:last-child{border-bottom:none}
-.fee-total{display:flex;justify-content:space-between;padding:10px 0 0;font-size:15px;font-weight:700;border-top:2px solid var(--accent);margin-top:6px}
+.fee-total{display:flex;justify-content:space-between;padding:10px 0 0;font-size:.9375rem;font-weight:700;border-top:2px solid var(--accent);margin-top:6px}
 </style>
+<style id="fleet-chrome" data-v="f229d321cf">
+/* FLEET CHROME v2 (Sep 29, 2026; v1 Sep 28). Source of truth: Hub/_toolkit/chrome/chrome.css.
+   Injected into every hub master by apply_chrome.py between the FLEET-CHROME markers; never edit a copy.
+   Lifted from the Codes page (the newest page on the standard). Tokens (--bg, --card ...) stay site-owned. */
+.menubar{position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:7px 14px;row-gap:2px;margin:0}
+.mb-brand{display:inline-flex;align-items:center;gap:7px;text-decoration:none;margin-right:4px}
+.mb-brand .mb-title{color:var(--heading);font-weight:600;font-size:.95rem;white-space:nowrap;font-family:Segoe UI,system-ui,Arial,sans-serif}
+.mb-btn{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid transparent;
+  border-radius:7px;padding:5px 9px;cursor:pointer;text-decoration:none;font-family:Segoe UI,system-ui,Arial,sans-serif;color:var(--ink);margin:0}
+.mb-btn:hover{background:var(--card);border-color:var(--accent)}
+.mb-btn .mb-glyph,.mb-brand .mb-glyph{font-size:.95rem;color:var(--accent);min-width:1em;text-align:center;line-height:1}
+.mb-btn .mb-label{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.mb-btn:hover .mb-label,.mb-btn.on .mb-label{color:var(--ink)}
+.mb-btn.on{border-color:var(--border)}
+.mb-divider{width:1px;height:20px;background:var(--border);margin:0 6px;flex:0 0 auto}
+.mb-spacer{flex:1 1 auto}
+.updstamp{display:inline-flex;align-items:center;gap:.4rem;background:var(--card);
+  border:1px solid var(--border);border-radius:999px;padding:2px 10px;font-size:.72rem;
+  font-family:Consolas,ui-monospace,monospace;color:var(--muted);white-space:nowrap;flex-wrap:nowrap;flex:0 0 auto}
+.updstamp b{color:var(--ink);font-weight:600}
+.updstamp i{font-style:normal;color:var(--accent)}
+@media(max-width:1440px){.mb-btn .fs-l{display:none}.mb-btn{padding:5px 7px}}
+@media(max-width:900px){.mb-divider{display:none}}
+@media(max-width:560px){.mb-btn .mb-label{display:none}.mb-btn .mb-glyph{font-size:1.05rem}
+  .mb-brand .mb-title{font-size:.88rem}.updstamp{font-size:.64rem}}
+@media(max-width:430px){.menubar{gap:2px;padding:6px 8px}.mb-btn{padding:4px 3px}
+  .mb-brand{margin-right:2px;gap:5px}.mb-brand .mb-title{display:none}}
+
+/* masthead: eyebrow, serif title, one-line sub, small-caps status, ornamental rule */
+.mast{text-align:center;padding:44px 0 4px}
+.mast .eyebrow{font-size:.66rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+.mast h1{font-family:Georgia,serif;font-weight:400;font-size:2.6rem;line-height:1.12;margin:0;letter-spacing:-.015em;color:var(--ink)}
+.mast .sub{color:var(--muted);font-size:.95rem;max-width:52ch;margin:13px auto 0;line-height:1.55}
+.mast .status{font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:16px 0 0}
+.mast .status b{color:var(--ink);font-weight:600;white-space:nowrap}
+.rule{display:flex;align-items:center;gap:16px;margin:32px 0 4px;color:var(--accent)}
+.rule::before,.rule::after{content:"";flex:1;height:1px;background:var(--border)}
+.rule span{font-size:.75rem}
+.secnum{font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin:58px 0 8px}
+h2{font-family:Georgia,serif;font-weight:400;letter-spacing:-.01em;scroll-margin-top:var(--stick,110px)}
+/* any #target lands below the sticky bars; chrome.js measures --stick. :where keeps this the weakest rule,
+   so a page's own scroll-margin still wins */
+:where([id]){scroll-margin-top:var(--stick,110px)}
+/* tool pages (Job Scan, Wallet IQ, the Hub): same masthead, a third of the height, so the tool stays first */
+.mast.compact{padding:22px 0 0}
+.mast.compact h1{font-size:1.75rem}
+.mast.compact .sub{margin-top:8px;font-size:.9rem}
+.mast.compact .rule{margin:18px 0 0}
+.mast .rule{margin-left:auto;margin-right:auto}
+@media(max-width:430px){.mast{padding-top:30px}.mast h1{font-size:2.1rem}.mast.compact{padding-top:16px}.mast.compact h1{font-size:1.5rem}}
+
+/* tabs: one shared component (replaces FireSim's pill tabs). Small-caps labels, accent underline on the
+   open one, the strip scrolls sideways inside itself on a phone and sticks under the menubar. */
+.tabs{position:sticky;top:var(--mbh,48px);z-index:30;background:var(--bg);display:flex;gap:2px;overflow-x:auto;
+  scrollbar-width:none;border-bottom:1px solid var(--border);margin:26px 0 18px;padding:0}
+.tabs::-webkit-scrollbar{display:none}
+/* a long strip (8+ tabs) opts in with class="tabs tabs-wrap" (not "wrap", the commonest page container class): every label shows on desktop, in two rows if needed */
+@media(min-width:700px){.tabs.tabs-wrap{flex-wrap:wrap;overflow-x:visible}}
+.tabs.more-r::after,.tabs.more-l::before{content:"";position:sticky;flex:0 0 44px;pointer-events:none;z-index:1}
+.tabs.more-r::after{right:0;margin-left:-44px;background:linear-gradient(90deg,transparent,var(--bg) 85%)}
+.tabs.more-l::before{left:0;margin-right:-44px;background:linear-gradient(270deg,transparent,var(--bg) 85%)}
+.tab{flex:0 0 auto;background:none;border:0;border-bottom:2px solid transparent;border-radius:0;margin:0;
+  padding:11px 12px 9px;font:600 .68rem/1 Segoe UI,system-ui,Arial,sans-serif;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--ink)}
+.tab.on{color:var(--ink);border-bottom-color:var(--accent)}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.pane{display:none}
+.pane.on{display:block;animation:paneIn .25s ease}
+@keyframes paneIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+/* a pane opened for a jump fades without the slide, so the browser's scroll and the kit's landing agree */
+.pane.on.pane-jump{animation-name:paneFade}
+@keyframes paneFade{from{opacity:0}to{opacity:1}}
+@media print{.pane{display:block}.tabs,.menubar,#totop{display:none}}
+
+#totop{position:fixed;right:14px;bottom:14px;z-index:60;background:var(--card);border:1px solid var(--border);
+  color:var(--muted);border-radius:999px;padding:8px 13px;cursor:pointer;font:600 .8rem/1 Segoe UI,sans-serif;display:none}
+#totop:hover{color:var(--ink);border-color:var(--accent)}
+@media(prefers-reduced-motion:reduce){.pane.on{animation:none}html{scroll-behavior:auto}}
+</style>
+<script id="fleet-chrome-early" data-v="f229d321cf">
+/* FLEET CHROME v2 early (unchanged since v1): runs in <head> so the saved theme and text size apply before first paint. */
+try{var fcTh=localStorage.getItem("hub-theme");if(fcTh)document.documentElement.setAttribute("data-theme",fcTh);}catch(_){}
+try{var fcFs=parseInt(localStorage.getItem("hub-fontsize"),10);if(fcFs>=13&&fcFs<=23)document.documentElement.style.fontSize=fcFs+"px";}catch(_){}
+</script>
 </head>
 <body>
-<div class="header">
-  <h1 style="cursor:pointer" onclick="location.reload(true)">Wallet IQ<span class="refresh">&#8635;</span></h1>
-  <div class="subtitle">Card Optimizer & Credit Tracker</div>
-  <div class="updated" id="lastUpdated"></div>
+<nav class="menubar" aria-label="Page menu">
+  <a class="mb-brand" href="#top"><span class="mb-glyph">&#128179;</span><span class="mb-title">Wallet IQ</span></a>
+  <span class="mb-divider"></span>
+  <button class="mb-btn" id="themeBtn" type="button" onclick="flipTheme()" title="Switch to light"><span class="mb-glyph" id="themeGlyph">&#9788;</span><span class="mb-label" id="themeLabel">Light</span></button>
+  <button class="mb-btn" type="button" onclick="bumpFont(1)" title="Increase text size"><span class="mb-glyph">A+</span><span class="mb-label fs-l">Bigger</span></button>
+  <button class="mb-btn" type="button" onclick="bumpFont(-1)" title="Decrease text size"><span class="mb-glyph">A-</span><span class="mb-label fs-l">Smaller</span></button>
+  <span class="mb-divider"></span>
+  <a class="mb-btn" href="https://hub-v7bqsc.pages.dev" target="_blank" rel="noopener" title="Back to the Lange Hub"><span class="mb-glyph">&#8962;</span><span class="mb-label">Hub</span></a>
+  <span class="mb-spacer"></span>
+  <span class="updstamp">UPDATED <b>Sep 29, 2026, 7:36 PM</b> <i>Denver</i></span>
+</nav>
+<main>
+<header class="mast compact">
+  <p class="eyebrow">Card Optimizer &amp; Credit Tracker</p>
+  <h1 onclick="location.reload(true)" title="Tap to reload">Wallet IQ<span class="refresh">&#8635;</span></h1>
+  <p class="sub">Which card to use for each purchase, and what credits are left.</p>
+  <p class="status" id="lastUpdated">Version <b>0.0.1</b></p>
+  <div class="rule"><span>&#10022;</span></div>
+</header>
+<div class="tabs">
+  <button class="tab" data-pane="today">Today</button>
+  <button class="tab" data-pane="ask">Ask AI</button>
+  <button class="tab" data-pane="cards">All Cards</button>
+  <button class="tab" data-pane="tracker">Tracker</button>
+  <button class="tab" data-pane="history">History</button>
+  <button class="tab" data-pane="offers">Offers</button>
+  <button class="tab" data-pane="mystery">Mystery Box</button>
+  <button class="tab" data-pane="savings">Savings</button>
+  <button class="tab" data-pane="chase">Chase 5%</button>
 </div>
-<div class="tabs" id="tabs">
-  <div class="tab active" data-tab="today">Today</div>
-  <div class="tab" data-tab="ai">Ask AI</div>
-  <div class="tab" data-tab="cards">All Cards</div>
-  <div class="tab" data-tab="tracker">Tracker</div>
-  <div class="tab" data-tab="history">History</div>
-  <div class="tab" data-tab="offers">Offers</div>
-  <div class="tab" data-tab="mystery">Mystery Box</div>
-  <div class="tab" data-tab="savings">Savings</div>
-  <div class="tab" data-tab="chase">Chase 5%</div>
-</div>
-<div class="content">
 
   <!-- TODAY -->
-  <div class="panel active" id="panel-today">
+  <div class="pane" id="today">
     <div id="todayBoost"></div>
-    <div id="todayCredits"></div>
+    <div id="todayCredits"><p class="empty">Loading your cards...</p></div>
     <div id="todayApps"></div>
   </div>
 
   <!-- ASK AI -->
-  <div class="panel" id="panel-ai">
+  <div class="pane" id="ask">
     <div class="ai-chat" id="aiChat">
       <div class="ai-welcome">
-        <div style="font-size:28px;margin-bottom:8px">&#127183;</div>
-        <div style="font-size:16px;font-weight:600;margin-bottom:4px">What are you buying?</div>
-        <div style="font-size:13px;color:var(--text2)">Type below or tap a quick button</div>
+        <div style="font-size:1.75rem;margin-bottom:8px">&#127183;</div>
+        <div style="font-size:1rem;font-weight:600;margin-bottom:4px">What are you buying?</div>
+        <div style="font-size:.8125rem;color:var(--muted)">Type below or tap a quick button</div>
       </div>
     </div>
     <div class="ai-bottom">
@@ -264,7 +344,7 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
         <button class="chip" onclick="askAI('Random purchase at Target')">Target/Other</button>
         <button class="chip" onclick="askAI('Coffee')">Coffee</button>
         <button class="chip" onclick="askAI('Hotel booking')">Hotel</button>
-        <button class="chip" onclick="nearMe()" style="background:var(--green);color:#000;border-color:var(--green)">Near Me</button>
+        <button class="chip" onclick="nearMe()" style="background:var(--green);color:var(--bg);border-color:var(--green)">Near Me</button>
       </div>
       <div class="ai-input-wrap">
         <input type="text" id="aiInput" placeholder="I'm buying..." class="ai-input" enterkeyhint="send">
@@ -274,51 +354,51 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
   </div>
 
   <!-- ALL CARDS -->
-  <div class="panel" id="panel-cards">
+  <div class="pane" id="cards">
     <div class="ai-chips" id="cardFilters" style="margin-bottom:8px"></div>
-    <div style="display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px">
-      <button class="subtab active" data-subtab="rates" onclick="switchSubtab('rates')">Earn Rates</button>
-      <button class="subtab" data-subtab="perks" onclick="switchSubtab('perks')">Credits & Benefits</button>
-      <button class="subtab" data-subtab="fees" onclick="switchSubtab('fees')">Fees</button>
+    <div class="tabs">
+      <button class="tab" data-pane="rates">Earn Rates</button>
+      <button class="tab" data-pane="perks">Credits &amp; Benefits</button>
+      <button class="tab" data-pane="fees">Fees</button>
     </div>
-    <div id="subtab-rates">
+    <div class="pane" id="rates">
       <div class="search-wrap">
         <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
         <input type="text" id="guideSearch" placeholder="Search categories (gas, groceries, amazon...)">
       </div>
       <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center">
-        <span style="font-size:11px;color:var(--text2)">Sort:</span>
-        <button class="chip" id="sort-rate" onclick="setGuideSort('rate')" style="font-size:11px;padding:5px 10px">% High→Low</button>
-        <button class="chip" id="sort-card" onclick="setGuideSort('card')" style="font-size:11px;padding:5px 10px">By Card</button>
-        <button class="chip" id="sort-alpha" onclick="setGuideSort('alpha')" style="font-size:11px;padding:5px 10px">A→Z</button>
+        <span style="font-size:.6875rem;color:var(--muted)">Sort:</span>
+        <button class="chip" id="sort-rate" onclick="setGuideSort('rate')" style="font-size:.6875rem;padding:5px 10px">% High→Low</button>
+        <button class="chip" id="sort-card" onclick="setGuideSort('card')" style="font-size:.6875rem;padding:5px 10px">By Card</button>
+        <button class="chip" id="sort-alpha" onclick="setGuideSort('alpha')" style="font-size:.6875rem;padding:5px 10px">A→Z</button>
       </div>
       <div id="guideList"></div>
-      <div class="section-title" style="margin-top:24px">Card Details</div>
+      <h2 style="margin-top:30px">Card Details</h2>
       <div id="cardLegend" style="margin-bottom:12px"></div>
       <div id="cardList"></div>
     </div>
-    <div id="subtab-perks" style="display:none">
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;font-size:11px;color:var(--text2)">
+    <div class="pane" id="perks">
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;font-size:.6875rem;color:var(--muted)">
         <span style="display:flex;align-items:center;gap:4px"><span style="color:var(--green)">&#10003;</span> Enrolled</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="color:#f59e0b">&#9888;</span> Needs Setup</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="color:var(--amber)">&#9888;</span> Needs Setup</span>
       </div>
       <div id="perksList"></div>
     </div>
-    <div id="subtab-fees" style="display:none">
-      <div id="feesList"></div>
+    <div class="pane" id="fees">
+      <div id="feesList"><p class="empty">Loading your cards...</p></div>
     </div>
   </div>
 
   <!-- TRACKER -->
-  <div class="panel" id="panel-tracker">
+  <div class="pane" id="tracker">
     <div class="summary" id="creditSummary"></div>
     <div id="creditList"></div>
   </div>
 
   <!-- HISTORY -->
-  <div class="panel" id="panel-history">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div class="section-title" style="margin:0">Spending Log</div>
+  <div class="pane" id="history">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h2 style="margin:0">Spending Log</h2>
       <div style="display:flex;gap:6px">
         <button class="btn btn-outline btn-sm" onclick="exportData()">Export</button>
         <label class="btn btn-outline btn-sm" style="cursor:pointer">Import<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
@@ -331,9 +411,9 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
   </div>
 
   <!-- OFFERS -->
-  <div class="panel" id="panel-offers">
+  <div class="pane" id="offers">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div class="section-title" style="margin:0">Active Card Offers</div>
+      <h2 style="margin:0">Active Card Offers</h2>
       <button class="btn btn-primary btn-sm" onclick="openOfferModal()">+ Add Offer</button>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
@@ -346,9 +426,9 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
   </div>
 
   <!-- MYSTERY BOX -->
-  <div class="panel" id="panel-mystery">
+  <div class="pane" id="mystery">
     <div id="activeBoostSection"></div>
-    <div class="section-title">Log a Win</div>
+    <h2>Log a Win</h2>
     <div class="card" style="margin-bottom:16px">
       <div class="form-group" style="margin-bottom:10px">
         <label>Which prize did you win?</label>
@@ -358,15 +438,15 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
       </div>
       <button class="btn btn-primary" onclick="logMysteryWin()">Start Timer</button>
     </div>
-    <div class="section-title">Prize Odds (1,000 pts per spin)</div>
+    <h2>Prize Odds (1,000 pts per spin)</h2>
     <div class="card"><div id="prizeList"></div></div>
-    <div class="section-title">Strategy Tips</div>
+    <h2>Strategy Tips</h2>
     <div id="tipList"></div>
   </div>
 
   <!-- SAVINGS CALCULATOR -->
-  <div class="panel" id="panel-savings">
-    <div class="section-title" style="margin-top:0">Monthly Spending by Category</div>
+  <div class="pane" id="savings">
+    <h2>Monthly Spending by Category</h2>
     <div class="card">
       <div class="savings-input"><div class="savings-label">Groceries (King Soopers/WF)</div><input class="savings-field" id="sv-grocery" type="number" inputmode="decimal" value="156" placeholder="0"></div>
       <div class="savings-input"><div class="savings-label">Dining Out</div><input class="savings-field" id="sv-dining" type="number" inputmode="decimal" value="150" placeholder="0"></div>
@@ -377,24 +457,24 @@ body{display:flex;flex-direction:column;padding-top:var(--safe-top)}
       <div class="savings-input"><div class="savings-label">Everything Else</div><input class="savings-field" id="sv-other" type="number" inputmode="decimal" value="1035" placeholder="0"></div>
     </div>
     <div style="display:flex;gap:8px;margin-top:12px;margin-bottom:4px">
-      <button class="chip" id="sv-view-annual" onclick="setSavingsView('annual')" style="font-size:12px">Annual View</button>
-      <button class="chip" id="sv-view-monthly" onclick="setSavingsView('monthly')" style="font-size:12px">Monthly View</button>
+      <button class="chip" id="sv-view-annual" onclick="setSavingsView('annual')" style="font-size:.75rem">Annual View</button>
+      <button class="chip" id="sv-view-monthly" onclick="setSavingsView('monthly')" style="font-size:.75rem">Monthly View</button>
     </div>
     <div id="savingsBreakdown"></div>
   </div>
 
   <!-- CHASE 5% -->
-  <div class="panel" id="panel-chase">
-    <div class="section-title">2026 Quarterly Categories</div>
+  <div class="pane" id="chase">
+    <h2>2026 Quarterly Categories</h2>
     <div id="chaseList"></div>
     <div class="card" style="margin-top:16px">
-      <div style="font-size:13px;color:var(--text2);line-height:1.5">
-        <strong style="color:var(--text)">Remember:</strong> Activate each quarter at chase.com/freedom.
+      <div style="font-size:.8125rem;color:var(--muted);line-height:1.5">
+        <strong style="color:var(--ink)">Remember:</strong> Activate each quarter at chase.com/freedom.
         Cap is $1,500 combined spending per quarter.
       </div>
     </div>
   </div>
-</div>
+</main>
 
 <!-- Log Spending Modal -->
 <div class="modal-overlay" id="logModal">
@@ -457,6 +537,23 @@ let aiMessages = [];
 let boostTimer = null;
 let offers = JSON.parse(localStorage.getItem('walletiq_offers') || '[]');
 
+// ===== Theme aware colors (fleet chrome move, Sep 28, 2026) =====
+// Data colors (card brands, reminders) keep their hue but are pushed light on the dark theme and dark on
+// the light one, so a navy card name never vanishes into a dark card. Time tiers keep their meaning
+// (green plenty of time, amber halfway, orange use it soon, red running out) in both themes.
+const TIERS = { dark: ['#7dd8a0', '#f0c674', '#f5a35c', '#f08a8a'], light: ['#1d7a45', '#8a6210', '#a8501a', '#b3352f'] };
+function isLight() { return document.documentElement.getAttribute('data-theme') === 'light'; }
+function tiers() { return TIERS[isLight() ? 'light' : 'dark']; }
+function hexRgb(h) { h = String(h || '').replace('#', ''); if (h.length === 3) h = h.split('').map(x => x + x).join(''); const n = parseInt(h, 16); return (h.length !== 6 || isNaN(n)) ? null : [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function lum(c) { const f = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }; return .2126 * f(c[0]) + .7152 * f(c[1]) + .0722 * f(c[2]); }
+function inkFor(hex) {
+  const c = hexRgb(hex); if (!c) return hex;
+  const light = isLight(); let r = c.slice();
+  for (let i = 0; i < 14; i++) { const L = lum(r); if (light ? L <= .18 : L >= .28) break; r = r.map(v => Math.round(light ? v * .82 : v + (255 - v) * .22)); }
+  return '#' + r.map(v => v.toString(16).padStart(2, '0')).join('');
+}
+function textOn(hex) { const c = hexRgb(hex); return c && lum(c) > .3 ? '#0f1522' : '#ffffff'; }
+
 // ===== Init =====
 async function init() {
   try {
@@ -475,24 +572,18 @@ async function init() {
     const relDate = new Date(appData.lastUpdated);
     let relStr = appData.lastUpdated;
     if(!isNaN(relDate.getTime())){
-      relStr = relDate.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true,timeZoneName:'short'});
+      relStr = relDate.toLocaleString('en-US',{timeZone:'America/Denver',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}) + ' Denver';
     }
-    document.getElementById('lastUpdated').textContent = APP_VERSION + ' | ' + relStr;
+    document.getElementById('lastUpdated').innerHTML = 'Version <b>' + escapeHtml(String(APP_VERSION)) + '</b> &middot; card data <b>' + escapeHtml(String(relStr)) + '</b>';
     renderAll();
     startBoostTimer();
+  } else {
+    const msg = '<p class="empty">Could not load card data. Check your connection, then tap the title to reload.</p>';
+    document.getElementById('todayCredits').innerHTML = msg;
+    document.getElementById('feesList').innerHTML = msg;
   }
   autoResetCredits();
 }
-
-// ===== Tabs =====
-document.getElementById('tabs').addEventListener('click', e => {
-  const tab = e.target.closest('.tab');
-  if (!tab) return;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  tab.classList.add('active');
-  document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
-});
 
 // ===== Auto-reset =====
 function autoResetCredits() {
@@ -527,7 +618,7 @@ function autoResetCredits() {
 function saveLogs() { localStorage.setItem('walletiq_logs', JSON.stringify(logs)); }
 
 // ===== Render All =====
-function renderAll() { renderToday(); renderCardFilters(); setGuideSort(guideSort); renderCards(); renderTracker(); renderHistory(); renderOffers(); renderChase(); renderMystery(); setSavingsView(savingsView); }
+function renderAll() { renderToday(); renderCardFilters(); setGuideSort(guideSort); renderCards(); renderPerks(); renderFees(); renderTracker(); renderHistory(); renderOffers(); renderChase(); renderMystery(); setSavingsView(savingsView); }
 
 // ===== TODAY DASHBOARD =====
 function renderToday() {
@@ -563,12 +654,12 @@ function renderToday() {
     creditsHtml += `<div class="today-card ${isUrgent ? 'urgent' : ''}">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
-          <div class="today-value" style="font-size:14px;${isDone ? 'color:var(--green)' : ''}">${isDone ? '&#10003; ' : ''}${c.name}</div>
+          <div class="today-value" style="font-size:.875rem;${isDone ? 'color:var(--green)' : ''}">${isDone ? '&#10003; ' : ''}${c.name}</div>
           <div class="today-sub">${c.card}</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:18px;font-weight:700;${isDone ? 'color:var(--green)' : remaining === c.amount ? 'color:var(--orange)' : 'color:var(--accent)'}">${isDone ? 'Done' : '$'+remaining.toFixed(2)}</div>
-          <div style="font-size:11px;color:var(--text2)">${isDone ? 'Fully used' : 'remaining'}</div>
+          <div style="font-size:1.125rem;font-weight:700;${isDone ? 'color:var(--green)' : remaining === c.amount ? 'color:var(--amber)' : 'color:var(--accent)'}">${isDone ? 'Done' : '$'+remaining.toFixed(2)}</div>
+          <div style="font-size:.6875rem;color:var(--muted)">${isDone ? 'Fully used' : 'remaining'}</div>
         </div>
       </div>
     </div>`;
@@ -586,8 +677,8 @@ function renderToday() {
       const isDone = remaining <= 0;
       creditsHtml += `<div class="today-card">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><div class="today-value" style="font-size:14px;${isDone?'color:var(--green)':''}">${isDone?'&#10003; ':''}${c.name}</div><div class="today-sub">${c.card}</div></div>
-          <div style="text-align:right"><div style="font-size:18px;font-weight:700;${isDone?'color:var(--green)':'color:var(--accent)'}">${isDone?'Done':'$'+remaining.toFixed(2)}</div></div>
+          <div><div class="today-value" style="font-size:.875rem;${isDone?'color:var(--green)':''}">${isDone?'&#10003; ':''}${c.name}</div><div class="today-sub">${c.card}</div></div>
+          <div style="text-align:right"><div style="font-size:1.125rem;font-weight:700;${isDone?'color:var(--green)':'color:var(--accent)'}">${isDone?'Done':'$'+remaining.toFixed(2)}</div></div>
         </div>
       </div>`;
     });
@@ -604,11 +695,11 @@ function renderToday() {
     creditsHtml += '<div class="section-title">Offers Expiring Soon</div>';
     urgentOffers.forEach(o => {
       const daysLeft = Math.max(0, Math.ceil((new Date(o.expires+'T23:59:59') - new Date()) / 86400000));
-      creditsHtml += `<div class="today-card" style="border-color:var(--orange)">
+      creditsHtml += `<div class="today-card" style="border-color:var(--amber)">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><div class="today-value" style="font-size:14px">${o.merchant}</div>
+          <div><div class="today-value" style="font-size:.875rem">${o.merchant}</div>
           <div class="today-sub">${o.discount} &middot; ${o.card}</div></div>
-          <div style="color:${daysLeft<=3?'var(--red)':'var(--orange)'};font-weight:700;font-size:14px">${daysLeft}d</div>
+          <div style="color:${daysLeft<=3?'var(--red)':'var(--amber)'};font-weight:700;font-size:.875rem">${daysLeft}d</div>
         </div>
       </div>`;
     });
@@ -627,16 +718,16 @@ function renderToday() {
     creditsHtml += '<div class="section-title">Chase Freedom Reminders</div>';
     if (chaseReminder) {
       const isActivate = !!activateMonths[qMonth];
-      creditsHtml += `<div class="today-card" style="border-color:${isActivate?'var(--blue)':'var(--text2)'}">
+      creditsHtml += `<div class="today-card" style="border-color:${isActivate?'var(--accent)':'var(--muted)'}">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><div class="today-value" style="font-size:14px;color:${isActivate?'var(--blue)':'var(--text2)'}">${chaseReminder}</div>
+          <div><div class="today-value" style="font-size:.875rem;color:${isActivate?'var(--accent)':'var(--muted)'}">${chaseReminder}</div>
           <div class="today-sub">${isActivate?'Go to chase.com/freedom to activate 5% categories':'New quarter coming — check for updated categories'}</div></div>
         </div>
       </div>`;
     }
     if (tbdQuarters.length > 0) {
       creditsHtml += `<div class="today-card">
-        <div class="today-value" style="font-size:14px;color:var(--text2)">${tbdQuarters.map(([k])=>k).join(', ')} categories not yet announced</div>
+        <div class="today-value" style="font-size:.875rem;color:var(--muted)">${tbdQuarters.map(([k])=>k).join(', ')} categories not yet announced</div>
         <div class="today-sub">Chase typically announces 1 month before the quarter. App auto-checks weekly.</div>
       </div>`;
     }
@@ -649,9 +740,9 @@ function renderToday() {
     needSetup.forEach(c => {
       creditsHtml += `<div class="today-card" style="border-color:rgba(245,158,11,.3)">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><div class="today-value" style="font-size:14px;color:#f59e0b">${c.name}</div>
+          <div><div class="today-value" style="font-size:.875rem;color:var(--amber)">${c.name}</div>
           <div class="today-sub">${c.enrollAction||'Enrollment needed'}</div></div>
-          <button class="btn btn-sm" style="background:#f59e0b;color:#000" onclick="markEnrolled('${c.id}')">Done</button>
+          <button class="btn btn-sm" style="background:var(--amber);color:var(--bg)" onclick="markEnrolled('${c.id}')">Done</button>
         </div>
       </div>`;
     });
@@ -668,7 +759,7 @@ function renderToday() {
       activeReminders.forEach(r => {
         creditsHtml += `<div class="today-card" style="border-color:${r.color}">
           <div style="display:flex;justify-content:space-between;align-items:flex-start">
-            <div style="flex:1"><div class="today-value" style="font-size:14px;color:${r.color}">${r.title}</div>
+            <div style="flex:1"><div class="today-value" style="font-size:.875rem;color:${inkFor(r.color)}">${r.title}</div>
             <div class="today-sub">${r.note}</div></div>
             <button class="btn btn-sm btn-outline" onclick="dismissReminder('${r.id}')" style="margin-left:8px;flex-shrink:0">Done</button>
           </div>
@@ -682,9 +773,9 @@ function renderToday() {
         const daysUntil = Math.max(0, Math.ceil((rDate - new Date()) / 86400000));
         creditsHtml += `<div class="today-card">
           <div style="display:flex;justify-content:space-between;align-items:flex-start">
-            <div style="flex:1"><div class="today-value" style="font-size:14px">${r.title}</div>
+            <div style="flex:1"><div class="today-value" style="font-size:.875rem">${r.title}</div>
             <div class="today-sub">${r.note}</div></div>
-            <div style="font-size:12px;color:var(--text2);white-space:nowrap;margin-left:8px">${daysUntil}d away</div>
+            <div style="font-size:.75rem;color:var(--muted);white-space:nowrap;margin-left:8px">${daysUntil}d away</div>
           </div>
         </div>`;
       });
@@ -695,9 +786,9 @@ function renderToday() {
   let appsHtml = '<div class="section-title">Open Card Apps</div><div style="display:flex;gap:8px;flex-wrap:wrap">';
   appData.cards.forEach(c => {
     if (c.appUrl) {
-      appsHtml += `<a href="${c.appUrl}" style="flex:1;min-width:45%;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;text-decoration:none;text-align:center">
+      appsHtml += `<a href="${c.appUrl}" style="flex:1;min-width:45%;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;text-decoration:none;text-align:center">
         <div class="card-dot" style="background:${c.color};margin:0 auto 6px;width:12px;height:12px;border-radius:50%"></div>
-        <div style="font-size:12px;font-weight:600;color:var(--text)">${c.name}</div>
+        <div style="font-size:.75rem;font-weight:600;color:var(--ink)">${c.name}</div>
       </a>`;
     }
   });
@@ -785,15 +876,15 @@ function setGuideSort(sort) {
   guideSort = sort;
   document.querySelectorAll('[id^="sort-"]').forEach(b => { b.style.background=''; b.style.color=''; b.style.borderColor=''; });
   const btn = document.getElementById('sort-'+sort);
-  if(btn){btn.style.background='var(--accent)';btn.style.color='#000';btn.style.borderColor='var(--accent)';}
+  if(btn){btn.style.background='var(--accent)';btn.style.color='var(--bg)';btn.style.borderColor='var(--accent)';}
   renderGuide(document.getElementById('guideSearch').value);
 }
 
 function renderCardFilters() {
-  let html = `<button class="chip ${!activeCardFilter?'style="background:var(--accent);color:#000;border-color:var(--accent)"':''}" onclick="setCardFilter(null)">All</button>`;
+  let html = `<button class="chip ${!activeCardFilter?'style="background:var(--accent);color:var(--bg);border-color:var(--accent)"':''}" onclick="setCardFilter(null)">All</button>`;
   appData.cards.forEach(c => {
     const isActive = activeCardFilter === c.id;
-    html += `<button class="chip" style="${isActive?'background:'+c.color+';color:#000;border-color:'+c.color:''}" onclick="setCardFilter('${c.id}')">${c.name.replace(' (Legacy)','')}</button>`;
+    html += `<button class="chip" style="${isActive?'background:'+c.color+';color:'+textOn(c.color)+';border-color:'+c.color:''}" onclick="setCardFilter('${c.id}')">${c.name.replace(' (Legacy)','')}</button>`;
   });
   document.getElementById('cardFilters').innerHTML = html;
 }
@@ -837,22 +928,29 @@ function renderGuide(filter='') {
 }
 document.getElementById('guideSearch').addEventListener('input', e => { activeCardFilter = null; renderCardFilters(); renderGuide(e.target.value); });
 
-// ===== SUB-TABS =====
-function switchSubtab(name) {
-  document.querySelectorAll('.subtab').forEach(t => t.classList.remove('active'));
-  document.querySelector(`.subtab[data-subtab="${name}"]`).classList.add('active');
-  ['rates','perks','fees'].forEach(s => {
-    document.getElementById('subtab-'+s).style.display = s===name ? 'block' : 'none';
-  });
-  if (name==='perks') renderPerks();
-  if (name==='fees') renderFees();
+// ===== Tabs (the fleet chrome's shared component) =====
+// The kit switches panes and fires "panechange"; the page only reacts.
+function fitChat() {
+  // Ask AI fills the screen under the sticky tab strip, so the input sits at the bottom like a chat app
+  const g = document.querySelector('main > .tabs'), mb = document.querySelector('.menubar');
+  if (!g) return;
+  const y = g.getBoundingClientRect().top + window.scrollY - (mb ? mb.offsetHeight : 0);
+  if (window.scrollY < y - 2) window.scrollTo(0, y);
 }
+document.addEventListener('panechange', e => {
+  if (e.detail === 'ask') { fitChat(); return; }
+  if (!appData) return;
+  if (e.detail === 'perks') renderPerks();
+  if (e.detail === 'fees') renderFees();
+});
+// colors are computed per theme, so a theme flip repaints the rendered views
+document.addEventListener('themechange', () => { if (appData) renderAll(); });
 
 function renderCards() {
   // Legend
   let legendHtml = '<div style="display:flex;flex-wrap:wrap;gap:8px">';
   appData.cards.forEach(c => {
-    legendHtml += `<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)"><div class="card-dot" style="background:${c.color};width:8px;height:8px"></div>${c.name.replace(' (Legacy)','')}</div>`;
+    legendHtml += `<div style="display:flex;align-items:center;gap:4px;font-size:.6875rem;color:var(--muted)"><div class="card-dot" style="background:${c.color};width:8px;height:8px"></div>${c.name.replace(' (Legacy)','')}</div>`;
   });
   legendHtml += '</div>';
   document.getElementById('cardLegend').innerHTML = legendHtml;
@@ -867,7 +965,7 @@ function renderCards() {
       cats += `<div class="cat-row"><div><div class="cat-name">${cat.name}</div>${cat.note?`<div class="cat-note">${cat.note}</div>`:''}</div><div class="cat-rate">${cat.rate}</div></div>`;
     });
     const appLink = c.appUrl ? `<a href="${c.appUrl}" class="card-link">Open App &#8599;</a>` : '';
-    const memberNote = c.membershipNote ? `<div style="font-size:10px;color:var(--text2);margin-top:2px">${c.membershipNote}</div>` : '';
+    const memberNote = c.membershipNote ? `<div style="font-size:.625rem;color:var(--muted);margin-top:2px">${c.membershipNote}</div>` : '';
     html += `<div class="card"><div class="card-header"><div class="card-dot" style="background:${c.color}"></div><div class="card-name">${c.name}</div>${appLink}<div class="card-fee">Fee: ${c.annualFee}${memberNote}</div></div>${cats}</div>`;
   });
   document.getElementById('cardList').innerHTML = html;
@@ -889,7 +987,7 @@ function renderPerks() {
 
     // 1. Statement Credits
     if (cardCredits.length > 0) {
-      perksHtml += '<div style="padding:8px 16px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);border-bottom:1px solid var(--border)">Statement Credits</div>';
+      perksHtml += '<div style="padding:8px 16px 4px;font-size:.625rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);border-bottom:1px solid var(--border)">Statement Credits</div>';
       cardCredits.forEach(credit => {
         const isEnrolled = enrolled[credit.id] !== undefined ? enrolled[credit.id] : credit.enrolled;
         const badgeClass = isEnrolled ? 'enrolled' : 'needs-setup';
@@ -926,22 +1024,22 @@ function renderPerks() {
 
     // 2. Benefits & Perks
     if (card.benefits && card.benefits.length > 0) {
-      perksHtml += '<div style="padding:8px 16px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--green);border-bottom:1px solid var(--border)">Benefits & Perks</div>';
+      perksHtml += '<div style="padding:8px 16px 4px;font-size:.625rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--green);border-bottom:1px solid var(--border)">Benefits & Perks</div>';
       card.benefits.forEach(b => {
-        perksHtml += `<div style="padding:8px 16px;font-size:12px;color:var(--text);border-bottom:1px solid var(--border)">${b}</div>`;
+        perksHtml += `<div style="padding:8px 16px;font-size:.75rem;color:var(--ink);border-bottom:1px solid var(--border)">${b}</div>`;
       });
     }
 
     // 3. Protections & Insurance
     if (card.protections && card.protections.length > 0) {
-      perksHtml += '<div style="padding:8px 16px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);border-bottom:1px solid var(--border)">Protections & Insurance</div>';
+      perksHtml += '<div style="padding:8px 16px 4px;font-size:.625rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border)">Protections & Insurance</div>';
       card.protections.forEach(p => {
-        perksHtml += `<div style="padding:8px 16px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border)">${p}</div>`;
+        perksHtml += `<div style="padding:8px 16px;font-size:.75rem;color:var(--muted);border-bottom:1px solid var(--border)">${p}</div>`;
       });
     }
 
-    const memberNote = card.membershipNote ? `<div style="font-size:10px;color:var(--text2)">${card.membershipNote}</div>` : '';
-    const valueLabel = totalAnnualValue > 0 ? `<div style="font-size:12px;color:var(--accent);font-weight:600">$${totalAnnualValue}/yr credits</div>` : '';
+    const memberNote = card.membershipNote ? `<div style="font-size:.625rem;color:var(--muted)">${card.membershipNote}</div>` : '';
+    const valueLabel = totalAnnualValue > 0 ? `<div style="font-size:.75rem;color:var(--accent);font-weight:600">$${totalAnnualValue}/yr credits</div>` : '';
 
     html += `<div class="perk-card">
       <div class="perk-card-header">
@@ -978,7 +1076,7 @@ function renderFees() {
       else annual = credit.amount;
       totalCredits += annual;
       creditRows += `<div class="fee-row">
-        <div style="color:var(--text)">${credit.name} <span style="color:var(--text2)">(${credit.period})</span></div>
+        <div style="color:var(--ink)">${credit.name} <span style="color:var(--muted)">(${credit.period})</span></div>
         <div style="color:var(--green);font-weight:600">+$${annual}</div>
       </div>`;
     });
@@ -997,7 +1095,7 @@ function renderFees() {
         <div style="color:var(--red)">Annual Fee</div>
         <div style="color:var(--red);font-weight:600">${fee > 0 ? '-$'+fee : '$0'}</div>
       </div>
-      ${creditRows || '<div class="fee-row"><div style="color:var(--text2)">No credits</div><div style="color:var(--text2)">$0</div></div>'}
+      ${creditRows || '<div class="fee-row"><div style="color:var(--muted)">No credits</div><div style="color:var(--muted)">$0</div></div>'}
       <div class="fee-total">
         <div>Net Value</div>
         <div style="color:${netColor}">${net >= 0 ? '+' : ''}$${net}/yr</div>
@@ -1008,14 +1106,14 @@ function renderFees() {
   // Grand total
   const grandNet = grandCredits - grandFees;
   html += `<div class="fee-card" style="border-color:var(--accent);background:linear-gradient(135deg,rgba(201,168,76,.05),rgba(0,200,5,.05))">
-    <div style="font-size:15px;font-weight:700;margin-bottom:10px;color:var(--accent)">All Cards Combined</div>
+    <div style="font-size:.9375rem;font-weight:700;margin-bottom:10px;color:var(--accent)">All Cards Combined</div>
     <div class="fee-row"><div style="color:var(--red)">Total Annual Fees</div><div style="color:var(--red);font-weight:600">-$${grandFees}</div></div>
     <div class="fee-row"><div style="color:var(--green)">Total Annual Credits</div><div style="color:var(--green);font-weight:600">+$${grandCredits}</div></div>
     <div class="fee-total">
       <div>Net Across All Cards</div>
       <div style="color:${grandNet>=0?'var(--green)':'var(--red)'}">${grandNet>=0?'+':''}$${grandNet}/yr</div>
     </div>
-    <div style="font-size:11px;color:var(--text2);margin-top:8px;text-align:center">Credits must be actively used to capture this value</div>
+    <div style="font-size:.6875rem;color:var(--muted);margin-top:8px;text-align:center">Credits must be actively used to capture this value</div>
   </div>`;
 
   document.getElementById('feesList').innerHTML = html;
@@ -1039,22 +1137,22 @@ function renderTracker() {
     const max=c.amount, remaining=Math.max(0,max-used), pct=Math.min(100,(used/max)*100);
     const tg = getTimeGradient(c.period);
     const daysLeft = tg.daysLeft, isDanger = daysLeft <= 5;
-    const barColor = pct>=100?'var(--green)':pct>=50?'var(--accent)':'var(--orange)';
+    const barColor = pct>=100?'var(--green)':pct>=50?'var(--accent)':'var(--amber)';
     html += `<div class="credit-card" style="border-left:3px solid ${tg.color}">
       <div class="credit-top"><div class="credit-name">${c.name}</div><div class="credit-badge" style="background:${tg.color}22;color:${tg.color}">${daysLeft}d left</div></div>
-      <div class="credit-card-label" style="color:${c.color}">${c.card} &middot; ${c.period}</div>
+      <div class="credit-card-label" style="color:${inkFor(c.color)}">${c.card} &middot; ${c.period}</div>
       <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${barColor}"></div></div>
       <div class="time-bar-label"><span>Period elapsed</span><span>${Math.round(tg.pctElapsed)}%</span></div>
-      <div class="time-bar-wrap"><div class="time-bar" style="width:${tg.pctElapsed}%;background:linear-gradient(90deg,#10b981,${tg.color})"></div></div>
+      <div class="time-bar-wrap"><div class="time-bar" style="width:${tg.pctElapsed}%;background:linear-gradient(90deg,${tiers()[0]},${tg.color})"></div></div>
       <div class="credit-bottom"><div class="credit-remaining">${c.isCount?used+'/'+max+' used':'$'+used.toFixed(2)+' / $'+max.toFixed(2)}</div><div>${c.isCount?remaining+' left':'$'+remaining.toFixed(2)+' left'}</div></div>
-      <div style="font-size:11px;color:var(--text2);margin-top:4px">${c.note}</div>
-      ${c.enrolled===false?`<div style="margin-top:6px;padding:6px 10px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;font-size:11px">
-        <span style="color:#f59e0b;font-weight:600">SETUP REQUIRED:</span> <span style="color:var(--text2)">${c.enrollAction||'Enrollment needed'}</span>
-        <button class="btn btn-sm" style="margin-left:6px;padding:3px 8px;background:#f59e0b;color:#000;font-size:10px" onclick="markEnrolled('${c.id}')">Done</button>
+      <div style="font-size:.6875rem;color:var(--muted);margin-top:4px">${c.note}</div>
+      ${c.enrolled===false?`<div style="margin-top:6px;padding:6px 10px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;font-size:.6875rem">
+        <span style="color:var(--amber);font-weight:600">SETUP REQUIRED:</span> <span style="color:var(--muted)">${c.enrollAction||'Enrollment needed'}</span>
+        <button class="btn btn-sm" style="margin-left:6px;padding:3px 8px;background:var(--amber);color:var(--bg);font-size:.625rem" onclick="markEnrolled('${c.id}')">Done</button>
       </div>`:''}
-      ${c.setup?`<div id="setup-${c.id}" style="display:none;margin-top:8px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:12px;color:var(--text);line-height:1.8;white-space:pre-line">${c.setup}</div>`:''}
+      ${c.setup?`<div id="setup-${c.id}" style="display:none;margin-top:8px;padding:10px 12px;background:var(--code);border:1px solid var(--border);border-radius:10px;font-size:.75rem;color:var(--ink);line-height:1.8;white-space:pre-line">${c.setup}</div>`:''}
       <div class="credit-actions">
-        ${c.setup?`<button class="btn btn-outline btn-sm" onclick="toggleSetup('${c.id}')" style="font-size:15px;padding:3px 9px" title="How to set up">&#9432;</button>`:''}
+        ${c.setup?`<button class="btn btn-outline btn-sm" onclick="toggleSetup('${c.id}')" style="font-size:.9375rem;padding:3px 9px" title="How to set up">&#9432;</button>`:''}
         ${c.isCount ? (remaining>0?`<button class="btn btn-primary btn-sm" onclick="usePass('${c.id}')">Use 1 Pass</button>`:'')
           : `<button class="btn btn-primary btn-sm" onclick="openLog('${c.id}')">Log Spend</button>`}
         ${!c.isCount&&pct<100?`<button class="btn btn-outline btn-sm" onclick="confirmMarkFull('${c.id}')">Mark Full</button>`:''}
@@ -1090,16 +1188,17 @@ function getTimeGradient(period) {
     totalDays = Math.ceil((end - start) / 86400000);
     daysLeft = Math.max(0, Math.ceil((end - now) / 86400000));
   } else {
-    return { pctElapsed: 0, daysLeft: 30, totalDays: 30, color: '#10b981' };
+    return { pctElapsed: 0, daysLeft: 30, totalDays: 30, color: tiers()[0] };
   }
   const elapsed = totalDays - daysLeft;
   const pctElapsed = Math.min(100, (elapsed / totalDays) * 100);
   // 4-tier gradient at 25% intervals
   let color;
-  if (pctElapsed < 25) color = '#10b981'; // green — plenty of time
-  else if (pctElapsed < 50) color = '#eab308'; // yellow — halfway
-  else if (pctElapsed < 75) color = '#f97316'; // orange — use it soon
-  else color = '#ef4444'; // red — running out
+  const T = tiers();
+  if (pctElapsed < 25) color = T[0]; // green: plenty of time
+  else if (pctElapsed < 50) color = T[1]; // amber: halfway
+  else if (pctElapsed < 75) color = T[2]; // orange: use it soon
+  else color = T[3]; // red: running out
   return { pctElapsed, daysLeft, totalDays, color };
 }
 
@@ -1180,13 +1279,13 @@ function undoLast(creditId){
 let historyCardFilter = null;
 
 function renderHistoryFilters() {
-  let html = `<button class="chip ${!historyCardFilter?'style="background:var(--accent);color:#000;border-color:var(--accent)"':''}" onclick="setHistoryFilter(null)">All</button>`;
+  let html = `<button class="chip ${!historyCardFilter?'style="background:var(--accent);color:var(--bg);border-color:var(--accent)"':''}" onclick="setHistoryFilter(null)">All</button>`;
   const cardsUsed = [...new Set(logs.map(l => l.cardName))];
   cardsUsed.forEach(name => {
     const c = appData.cards.find(c => c.name === name);
     const color = c ? c.color : '#888';
     const isActive = historyCardFilter === name;
-    html += `<button class="chip" style="${isActive?'background:'+color+';color:#000;border-color:'+color:''}" onclick="setHistoryFilter('${name}')">${name.replace(' (Legacy)','')}</button>`;
+    html += `<button class="chip" style="${isActive?'background:'+color+';color:'+textOn(color)+';border-color:'+color:''}" onclick="setHistoryFilter('${name}')">${name.replace(' (Legacy)','')}</button>`;
   });
   document.getElementById('historyFilters').innerHTML = html;
 }
@@ -1284,7 +1383,7 @@ function renderChase(){
     const isUpcoming=qNum===currentQ+1;
     const sc=isActive?'status-active':isUpcoming?'status-upcoming':'status-future';
     const statusText=isActive?'Active Now':isUpcoming?'Up Next':'TBD';
-    const activateBy = data.activateBy ? `<div style="font-size:11px;color:${isActive?'var(--green)':'var(--text2)'};margin-top:4px">Activate by: ${data.activateBy}</div>` : '';
+    const activateBy = data.activateBy ? `<div style="font-size:.6875rem;color:${isActive?'var(--green)':'var(--muted)'};margin-top:4px">Activate by: ${data.activateBy}</div>` : '';
     html+=`<div class="quarter-card ${isActive?'active-q':''}"><div class="quarter-label">${q} 2026 &middot; ${data.dates}</div><div class="quarter-cats">${data.categories.join(', ')}</div>${activateBy}<span class="quarter-status ${sc}">${statusText}</span></div>`;
   });
   document.getElementById('chaseList').innerHTML=html;
@@ -1320,8 +1419,8 @@ let savingsView = 'annual';
 
 function setSavingsView(view) {
   savingsView = view;
-  document.getElementById('sv-view-annual').style.cssText = view==='annual' ? 'background:var(--accent);color:#000;border-color:var(--accent)' : '';
-  document.getElementById('sv-view-monthly').style.cssText = view==='monthly' ? 'background:var(--accent);color:#000;border-color:var(--accent)' : '';
+  document.getElementById('sv-view-annual').style.cssText = view==='annual' ? 'background:var(--accent);color:var(--bg);border-color:var(--accent)' : '';
+  document.getElementById('sv-view-monthly').style.cssText = view==='monthly' ? 'background:var(--accent);color:var(--bg);border-color:var(--accent)' : '';
   renderSavings();
 }
 
@@ -1381,45 +1480,45 @@ function renderSavings(){
   cats.forEach(c => {
     if(c.spend <= 0) return;
     const val = c.spend * c.rate * m;
-    html += `<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+    html += `<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);font-size:.8125rem">
       <div class="card-dot" style="background:${c.color};width:8px;height:8px"></div>
-      <div style="flex:1">${c.name} <span style="color:var(--text2)">${c.card} ${Math.round(c.rate*100)}%</span></div>
+      <div style="flex:1">${c.name} <span style="color:var(--muted)">${c.card} ${Math.round(c.rate*100)}%</span></div>
       <div style="font-weight:600;color:var(--accent)">$${val.toFixed(0)}</div>
     </div>`;
   });
-  html += `<div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;font-weight:700">
+  html += `<div style="display:flex;justify-content:space-between;padding:8px 0;font-size:.8125rem;font-weight:700">
     <div>Cash back subtotal</div><div style="color:var(--accent)">$${totalCashBack.toFixed(0)}${label}</div></div>`;
 
   // Section 2: Credits
   html += '<div class="section-title">Credits & Perks</div>';
   creditLines.forEach(c => {
     const val = c.annual * (m / 12);
-    html += `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">
-      <div>${c.name} <span style="color:var(--text2)">${c.card}</span></div>
+    html += `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:.8125rem">
+      <div>${c.name} <span style="color:var(--muted)">${c.card}</span></div>
       <div style="font-weight:600;color:var(--green)">+$${val.toFixed(0)}</div>
     </div>`;
   });
-  html += `<div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;font-weight:700">
+  html += `<div style="display:flex;justify-content:space-between;padding:8px 0;font-size:.8125rem;font-weight:700">
     <div>Credits subtotal</div><div style="color:var(--green)">+$${totalCredits.toFixed(0)}${label}</div></div>`;
 
   // Section 3: Fees
   html += '<div class="section-title">Annual Fees & Memberships</div>';
   feeLines.forEach(f => {
     const val = f.annual * (m / 12);
-    html += `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">
+    html += `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:.8125rem">
       <div>${f.name}</div>
       <div style="font-weight:600;color:var(--red)">-$${val.toFixed(0)}</div>
     </div>`;
   });
-  html += `<div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;font-weight:700">
+  html += `<div style="display:flex;justify-content:space-between;padding:8px 0;font-size:.8125rem;font-weight:700">
     <div>Fees subtotal</div><div style="color:var(--red)">-$${totalFees.toFixed(0)}${label}</div></div>`;
 
   // Net total
   html += `<div style="padding:14px 0 4px;border-top:2px solid var(--accent)">
-    <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:700">
+    <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700">
       <div>Net Value</div><div style="color:${netValue>=0?'var(--green)':'var(--red)'}">$${netValue.toFixed(0)}${label}</div>
     </div>
-    <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-top:6px">
+    <div style="display:flex;justify-content:space-between;font-size:.8125rem;color:var(--muted);margin-top:6px">
       <div>vs 2% flat card ($${flat2.toFixed(0)}${label})</div>
       <div style="font-weight:600;color:${vsFlat>=0?'var(--green)':'var(--red)'}">${vsFlat>=0?'+':''}$${vsFlat.toFixed(0)}${label} ${vsFlat>=0?'ahead':'behind'}</div>
     </div>
@@ -1505,8 +1604,8 @@ function renderOffers() {
     expired.forEach(o => {
       expHtml += `<div class="offer-card expired">
         <button class="offer-delete" onclick="deleteOffer('${o.id}')">&times;</button>
-        <div class="offer-merchant" style="font-size:14px">${o.merchant}</div>
-        <div style="font-size:12px;color:var(--text2)">${o.discount} &middot; ${o.card} &middot; Expired ${o.expires}</div>
+        <div class="offer-merchant" style="font-size:.875rem">${o.merchant}</div>
+        <div style="font-size:.75rem;color:var(--muted)">${o.discount} &middot; ${o.card} &middot; Expired ${o.expires}</div>
       </div>`;
     });
     expHtml += '<button class="btn btn-outline btn-sm" onclick="clearExpiredOffers()" style="margin-top:8px">Clear Expired</button>';
@@ -1862,7 +1961,7 @@ function getAIResponse(query){
 function renderAI(){
   const chat=document.getElementById('aiChat');
   if(!aiMessages.length){
-    chat.innerHTML='<div class="ai-welcome"><div style="font-size:28px;margin-bottom:8px">&#127183;</div><div style="font-size:16px;font-weight:600;margin-bottom:4px">What are you buying?</div><div style="font-size:13px;color:var(--text2)">Type above or tap a quick button</div></div>';
+    chat.innerHTML='<div class="ai-welcome"><div style="font-size:1.75rem;margin-bottom:8px">&#127183;</div><div style="font-size:1rem;font-weight:600;margin-bottom:4px">What are you buying?</div><div style="font-size:.8125rem;color:var(--muted)">Type above or tap a quick button</div></div>';
     document.getElementById('aiClearWrap').style.display='none';return;
   }
   document.getElementById('aiClearWrap').style.display='flex';
@@ -1880,7 +1979,7 @@ async function askAI(query){
   aiPending = true;
   // Show user message + loading indicator immediately
   const msgId = 'ai-' + Date.now() + '-' + Math.random().toString(36).substr(2,5);
-  aiMessages.push({role:'pair',html:`<div class="ai-msg user">${escapeHtml(query)}</div><div class="ai-msg bot" id="${msgId}"><div class="ai-tip" style="color:var(--text2)">Thinking...</div></div>`});
+  aiMessages.push({role:'pair',html:`<div class="ai-msg user">${escapeHtml(query)}</div><div class="ai-msg bot" id="${msgId}"><div class="ai-tip" style="color:var(--muted)">Thinking...</div></div>`});
   renderAI();
   // Auto-scroll to bottom
   const chatEl = document.getElementById('aiChat');
@@ -1915,9 +2014,9 @@ async function askAI(query){
 
   let altsHtml='';
   if(result.alts&&result.alts.length>0){
-    altsHtml='<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:11px;color:var(--text2);margin-bottom:6px">Other options:</div>';
+    altsHtml='<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:.6875rem;color:var(--muted);margin-bottom:6px">Other options:</div>';
     result.alts.forEach(a=>{
-      altsHtml+=`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px"><div class="card-dot" style="background:${a.color};width:8px;height:8px"></div><span style="font-weight:600">${a.card}</span><span style="color:var(--accent)">${a.rate}</span><span style="color:var(--text2)">— ${a.why}</span></div>`;
+      altsHtml+=`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:.75rem"><div class="card-dot" style="background:${a.color};width:8px;height:8px"></div><span style="font-weight:600">${a.card}</span><span style="color:var(--accent)">${a.rate}</span><span style="color:var(--muted)">— ${a.why}</span></div>`;
     });
     altsHtml+='</div>';
   }
@@ -1925,7 +2024,7 @@ async function askAI(query){
   if(result.isInfo){
     fallbackHtml=`<div class="ai-tip" style="white-space:pre-line">${result.tip}</div>`;
   } else {
-    fallbackHtml=`<div style="margin-bottom:4px;font-size:12px;color:var(--text2)">Best card:</div><div class="card-rec"><div class="rec-dot" style="background:${result.color}"></div><div class="rec-name">${result.card}</div><div class="rec-rate">${result.rate}</div></div><div class="ai-tip" style="white-space:pre-line">${result.tip}</div>${altsHtml}`;
+    fallbackHtml=`<div style="margin-bottom:4px;font-size:.75rem;color:var(--muted)">Best card:</div><div class="card-rec"><div class="rec-dot" style="background:${result.color}"></div><div class="rec-name">${result.card}</div><div class="rec-rate">${result.rate}</div></div><div class="ai-tip" style="white-space:pre-line">${result.tip}</div>${altsHtml}`;
   }
   if (el) el.innerHTML = fallbackHtml;
   const msg = aiMessages[aiMessages.length-1];
@@ -1999,11 +2098,11 @@ function nearMe() {
           const cardData = matched ? appData.cards.find(c => c.name === matched.card) : null;
           const color = cardData ? cardData.color : '#00C805';
           if (matched) {
-            el.outerHTML = `<div style="font-size:12px;color:var(--text2);margin-bottom:6px">You're near: ${escapeHtml(display || 'Unknown')}</div>
+            el.outerHTML = `<div style="font-size:.75rem;color:var(--muted);margin-bottom:6px">You're near: ${escapeHtml(display || 'Unknown')}</div>
               <div class="card-rec"><div class="rec-dot" style="background:${color}"></div><div class="rec-name">${matched.card}</div><div class="rec-rate">${matched.rate}</div></div>
               <div class="ai-tip">${matched.tip}</div>`;
           } else {
-            el.outerHTML = `<div style="font-size:12px;color:var(--text2);margin-bottom:6px">You're near: ${escapeHtml(display || 'Unknown')}</div>
+            el.outerHTML = `<div style="font-size:.75rem;color:var(--muted);margin-bottom:6px">You're near: ${escapeHtml(display || 'Unknown')}</div>
               <div class="card-rec"><div class="rec-dot" style="background:#00C805"></div><div class="rec-name">Robinhood Gold Card</div><div class="rec-rate">3%</div></div>
               <div class="ai-tip">No specific store match found. Robinhood Gold's flat 3% is your safest bet for any purchase here.</div>`;
           }
@@ -2028,6 +2127,189 @@ function nearMe() {
 // Service worker cleanup handled in <head>
 
 init();
+</script>
+<button id="totop" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">&#8679; top</button>
+<script id="fleet-chrome-js" data-v="f229d321cf">
+/* FLEET CHROME v2 (Sep 29, 2026; v1 Sep 28). Source of truth: Hub/_toolkit/chrome/chrome.js, injected by
+   apply_chrome.py at the end of <body>. Owns: theme toggle (key hub-theme, label names the mode a click GIVES),
+   A+/A- on the ROOT element (key hub-fontsize), back-to-top, ?fresh= strip, hash deep links that open closed
+   <details>, the shared tabs (.tabs > .tab[data-pane] + .pane[id]), where anchors land (--stick, landOn), and
+   jargon tooltips (.term: tabindex, --tipx). Sites hook tab switches with the "panechange" event instead of
+   editing this file. v2: every landing is measured from the target, not from a stuck strip (v1 put pane
+   headings under the tabs); arrow keys stay in their own strip; a nested strip's default no longer opens
+   its parent pane at load; opening a pane opens every closed pane around it, however deep. */
+(function(){
+  var root=document.documentElement;
+  function $(id){return document.getElementById(id);}
+  function each(sel,fn){Array.prototype.forEach.call(document.querySelectorAll(sel),fn);}
+
+  window.paintThemeBtn=function(){
+    var dark=root.getAttribute("data-theme")!=="light";
+    var g=$("themeGlyph"),l=$("themeLabel");
+    if(g)g.innerHTML=dark?"&#9788;":"&#9790;";
+    if(l)l.textContent=dark?"Light":"Dark";
+    var b=$("themeBtn");if(b)b.setAttribute("title",dark?"Switch to light":"Switch to dark");
+  };
+  window.flipTheme=function(){
+    var next=root.getAttribute("data-theme")==="light"?"dark":"light";
+    root.setAttribute("data-theme",next);
+    try{localStorage.setItem("hub-theme",next);}catch(_){}
+    paintThemeBtn();
+    document.dispatchEvent(new CustomEvent("themechange",{detail:next}));
+  };
+  try{var th=localStorage.getItem("hub-theme");if(th)root.setAttribute("data-theme",th);}catch(_){}
+  if(!root.getAttribute("data-theme"))root.setAttribute("data-theme","dark");
+
+  /* rem keys off <html>, so the root is what moves. Setting body.style.fontSize does nothing here. */
+  var fs=16;
+  try{fs=parseInt(localStorage.getItem("hub-fontsize"),10)||16;}catch(_){}
+  window.applyFont=function(){root.style.fontSize=fs+"px";syncBars();};
+  window.bumpFont=function(d){fs=Math.max(13,Math.min(23,fs+d));applyFont();try{localStorage.setItem("hub-fontsize",fs);}catch(_){}};
+
+  /* the tab strip sticks just under the menubar, whatever height the menubar wrapped to (--mbh).
+     --stick is where an anchor should land: menubar + the page's top level sticky strip + 8px. The CSS uses
+     it as scroll-margin-top, so native #links land clear too. */
+  function mbH(){var m=document.querySelector(".menubar");return m?m.offsetHeight:0;}
+  function isSticky(g){return getComputedStyle(g).position==="sticky";}
+  function syncBars(){var mh=mbH();root.style.setProperty("--mbh",mh+"px");
+    var top=Array.prototype.filter.call(document.querySelectorAll(".tabs"),function(g){return !paneOf(g)&&isSticky(g);})[0];
+    root.style.setProperty("--stick",(mh+(top?top.offsetHeight:0)+8)+"px");}
+  window.addEventListener("resize",syncBars);
+  /* height of every sticky bar that sits above el when el is on screen: the menubar plus the strip of each
+     pane group el lives in (a pane counts its own strip) */
+  function barsFor(el){var h=mbH(),p=paneOf(el);
+    while(p){var g=groupOf(p.id);if(g&&isSticky(g))h+=g.offsetHeight;p=paneOf(p.parentElement);}
+    return h;}
+  /* page position of el without the paneIn slide: a pane that just opened sits 4px low for a quarter second */
+  function docTop(el){var y=el.getBoundingClientRect().top+window.scrollY;
+    for(var a=el;a&&a!==document.body;a=a.parentElement)if(a.classList&&a.classList.contains("pane")){
+      var t=getComputedStyle(a).transform;if(t&&t!=="none"&&window.DOMMatrix)y-=new DOMMatrix(t).m42;}
+    return y;}
+  /* A stuck strip always reads as sitting at the menubar, so positions come from the target itself.
+     A pane lands with its strip right under the menubar. A pane whose strip does not stick (Wallet IQ's card
+     strip) lands that strip in view instead, so the reader still sees which tab is open. Anything else lands
+     8px below the bars, or at its own scroll-margin-top when the page set a bigger one (Job Scan clears its
+     own sticky #dnav that way; v1's scrollIntoView honoured it and v2 must too). */
+  function landY(el){var y=docTop(el),g=el.classList.contains("pane")?groupOf(el.id):null;
+    if(g&&!isSticky(g)&&y-docTop(g)<window.innerHeight/2)return landY(g);
+    if(g)y-=barsFor(el)+(parseFloat(getComputedStyle(g).marginBottom)||0);
+    else y-=Math.max(barsFor(el)+8,parseFloat(getComputedStyle(el).scrollMarginTop)||0);
+    return Math.max(0,Math.round(y));}
+  /* "auto" (not "instant", which older Safari rejects) follows the page's own scroll-behavior */
+  window.landOn=function(el,smooth){if(el)window.scrollTo({top:landY(el),behavior:smooth?"smooth":"auto"});};
+
+  function paneOf(el){while(el&&el!==document.body){if(el.classList&&el.classList.contains("pane")&&el.id)return el;el=el.parentElement;}return null;}
+  /* A tab group is one .tabs strip plus the panes its tabs name, so tabs can nest (Hot Tub has a strip
+     inside a pane). Switching touches only the clicked group; parent panes of the target open too. */
+  function groupOf(id){var t=document.querySelector('.tab[data-pane="'+id+'"]');return t?t.closest(".tabs"):null;}
+  /* a pane counts as shown only when it and every pane around it are open; an open pane inside a closed one
+     (Job Scan: Interview Prep > Stories > Glossary) is still hidden, so the walk goes on up */
+  function shown(p){for(var a=p;a&&a!==document.body;a=a.parentElement)if(a.classList&&a.classList.contains("pane")&&!a.classList.contains("on"))return false;return true;}
+  window.showPane=function(id,opt){
+    opt=opt||{};
+    var p=$(id);if(!p||!p.classList.contains("pane"))return false;
+    /* noparent: init sets a nested strip's default without opening the pane around it */
+    if(!opt.noparent){var up=paneOf(p.parentElement);if(up&&!shown(up))showPane(up.id,{noscroll:true,fade:opt.fade});}
+    /* fade: opened for a jump to something inside it. The browser scrolls while the pane is still 4px low from
+       the paneIn slide and the kit lands without it, so a slide would show as a 4px nudge; fade only instead */
+    if(!p.classList.contains("on"))p.classList.toggle("pane-jump",!!opt.fade);
+    var g=groupOf(id),ids=g?Array.prototype.map.call(g.querySelectorAll(".tab[data-pane]"),function(t){return t.getAttribute("data-pane");}):[id];
+    ids.forEach(function(x){var el=$(x);if(el)el.classList.toggle("on",x===id);});
+    if(g)Array.prototype.forEach.call(g.querySelectorAll(".tab[data-pane]"),function(t){var on=t.getAttribute("data-pane")===id;
+      t.classList.toggle("on",on);t.setAttribute("aria-selected",on?"true":"false");t.tabIndex=on?0:-1;
+      if(on&&g.scrollWidth>g.clientWidth)g.scrollLeft=stripX(g,t);});
+    each('.menubar a.mb-btn[href^="#"]',function(a){a.classList.toggle("on",a.getAttribute("href")==="#"+id);});
+    if(opt.hash){try{history.replaceState(null,"",location.pathname+location.search+"#"+id);}catch(_){}}
+    /* a tab clicked deep in a long pane goes back to the new pane's start; one clicked above it stays put */
+    if(!opt.noscroll&&g){var y=landY(p);if(window.scrollY>y+2)window.scrollTo(0,y);}
+    if(g)fadeTabs(g);
+    document.dispatchEvent(new CustomEvent("panechange",{detail:id}));
+    return true;
+  };
+  /* a wide strip scrolls the open tab a third of the way in, but whole: its right end clear of the 44px fade
+     and its left end never hidden (Mom Care's 258px "Legal Docs" tab lost 26px at 390 under the plain third
+     rule). Measured from the strip itself, since a static strip is not the tab's offsetParent. */
+  function stripX(g,t){var cw=g.clientWidth,w=t.offsetWidth,
+      l=t.getBoundingClientRect().left-g.getBoundingClientRect().left-g.clientLeft+g.scrollLeft;
+    return Math.max(0,Math.min(Math.max(l-cw/3,l+w-cw+44),l-44));}
+  /* a strip wider than the page fades at the edge that has more tabs, so a clipped label reads as "scroll" */
+  function fadeTabs(g){var more=g.scrollWidth>g.clientWidth+2;
+    g.classList.toggle("more-r",more&&g.scrollLeft+g.clientWidth<g.scrollWidth-2);g.classList.toggle("more-l",more&&g.scrollLeft>2);}
+  document.addEventListener("scroll",function(e){if(e.target.classList&&e.target.classList.contains("tabs"))fadeTabs(e.target);},true);
+  window.addEventListener("resize",function(){each(".tabs",fadeTabs);});
+  window.openTo=function(el){
+    if(!el)return;
+    var pn=paneOf(el);if(pn&&!shown(pn))showPane(pn.id,{noscroll:true,fade:true});
+    if(el.tagName==="DETAILS")el.open=true;
+    var p=el.parentElement;while(p){if(p.tagName==="DETAILS")p.open=true;p=p.parentElement;}
+  };
+  function openHash(){
+    var h=decodeURIComponent((location.hash||"").slice(1));if(!h)return false;
+    var el=$(h);if(!el)return false;
+    if(el.classList.contains("pane"))showPane(h,{noscroll:true,fade:true});else openTo(el);
+    setTimeout(function(){landOn(el);},60);return true;
+  }
+  window.addEventListener("hashchange",openHash);
+  document.addEventListener("click",function(e){
+    var tb=e.target.closest?e.target.closest(".tab[data-pane]"):null;
+    if(tb){e.preventDefault();showPane(tb.getAttribute("data-pane"),{hash:true});return;}
+    var a=e.target.closest?e.target.closest("a"):null;if(!a)return;
+    var href=a.getAttribute("href")||"";if(href.charAt(0)!=="#"||href.length<2)return;
+    var el=$(decodeURIComponent(href.slice(1)));if(!el)return;
+    if(el.classList.contains("pane")){e.preventDefault();showPane(el.id,{hash:true,noscroll:true});landOn(el,true);return;}
+    openTo(el);
+  });
+  document.addEventListener("keydown",function(e){
+    var t=e.target;if(!t.classList||!t.classList.contains("tab")||(e.key!=="ArrowRight"&&e.key!=="ArrowLeft"))return;
+    if(e.altKey||e.ctrlKey||e.metaKey)return;  /* Alt+Left is the browser's Back */
+    var g=t.closest(".tabs");if(!g)return;  /* stay in this strip: v1 walked every strip and crossed into nested ones */
+    var all=Array.prototype.slice.call(g.querySelectorAll(".tab[data-pane]")),i=all.indexOf(t);
+    /* the browser's own arrow scroll would run after showPane and clip the tab it just scrolled to */
+    e.preventDefault();
+    var n=all[(i+(e.key==="ArrowRight"?1:all.length-1))%all.length];if(n){n.focus();showPane(n.getAttribute("data-pane"),{hash:true});}
+  });
+
+  /* jargon words (.term[data-def]) open on hover, tap or Tab. --tipx shifts a definition that would cross the
+     right edge back onto the page; a site opts in with .term:hover:after,.term:focus:after{left:var(--tipx,0)} */
+  function fitTip(e){var t=e.target&&e.target.closest?e.target.closest(".term"):null;if(t)fitTerm(t);}
+  function fitTerm(t){
+    var r=t.getClientRects()[0]||t.getBoundingClientRect(),lo=8,hi=root.clientWidth-8,s=getComputedStyle(t,"::after"),w=parseFloat(s.width);
+    /* a scroll box (a wide table's wrapper) cuts the tip at its own edge, so that edge is the limit there */
+    for(var a=t.parentElement;a&&a!==document.body;a=a.parentElement)if(getComputedStyle(a).overflowX!=="visible"){
+      var b=a.getBoundingClientRect();lo=Math.max(lo,b.left+4);hi=Math.min(hi,b.right-4);break;}
+    /* width is the content box on most pages; the padding and border cross the edge too */
+    if(w>0&&s.boxSizing!=="border-box")w+=["paddingLeft","paddingRight","borderLeftWidth","borderRightWidth"].reduce(function(a,k){return a+(parseFloat(s[k])||0);},0);
+    /* before a tip has ever shown, its width reads auto: estimate the fleet's tips (min(300px,78vw) or 19rem,
+       plus 22px padding and 2px border) on the wide side, so a pre-placed tip never crosses the edge */
+    if(!(w>0))w=Math.min(Math.max(19*parseFloat(getComputedStyle(root).fontSize),300),.78*window.innerWidth)+24;
+    t.style.setProperty("--tipx",Math.round(Math.max(lo,Math.min(r.left,hi-w))-r.left)+"px");}
+  document.addEventListener("mouseover",fitTip);document.addEventListener("focusin",fitTip);
+  /* a tap or a Tab can paint the tip once before those events run; placed ahead of time, it never lands at
+     left:0 and widens a phone page for a frame. Hidden words (closed pane or details) get placed when shown. */
+  var fitQ=0;function fitAll(){if(fitQ)return;fitQ=requestAnimationFrame(function(){fitQ=0;
+    each(".term",function(t){if(t.getClientRects().length)fitTerm(t);});});}
+  window.addEventListener("resize",fitAll);document.addEventListener("panechange",fitAll);document.addEventListener("toggle",fitAll,true);
+
+  if(/[?&]fresh=/.test(location.search)){try{history.replaceState(null,"",location.pathname+location.hash);}catch(_){}}
+
+  var tt=$("totop");
+  if(tt)window.addEventListener("scroll",function(){tt.style.display=window.scrollY>900?"block":"none";},{passive:true});
+
+  function init(){
+    each(".tabs",function(s){s.setAttribute("role","tablist");});
+    each(".tab[data-pane]",function(t){t.setAttribute("role","tab");t.setAttribute("type","button");});
+    each(".pane[id]",function(p){p.setAttribute("role","tabpanel");});
+    applyFont();paintThemeBtn();
+    /* each group opens the pane marked .on, else its first tab (action first); then a #hash wins */
+    each(".tabs",function(g){var t=g.querySelector(".tab[data-pane]");if(!t)return;
+      var on=Array.prototype.filter.call(g.querySelectorAll(".tab[data-pane]"),function(x){var p=$(x.getAttribute("data-pane"));return p&&p.classList.contains("on");})[0];
+      showPane((on||t).getAttribute("data-pane"),{noscroll:true,noparent:!!paneOf(g)});});
+    each(".term",function(t){if(!t.hasAttribute("tabindex"))t.tabIndex=0;});fitAll();
+    try{var ro=new ResizeObserver(syncBars),m=document.querySelector(".menubar");if(m)ro.observe(m);each(".tabs",function(g){ro.observe(g);});}catch(_){}
+    openHash();
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
 </script>
 </body>
 </html>
