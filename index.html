@@ -651,7 +651,9 @@ function feedFreshness() {
   const live = feed && Array.isArray(feed.offers) ? feed.offers.filter(o => o && (!o.expires || o.expires >= t)) : [];
   const n = live.length, nHidden = live.filter(o => hidden.includes(o.id)).length;
   const ago = ageH === null ? '' : ageH < 48 ? Math.max(1, Math.round(ageH)) + ' hours ago' : Math.round(ageH / 24) + ' days ago';
-  const failed = feed && feed.status === 'failed' && feed.checkedAt ? ` The tower's last check failed (${fmtDenver(feed.checkedAt)}).` : '';
+  // The tower's own short reason (fixed words like 'Chase showed no cards'), escaped like every server text
+  const why = feed && typeof feed.lastError === 'string' && feed.lastError.trim() ? ': ' + escapeHtml(feed.lastError.trim().slice(0, 120)) : '';
+  const failed = feed && feed.status === 'failed' && feed.checkedAt ? ` The tower's last check failed (${fmtDenver(feed.checkedAt)})${why}.` : '';
   if (feedState.reached === null) return { state: '', head: "Checking for today's Chase offers...", body: when ? `Showing the copy from <b>${when}</b> until the server answers.` : '' };
   if (feedState.reached === false) return { state: 'off', head: 'Server not reachable',
     body: when ? `Showing the copy from <b>${when}</b> (${ago}). Tap the title to try again.` : 'No saved copy yet. Tap the title to try again.' };
