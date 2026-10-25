@@ -73,6 +73,12 @@ body #totop{bottom:calc(14px + var(--safe-bottom))}
 .fresh[data-state="warn"]{border-left-color:var(--amber)}
 .fresh[data-state="bad"],.fresh[data-state="off"]{border-left-color:var(--red)}
 .fresh-head{display:block;font-weight:700;color:var(--ink)}
+/* Merged reply (Chase and Amex): one line per bank inside the box, each with its own colored dot */
+.fresh-line+.fresh-line{margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.fresh-line .fresh-head::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px;background:var(--muted)}
+.fresh-line[data-state="ok"] .fresh-head::before{background:var(--green)}
+.fresh-line[data-state="warn"] .fresh-head::before{background:var(--amber)}
+.fresh-line[data-state="bad"] .fresh-head::before{background:var(--red)}
 .search-wrap{position:relative;margin-bottom:16px}
 .search-wrap input{width:100%;padding:12px 16px 12px 40px;background:var(--code);border:1px solid var(--border);border-radius:12px;color:var(--ink);font-size:.9375rem;outline:none}
 .search-wrap input:focus{border-color:var(--accent)}
@@ -432,7 +438,7 @@ try{var fcFs=parseInt(localStorage.getItem("hub-fontsize"),10);if(fcFs>=13&&fcFs
       <h2 style="margin:0">Active Card Offers</h2>
       <button class="btn btn-primary btn-sm" onclick="openOfferModal()">+ Add Offer</button>
     </div>
-    <div id="offersFresh" class="fresh"><span class="fresh-head">Checking for today's Chase offers...</span></div>
+    <div id="offersFresh" class="fresh"><span class="fresh-head">Checking for today's Chase and Amex offers...</span></div>
     <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
       <a href="https://apps.apple.com/app/id362348516" class="chip" style="text-decoration:none">Check Amex</a>
       <a href="https://apps.apple.com/app/id298867247" class="chip" style="text-decoration:none">Check Chase</a>
@@ -575,14 +581,18 @@ function inkFor(hex) {
 }
 function textOn(hex) { const c = hexRgb(hex); return c && lum(c) > .3 ? '#0f1522' : '#ffffff'; }
 
-// ===== Chase Offers feed (Oct 24, 2026) =====
-// The tower captures Chase Offers every morning and posts them to the worker; the app reads them on every open,
-// keeps the last copy for when the server can't be reached, and says how fresh it is. Hidden offers stay hidden
-// on this device (ids are stable per card and merchant).
+// ===== Chase and Amex Offers feed (Oct 24, 2026; Amex added Oct 25, 2026) =====
+// The tower captures Chase Offers (and the Amex Offers it added) every morning and posts them to the worker; the app
+// reads them on every open, keeps the last copy for when the server can't be reached, and says how fresh it is.
+// Hidden offers stay hidden on this device (ids are stable per card and merchant). The worker's merged reply carries
+// a sources block with each bank's own times and status; an older reply without it is Chase only.
 const FEED_URL = 'https://wallet-iq-ai.grant-h-lange.workers.dev/offers';
 const FEED_KEY = 'walletiq_feed_v1', HIDDEN_KEY = 'walletiq_hidden_offers';
 const STALE_WARN_H = 30, STALE_BAD_H = 72;
-const FEED_CARDS = { 'amazon-prime': 'Amazon Prime Visa', 'chase-freedom': 'Chase Freedom (Legacy)' };
+const FEED_CARDS = { 'amazon-prime': 'Amazon Prime Visa', 'chase-freedom': 'Chase Freedom (Legacy)', 'amex-gold': 'Amex Gold' };
+// Banks in the order their lines show: sources key, name, when the tower sends that bank's offers
+const FEED_BANKS = [['chase', 'Chase', 'just after 8 AM'], ['amex', 'Amex', 'just before 8 AM']];
+const STATE_RANK = { '': 0, ok: 1, warn: 2, bad: 3, off: 4 };
 let feed = readJSON(FEED_KEY, null);
 let feedState = { reached: null, triedAt: 0, error: '' };
 let lastRenderDay = '';
@@ -595,6 +605,19 @@ function fmtDenver(iso) {
 }
 function normMerchant(s) { return String(s || '').toLowerCase().replace(/['\u2019]/g, '').replace(/\.(com|net|org)\b/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
 function cardIdFor(name) { const c = appData && appData.cards.find(c => c.name === name); return c ? c.id : String(name || ''); }
+// The merged reply's per bank block ({chase: {...}, amex: {...}}), or null for the older Chase only reply
+function feedSources() { return feed && feed.sources && typeof feed.sources === 'object' && !Array.isArray(feed.sources) ? feed.sources : null; }
+// Which bank a feed offer came from, by its id prefix ('chase:...' or 'amex:...'); '' for an offer typed in by hand
+function offerBank(id) { const m = /^(chase|amex):/.exec(String(id || '')); return m ? (m[1] === 'amex' ? 'Amex' : 'Chase') : ''; }
+// Words that name the banks: both once the worker sends the merged reply, Chase alone for the older reply
+function feedBankNames() { return feedSources() ? 'Chase and Amex' : 'Chase'; }
+// The offers' own time for the masthead and the pill: the newest bank of the merged reply, or the single feed's time
+function feedTime() {
+  const s = feedSources();
+  if (!s) return (feed && feed.generatedAt) || '';
+  const t = FEED_BANKS.map(b => s[b[0]] && s[b[0]].generatedAt).filter(x => Date.parse(x)).sort((a, b) => Date.parse(b) - Date.parse(a));
+  return t[0] || '';
+}
 
 async function loadFeed() {
   feedState.triedAt = Date.now();
@@ -604,7 +627,8 @@ async function loadFeed() {
     const r = await fetch(FEED_URL + '?t=' + Date.now(), { cache: 'no-store', signal: ctl ? ctl.signal : undefined });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const f = await r.json();
-    if (!f || f.schema !== 1 || !Array.isArray(f.offers)) throw new Error('unexpected reply');
+    // The single feed carries schema 1; the merged reply is known by its sources block
+    if (!f || (f.schema !== 1 && !(f.sources && typeof f.sources === 'object')) || !Array.isArray(f.offers)) throw new Error('unexpected reply');
     feed = f; feedState.reached = true; feedState.error = '';
     writeJSON(FEED_KEY, f);
   } catch (e) {
@@ -644,13 +668,14 @@ function hideOffer(id) {
 
 // How fresh the offers are: ok, warn (over 30 hours), bad (over 72 hours or none yet), off (server not reachable)
 function feedFreshness() {
+  if (feedSources()) return mergedFreshness();
   const gen = feed && Date.parse(feed.generatedAt);
   const ageH = gen ? (Date.now() - gen) / 3600e3 : null;
   const when = gen ? fmtDenver(feed.generatedAt) : '';
   const t = todayLocal(), hidden = readJSON(HIDDEN_KEY, []);
   const live = feed && Array.isArray(feed.offers) ? feed.offers.filter(o => o && (!o.expires || o.expires >= t)) : [];
   const n = live.length, nHidden = live.filter(o => hidden.includes(o.id)).length;
-  const ago = ageH === null ? '' : ageH < 48 ? Math.max(1, Math.round(ageH)) + ' hours ago' : Math.round(ageH / 24) + ' days ago';
+  const ago = ageH === null ? '' : agoText(ageH);
   // The tower's own short reason (fixed words like 'Chase showed no cards'), escaped like every server text
   const why = feed && typeof feed.lastError === 'string' && feed.lastError.trim() ? ': ' + escapeHtml(feed.lastError.trim().slice(0, 120)) : '';
   const failed = feed && feed.status === 'failed' && feed.checkedAt ? ` The tower's last check failed (${fmtDenver(feed.checkedAt)})${why}.` : '';
@@ -662,26 +687,67 @@ function feedFreshness() {
   if (ageH > STALE_WARN_H) return { state: 'warn', head: `Offers are ${Math.round(ageH)} hours old`, body: `Offers updated <b>${when}</b>. Today's update has not arrived yet.${failed}` };
   return { state: 'ok', head: `Offers updated <b>${when}</b>`, body: `${n} Chase offers${nHidden ? ` (${nHidden} hidden on this phone)` : ''}, ${ago}. The tower sends new ones every morning.${failed}` };
 }
+function agoText(ageH) { return ageH < 48 ? Math.max(1, Math.round(ageH)) + ' hours ago' : Math.round(ageH / 24) + ' days ago'; }
+// One bank's line in the merged reply, with its own time, its own failed check and its own age warning. A bank the
+// worker has no document for yet (sources leaves it out) shows as none yet.
+function bankFreshness(bank) {
+  const [key, name, sends] = bank;
+  const doc = feedSources()[key];
+  const gen = doc && Date.parse(doc.generatedAt);
+  const ageH = gen ? (Date.now() - gen) / 3600e3 : null;
+  const when = gen ? fmtDenver(doc.generatedAt) : '';
+  const t = todayLocal(), hidden = readJSON(HIDDEN_KEY, []);
+  const live = feed.offers.filter(o => o && offerBank(o.id) === name && (!o.expires || o.expires >= t));
+  const n = live.length, nHidden = live.filter(o => hidden.includes(o.id)).length;
+  const ago = ageH === null ? '' : agoText(ageH);
+  // The tower's own short reason (fixed public words), escaped like every server text; its own end mark is dropped
+  const why = doc && typeof doc.lastError === 'string' && doc.lastError.trim() ? ': ' + escapeHtml(doc.lastError.trim().slice(0, 120).replace(/[.\s]+$/, '')) : '';
+  const failed = doc && doc.status === 'failed' && doc.checkedAt ? ` The tower's last ${name} check failed (${fmtDenver(doc.checkedAt)})${why}.` : '';
+  if (ageH === null) return { state: 'bad', head: `No ${name} offers from the tower yet`, body: `The tower sends them every morning ${sends}.${failed}` };
+  if (ageH > STALE_BAD_H) return { state: 'bad', head: `${name} offers are ${Math.round(ageH / 24)} days old`, body: `Updated <b>${when}</b>. The tower's daily job has not sent new ones; check that the tower is on.${failed}` };
+  if (ageH > STALE_WARN_H) return { state: 'warn', head: `${name} offers are ${Math.round(ageH)} hours old`, body: `Updated <b>${when}</b>. Today's update has not arrived yet.${failed}` };
+  return { state: 'ok', head: `${name} offers updated <b>${when}</b>`, body: `${n} offers${nHidden ? ` (${nHidden} hidden on this phone)` : ''}, ${ago}. The tower sends new ones every morning.${failed}` };
+}
+// The merged reply: while checking or with the server down, one line naming each bank's saved copy; once the server
+// answers, one line per bank (Chase, then Amex) and the box takes the worst of their states
+function mergedFreshness() {
+  const s = feedSources();
+  const copies = FEED_BANKS.filter(b => s[b[0]] && Date.parse(s[b[0]].generatedAt))
+    .map(b => `${b[1]} from <b>${fmtDenver(s[b[0]].generatedAt)}</b> (${agoText((Date.now() - Date.parse(s[b[0]].generatedAt)) / 3600e3)})`).join(', ');
+  if (feedState.reached === null) return { state: '', head: "Checking for today's Chase and Amex offers...", body: copies ? `Showing the saved offers until the server answers: ${copies}.` : '' };
+  if (feedState.reached === false) return { state: 'off', head: 'Server not reachable',
+    body: copies ? `Showing the saved offers: ${copies}. Tap the title to try again.` : 'No saved copy yet. Tap the title to try again.' };
+  // A bank with no stored document yet (Amex before its first morning) gets no line, so it never turns a good
+  // Chase day red; with nothing stored at all the Chase line says so, as before
+  const shown = FEED_BANKS.filter(b => s[b[0]]);
+  const lines = (shown.length ? shown : FEED_BANKS.slice(0, 1)).map(b => Object.assign({ bank: b[0] }, bankFreshness(b)));
+  return { state: lines.reduce((w, l) => STATE_RANK[l.state] > STATE_RANK[w] ? l.state : w, 'ok'), lines };
+}
+function freshLine(l) { return `<div class="fresh-line" data-bank="${l.bank}" data-state="${l.state}"><span class="fresh-head">${l.head}</span>${l.body}</div>`; }
 function renderFreshness() {
   const f = feedFreshness();
   const el = document.getElementById('offersFresh');
-  if (el) { el.dataset.state = f.state; el.innerHTML = `<span class="fresh-head">${f.head}</span>${f.body}`; }
+  if (el) { el.dataset.state = f.state; el.innerHTML = f.lines ? f.lines.map(freshLine).join('') : `<span class="fresh-head">${f.head}</span>${f.body}`; }
+  // Today shows only what needs a look: the old and failed banks' lines, or the one server line
   const t = document.getElementById('todayFresh');
-  if (t) t.innerHTML = f.state === 'warn' || f.state === 'bad' || f.state === 'off'
-    ? `<div class="fresh" data-state="${f.state}"><span class="fresh-head">Chase offers: ${f.head}</span>${f.body}</div>` : '';
+  const needsLook = s => s === 'warn' || s === 'bad' || s === 'off';
+  if (t) t.innerHTML = !needsLook(f.state) ? ''
+    : f.lines ? `<div class="fresh" data-state="${f.state}">${f.lines.filter(l => needsLook(l.state)).map(freshLine).join('')}</div>`
+    : `<div class="fresh" data-state="${f.state}"><span class="fresh-head">${feedBankNames()} offers: ${f.head}</span>${f.body}</div>`;
   renderStamp();
 }
 // Masthead line and the UPDATED pill: the pill shows the newest of this page's deploy, the card data and the offers
+// (the newest bank when the reply is merged)
 function renderStamp() {
   if (!appData) return;
   const card = fmtDenver(appData.lastUpdated) || String(appData.lastUpdated || 'unknown');
-  const off = feed && feed.generatedAt ? fmtDenver(feed.generatedAt) : '';
+  const off = feedTime() ? fmtDenver(feedTime()) : '';
   // Each label stays on one line with its time; the line breaks only between them
   const pair = (label, v) => '<span style="white-space:nowrap">' + label + ' <b>' + escapeHtml(v) + '</b></span>';
   document.getElementById('lastUpdated').innerHTML = [pair('Version', APP_VERSION), pair('card data', card)].concat(off ? [pair('offers', off)] : []).join(' &middot; ');
   const pill = document.getElementById('updPill');
   if (!pill) return;
-  const times = [pill.dataset.deploy || pill.dataset.iso, appData.lastUpdated, feed && feed.generatedAt].map(x => [x, Date.parse(x)]).filter(x => x[1] && x[1] <= Date.now() + 3600e3);
+  const times = [pill.dataset.deploy || pill.dataset.iso, appData.lastUpdated, feedTime()].map(x => [x, Date.parse(x)]).filter(x => x[1] && x[1] <= Date.now() + 3600e3);
   if (!pill.dataset.deploy) pill.dataset.deploy = pill.dataset.iso;
   if (!times.length) return;
   const newest = times.sort((a, b) => b[1] - a[1])[0][0];
@@ -1739,7 +1805,7 @@ function offerRow(o, now) {
     ${btn}
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
       <div class="card-dot" style="background:${escapeHtml(color)}"></div>
-      <div class="offer-merchant">${escapeHtml(o.merchant)}${o.auto ? '<span class="offer-src">Chase</span>' : ''}</div>
+      <div class="offer-merchant">${escapeHtml(o.merchant)}${o.auto ? '<span class="offer-src">' + (offerBank(o.id) || 'Chase') + '</span>' : ''}</div>
     </div>
     <div class="offer-discount">${escapeHtml(o.discount)}</div>
     <div class="offer-meta">${escapeHtml(cardName)}${daysLeft !== null ? ' &middot; ' + (isUrgent ? '<span style="color:var(--red)">' + daysLeft + 'd left!</span>' : daysLeft + 'd left') : ' &middot; No end date listed'}</div>
@@ -1755,7 +1821,7 @@ function renderOffers() {
   const want = normMerchant(search ? search.value : '');
   const shown = want ? active.filter(o => normMerchant(o.merchant).includes(want)) : active;
   let html = '';
-  if (!active.length) html = '<div class="empty">No active offers.<br>Chase offers appear here each morning; tap "+ Add Offer" for others.</div>';
+  if (!active.length) html = `<div class="empty">No active offers.<br>${feedBankNames()} offers appear here each morning; tap "+ Add Offer" for others.</div>`;
   else if (!shown.length) html = '<div class="empty">No offer matches that store.</div>';
   else html = shown.map(o => offerRow(o, now)).join('');
   document.getElementById('offersList').innerHTML = html;
@@ -1804,10 +1870,15 @@ function findMatchingOffer(query) {
     if (m && q.includes(' ' + m + ' ')) {
       const expDate = o.expires ? new Date(o.expires + 'T23:59:59') : null;
       const daysLeft = expDate ? Math.max(0, Math.ceil((expDate - new Date()) / 86400000)) : null;
-      return { card: o.card, discount: o.discount, merchant: o.merchant, daysLeft };
+      return { card: o.card, discount: o.discount, merchant: o.merchant, daysLeft, bank: o.auto ? offerBank(o.id) || 'Chase' : '' };
     }
   }
   return null;
+}
+// The line an answer adds for a matched offer: "Chase Offer" or "Amex Offer" from the feed id, "Card offer" for
+// one typed in by hand
+function offerLine(om) {
+  return `${om.bank ? om.bank + ' Offer' : 'Card offer'}: ${om.discount} at ${om.merchant} on your ${String(om.card).replace(' (Legacy)', '')}${om.daysLeft !== null ? ` (${om.daysLeft} days left)` : ''}.`;
 }
 
 // ===== CHASE QUARTER AWARENESS =====
@@ -2099,10 +2170,10 @@ async function askAI(query){
     const data = resp.ok ? await resp.json() : null;
     if (data && typeof data.answer === 'string' && data.answer.trim()) {
       let answer = data.answer.trim();
-      // A Chase Offer for the named store always shows, even when the model leaves it out
+      // A Chase or Amex Offer for the named store always shows, even when the model leaves it out
       const om = findMatchingOffer(query);
       if (om && !answer.toLowerCase().includes(String(om.merchant).toLowerCase()))
-        answer += `\n\nChase Offer: ${om.discount} at ${om.merchant} on your ${String(om.card).replace(' (Legacy)','')}${om.daysLeft !== null ? ` (${om.daysLeft} days left)` : ''}.`;
+        answer += '\n\n' + offerLine(om);
       const newHtml = `<div class="ai-tip" style="white-space:pre-line">${escapeHtml(answer)}</div>`;
       const el = document.getElementById(msgId);
       if (el) el.innerHTML = newHtml;
@@ -2201,11 +2272,11 @@ function nearMe() {
             break;
           }
         }
-        // Same order as Ask AI: a Chase Offer at this place first, then this quarter's Chase 5%
+        // Same order as Ask AI: a Chase or Amex Offer at this place first, then this quarter's Chase 5%
         const placeQ = (place + ' ' + (data.address?.shop || '') + ' ' + (data.address?.amenity || '')).trim();
         const om = place ? findMatchingOffer(place) : null;
         const cq = placeQ && !(matched && matched.card === 'Amazon Prime Visa') ? isChaseQuarterMatch(placeQ) : { matched: false };
-        if (om) matched = { card: om.card, rate: om.discount, tip: `Chase Offer: ${om.discount} at ${om.merchant} on your ${String(om.card).replace(' (Legacy)', '')}${om.daysLeft !== null ? ` (${om.daysLeft} days left)` : ''}.` };
+        if (om) matched = { card: om.card, rate: om.discount, tip: offerLine(om) };
         else if (cq.matched) matched = { card: 'Chase Freedom (Legacy)', rate: '5%', tip: `Chase Freedom pays 5% on ${cq.category} this quarter (first $1,500 across the 5% categories).` };
 
         // Update the loading message with result
