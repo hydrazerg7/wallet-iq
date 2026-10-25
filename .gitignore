@@ -14,3 +14,7 @@ __look_*.html
 
 # Local test kit (E2E harness, worker tests, screenshots); may hold captured offers, never public
 _toolkit/
+
+# wrangler local state and dev secrets (never commit)
+.wrangler/
+.dev.vars

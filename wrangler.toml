@@ -1,0 +1,18 @@
+# wallet-iq-ai on the Grant.h.lange Cloudflare account (workers.dev subdomain grant-h-lange).
+# Run wrangler only from this folder (it has no .env), with CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID set from
+# GRANT_CF_API_TOKEN and GRANT_CF_ACCOUNT_ID in ~/.env, carriage return stripped. No account id or secret lives here;
+# the KV namespace id below is an identifier, not a credential, so this file is safe in the public repo.
+name = "wallet-iq-ai"
+main = "worker.js"
+compatibility_date = "2026-06-23"
+workers_dev = true
+
+# Daily Chase Offers feed: GET /offers for the app, bearer POST from the tower (Oct 24, 2026); KV key "feed"
+[[kv_namespaces]]
+binding = "OFFERS"
+id = "7b481b1eb64c4551b5764bb0a8aa59b9"
+
+# wrangler refuses the deploy when one of these is not set on the Worker. Add "OFFERS_READ_KEY" if the read lock is
+# ever turned on (wrangler secret put OFFERS_READ_KEY; the same value goes in ~/.env as WALLETIQ_OFFERS_READ_KEY).
+[secrets]
+required = ["GEMINI_API_KEY", "OFFERS_WRITE_KEY"]
