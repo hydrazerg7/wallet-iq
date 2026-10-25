@@ -51,8 +51,14 @@ const MAX_FEED_BYTES = 256 * 1024;
 const EMPTY_FEED = { schema: 1, status: 'empty', generatedAt: null, checkedAt: null, cards: [], offers: [] };
 const ISO_Z = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
-const CARD_ID = /^[a-z0-9-]{1,40}$/;
-const PRIVATE = /(?:\.\.\.|\u2026|[\u2022\u2219\u25cf\u00b7*x]{2,})\s*\d{4}|\(\s*(?:\.\.\.|\u2026)|ending\s+in\s+\d{4}|\d{7,}/i; // same shapes as the tower's capture and publisher
+const CARD_ID = /^[a-z][a-z0-9-]{0,39}$/; // a slug that starts with a letter: never a card number
+const OFFER_ID = /^chase:[a-z][a-z0-9-]{0,39}:[a-z0-9-]{1,80}$/; // the tower's ids: chase:<card>:<merchant slug>[-n]
+const PRIVATE = /(?:(?:\.\s*){2,}|\u2026\s*)\d{4}|\(\s*(?:\.\s*\.|\u2026)|[\u2022\u2219\u25cf\u00b7*x]{2,}\s*\d{4}|(?<![a-z0-9])x\s?\d{4}(?![a-z0-9])|ending\s+(?:in\s+)?\d{4}|\d{7,}|\d(?:[ .\-]?\d){8,18}|\d{1,3}(?:[,.]\d{3}){2,}|accountid|(?:amount|total|you)\s+saved/i; // same shapes as the tower's capture and publisher
+// Tested on the text as a reader sees it: NFKC turns fullwidth dots, dot leaders and the ellipsis into plain dots, and
+// format characters (zero width spaces, joiners) and stray combining marks go. Both the raw text and the stored
+// (tidied) text are tested: removing a tag can join '..<b></b>.1234' into a last four (red team, Oct 24, 2026)
+const folded = s => String(s).normalize('NFKC').replace(/[\p{Cf}\p{Mn}]/gu, '');
+const isPrivate = (...xs) => xs.some(x => x != null && PRIVATE.test(folded(x)));
 const CARD_NAMES = { 'amazon-prime': 'Amazon Prime Visa', 'chase-freedom': 'Chase Freedom' };
 const DATA_URL = 'https://hydrazerg7.github.io/wallet-iq/data.json';
 const FUTURE_MS = 10 * 60000, MAX_AGE_MS = 7 * 86400000;
@@ -119,21 +125,21 @@ function feedProblem(f, now) {
   if (!fresh(f.checkedAt, now)) return 'checkedAt is in the future or over 7 days old';
   if (f.status === 'failed') {
     if (f.error == null) return null;
-    return typeof f.error === 'string' && f.error.length <= 300 && !PRIVATE.test(f.error) ? null : 'bad error';
+    return typeof f.error === 'string' && f.error.length <= 300 && !isPrivate(f.error, tidy(f.error, 300)) ? null : 'bad error';
   }
   if (typeof f.generatedAt !== 'string' || !ISO_Z.test(f.generatedAt)) return 'bad generatedAt';
   if (!fresh(f.generatedAt, now)) return 'generatedAt is in the future or over 7 days old';
   if (!Array.isArray(f.cards) || f.cards.length > 20) return 'bad cards';
-  for (const c of f.cards) if (!c || !CARD_ID.test(c.cardId) || !Number.isInteger(c.count) || c.count < 0) return 'bad card';
+  for (const c of f.cards) if (!c || !CARD_ID.test(c.cardId) || isPrivate(c.cardId) || !Number.isInteger(c.count) || c.count < 0 || c.count > 2000) return 'bad card';
   if (!Array.isArray(f.offers) || !f.offers.length) return 'no offers';
   if (f.offers.length > 2000) return 'too many offers';
   for (const o of f.offers) {
-    if (!o || typeof o.id !== 'string' || !o.id || o.id.length > 160) return 'bad offer id';
+    if (!o || typeof o.id !== 'string' || !OFFER_ID.test(o.id)) return 'bad offer id';
     if (!CARD_ID.test(o.cardId)) return 'bad offer card';
     if (typeof o.merchant !== 'string' || !tidy(o.merchant, 200) || o.merchant.length > 200) return 'bad merchant';
     if (typeof o.discount !== 'string' || !tidy(o.discount, 200) || o.discount.length > 200) return 'bad discount';
     if (o.expires != null && !DAY.test(o.expires)) return 'bad expiry';
-    if (PRIVATE.test(o.merchant) || PRIVATE.test(o.discount) || PRIVATE.test(o.id)) return 'private detail in offer';
+    if (isPrivate(o.merchant, tidy(o.merchant, 200), o.discount, tidy(o.discount, 200), o.id, o.cardId)) return 'private detail in offer';
   }
   return null;
 }
