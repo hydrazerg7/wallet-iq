@@ -60,6 +60,18 @@ body #totop{bottom:calc(14px + var(--safe-bottom))}
 .offer-discount{font-size:.875rem;font-weight:700;color:var(--green)}
 .offer-meta{font-size:.6875rem;color:var(--muted);margin-top:4px}
 .offer-delete{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:4px 8px}
+.offer-card.auto{padding-right:66px}
+.offer-src{display:inline-block;font-size:.5625rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border:1px solid var(--border);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.offer-hide{position:absolute;top:10px;right:10px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:.6875rem;cursor:pointer;padding:3px 8px}
+.offer-tools{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.offer-tools input{flex:1;min-width:0;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--ink);padding:8px 10px;font-size:.8125rem}
+.offer-count{font-size:.6875rem;color:var(--muted);white-space:nowrap}
+.fresh{border:1px solid var(--border);border-left-width:4px;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:.75rem;color:var(--muted);line-height:1.5;background:var(--card)}
+.fresh b{color:var(--ink);font-weight:600}
+.fresh[data-state="ok"]{border-left-color:var(--green)}
+.fresh[data-state="warn"]{border-left-color:var(--amber)}
+.fresh[data-state="bad"],.fresh[data-state="off"]{border-left-color:var(--red)}
+.fresh-head{display:block;font-weight:700;color:var(--ink)}
 .search-wrap{position:relative;margin-bottom:16px}
 .search-wrap input{width:100%;padding:12px 16px 12px 40px;background:var(--code);border:1px solid var(--border);border-radius:12px;color:var(--ink);font-size:.9375rem;outline:none}
 .search-wrap input:focus{border-color:var(--accent)}
@@ -125,6 +137,7 @@ body #totop{bottom:calc(14px + var(--safe-bottom))}
 .status-active{background:rgba(0,200,5,.15);color:var(--green)}
 .status-upcoming{background:rgba(26,115,232,.15);color:var(--accent)}
 .status-future{background:var(--code);color:var(--muted)}
+.quarter-card.past-q{opacity:.6}
 .prize-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:.8125rem}
 .prize-row:last-child{border-bottom:none}
 .prize-odds{color:var(--accent);font-weight:600;min-width:60px;text-align:right}
@@ -288,14 +301,14 @@ try{var fcFs=parseInt(localStorage.getItem("hub-fontsize"),10);if(fcFs>=13&&fcFs
   <span class="mb-divider"></span>
   <a class="mb-btn" href="https://hub-v7bqsc.pages.dev" target="_blank" rel="noopener" title="Back to the Lange Hub"><span class="mb-glyph">&#8962;</span><span class="mb-label">Hub</span></a>
   <span class="mb-spacer"></span>
-  <span class="updstamp">UPDATED <b>Sep 29, 2026, 7:36 PM</b> <i>Denver</i></span>
+  <span class="updstamp" id="updPill" data-iso="2026-10-25T01:56:50Z">UPDATED <b>Oct 24, 2026, 7:56 PM</b> <i>Denver</i></span>
 </nav>
 <main>
 <header class="mast compact">
   <p class="eyebrow">Card Optimizer &amp; Credit Tracker</p>
   <h1 onclick="location.reload(true)" title="Tap to reload">Wallet IQ<span class="refresh">&#8635;</span></h1>
   <p class="sub">Which card to use for each purchase, and what credits are left.</p>
-  <p class="status" id="lastUpdated">Version <b>0.0.1</b></p>
+  <p class="status" id="lastUpdated">Version <b>0.1.0</b></p>
   <div class="rule"><span>&#10022;</span></div>
 </header>
 <div class="tabs">
@@ -312,6 +325,7 @@ try{var fcFs=parseInt(localStorage.getItem("hub-fontsize"),10);if(fcFs>=13&&fcFs
 
   <!-- TODAY -->
   <div class="pane" id="today">
+    <div id="todayFresh"></div>
     <div id="todayBoost"></div>
     <div id="todayCredits"><p class="empty">Loading your cards...</p></div>
     <div id="todayApps"></div>
@@ -338,7 +352,8 @@ try{var fcFs=parseInt(localStorage.getItem("hub-fontsize"),10);if(fcFs>=13&&fcFs
         <button class="chip" onclick="askAI('Whole Foods')">Whole Foods</button>
         <button class="chip" onclick="askAI('Netflix subscription')">Streaming</button>
         <button class="chip" onclick="askAI('Uber ride')">Uber</button>
-        <button class="chip" onclick="askAI('United flight')">United Flight</button>
+        <button class="chip" onclick="askAI('Flight')">Flight</button>
+        <button class="chip" onclick="askAI('Hotel')">Hotel</button>
         <button class="chip" onclick="askAI('Instacart delivery')">Instacart</button>
         <button class="chip" onclick="askAI('Sandwich at cafeteria')">Cafeteria</button>
         <button class="chip" onclick="askAI('Random purchase at Target')">Target/Other</button>
@@ -416,11 +431,13 @@ try{var fcFs=parseInt(localStorage.getItem("hub-fontsize"),10);if(fcFs>=13&&fcFs
       <h2 style="margin:0">Active Card Offers</h2>
       <button class="btn btn-primary btn-sm" onclick="openOfferModal()">+ Add Offer</button>
     </div>
+    <div id="offersFresh" class="fresh"><span class="fresh-head">Checking for today's Chase offers...</span></div>
     <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
       <a href="https://apps.apple.com/app/id362348516" class="chip" style="text-decoration:none">Check Amex</a>
       <a href="https://apps.apple.com/app/id298867247" class="chip" style="text-decoration:none">Check Chase</a>
       <a href="https://apps.apple.com/app/id6462308655" class="chip" style="text-decoration:none">Check Robinhood</a>
     </div>
+    <div class="offer-tools"><input id="offerSearch" type="search" placeholder="Find a store" autocomplete="off" oninput="renderOffers()"><span class="offer-count" id="offerCount"></span></div>
     <div id="offersList"></div>
     <div id="expiredOffersList"></div>
   </div>
@@ -447,14 +464,15 @@ try{var fcFs=parseInt(localStorage.getItem("hub-fontsize"),10);if(fcFs>=13&&fcFs
   <!-- SAVINGS CALCULATOR -->
   <div class="pane" id="savings">
     <h2>Monthly Spending by Category</h2>
+    <p style="font-size:.75rem;color:var(--muted);margin:-4px 0 10px">Type your own monthly amounts. They are saved on this phone only, never on the website.</p>
     <div class="card">
-      <div class="savings-input"><div class="savings-label">Groceries (King Soopers/WF)</div><input class="savings-field" id="sv-grocery" type="number" inputmode="decimal" value="156" placeholder="0"></div>
-      <div class="savings-input"><div class="savings-label">Dining Out</div><input class="savings-field" id="sv-dining" type="number" inputmode="decimal" value="150" placeholder="0"></div>
-      <div class="savings-input"><div class="savings-label">Amazon</div><input class="savings-field" id="sv-amazon" type="number" inputmode="decimal" value="604" placeholder="0"></div>
-      <div class="savings-input"><div class="savings-label">Gas</div><input class="savings-field" id="sv-gas" type="number" inputmode="decimal" value="40" placeholder="0"></div>
-      <div class="savings-input"><div class="savings-label">Streaming/Subs</div><input class="savings-field" id="sv-stream" type="number" inputmode="decimal" value="30" placeholder="0"></div>
-      <div class="savings-input"><div class="savings-label">Flights (per month avg)</div><input class="savings-field" id="sv-flights" type="number" inputmode="decimal" value="53" placeholder="0"></div>
-      <div class="savings-input"><div class="savings-label">Everything Else</div><input class="savings-field" id="sv-other" type="number" inputmode="decimal" value="1035" placeholder="0"></div>
+      <div class="savings-input"><div class="savings-label">Groceries (King Soopers/WF)</div><input class="savings-field" id="sv-grocery" type="number" inputmode="decimal" placeholder="0"></div>
+      <div class="savings-input"><div class="savings-label">Dining Out</div><input class="savings-field" id="sv-dining" type="number" inputmode="decimal" placeholder="0"></div>
+      <div class="savings-input"><div class="savings-label">Amazon</div><input class="savings-field" id="sv-amazon" type="number" inputmode="decimal" placeholder="0"></div>
+      <div class="savings-input"><div class="savings-label">Gas</div><input class="savings-field" id="sv-gas" type="number" inputmode="decimal" placeholder="0"></div>
+      <div class="savings-input"><div class="savings-label">Streaming/Subs</div><input class="savings-field" id="sv-stream" type="number" inputmode="decimal" placeholder="0"></div>
+      <div class="savings-input"><div class="savings-label">Flights (per month avg)</div><input class="savings-field" id="sv-flights" type="number" inputmode="decimal" placeholder="0"></div>
+      <div class="savings-input"><div class="savings-label">Everything Else</div><input class="savings-field" id="sv-other" type="number" inputmode="decimal" placeholder="0"></div>
     </div>
     <div style="display:flex;gap:8px;margin-top:12px;margin-bottom:4px">
       <button class="chip" id="sv-view-annual" onclick="setSavingsView('annual')" style="font-size:.75rem">Annual View</button>
@@ -465,11 +483,11 @@ try{var fcFs=parseInt(localStorage.getItem("hub-fontsize"),10);if(fcFs>=13&&fcFs
 
   <!-- CHASE 5% -->
   <div class="pane" id="chase">
-    <h2>2026 Quarterly Categories</h2>
+    <h2 id="chaseTitle">Quarterly Categories</h2>
     <div id="chaseList"></div>
     <div class="card" style="margin-top:16px">
       <div style="font-size:.8125rem;color:var(--muted);line-height:1.5">
-        <strong style="color:var(--ink)">Remember:</strong> Activate each quarter at chase.com/freedom.
+        <strong style="color:var(--ink)">Remember:</strong> Activate each quarter at <a href="https://www.chase.com/freedom" target="_blank" rel="noopener">chase.com/freedom</a>.
         Cap is $1,500 combined spending per quarter.
       </div>
     </div>
@@ -502,13 +520,7 @@ try{var fcFs=parseInt(localStorage.getItem("hub-fontsize"),10);if(fcFs>=13&&fcFs
     <h3>Add Card Offer</h3>
     <div class="form-group">
       <label>Card</label>
-      <select id="offerCard">
-        <option value="Amex Gold">Amex Gold</option>
-        <option value="Amazon Prime Visa">Amazon Prime Visa</option>
-        <option value="Robinhood Gold Card">Robinhood Gold Card</option>
-        <option value="United Explorer">United Explorer</option>
-        <option value="Chase Freedom (Legacy)">Chase Freedom</option>
-      </select>
+      <select id="offerCard"></select>
     </div>
     <div class="form-group">
       <label>Merchant (e.g. Home Depot, Nike)</label>
@@ -530,12 +542,20 @@ try{var fcFs=parseInt(localStorage.getItem("hub-fontsize"),10);if(fcFs>=13&&fcFs
 </div>
 
 <script>
-let APP_VERSION = '0.0.1';
+let APP_VERSION = '0.1.0';
 let appData = null;
-let logs = JSON.parse(localStorage.getItem('walletiq_logs') || '[]');
+// Storage reads never throw: a bad or missing value gives the fallback, of the fallback's type
+function readJSON(key, fallback) {
+  try {
+    const v = JSON.parse(localStorage.getItem(key));
+    return v === null || typeof v !== typeof fallback || Array.isArray(v) !== Array.isArray(fallback) ? fallback : v;
+  } catch (e) { return fallback; }
+}
+function writeJSON(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
+let logs = readJSON('walletiq_logs', []);
 let aiMessages = [];
 let boostTimer = null;
-let offers = JSON.parse(localStorage.getItem('walletiq_offers') || '[]');
+let offers = readJSON('walletiq_offers', []);
 
 // ===== Theme aware colors (fleet chrome move, Sep 28, 2026) =====
 // Data colors (card brands, reminders) keep their hue but are pushed light on the dark theme and dark on
@@ -554,35 +574,153 @@ function inkFor(hex) {
 }
 function textOn(hex) { const c = hexRgb(hex); return c && lum(c) > .3 ? '#0f1522' : '#ffffff'; }
 
+// ===== Chase Offers feed (Oct 24, 2026) =====
+// The tower captures Chase Offers every morning and posts them to the worker; the app reads them on every open,
+// keeps the last copy for when the server can't be reached, and says how fresh it is. Hidden offers stay hidden
+// on this device (ids are stable per card and merchant).
+const FEED_URL = 'https://wallet-iq-ai.grant-h-lange.workers.dev/offers';
+const FEED_KEY = 'walletiq_feed_v1', HIDDEN_KEY = 'walletiq_hidden_offers';
+const STALE_WARN_H = 30, STALE_BAD_H = 72;
+const FEED_CARDS = { 'amazon-prime': 'Amazon Prime Visa', 'chase-freedom': 'Chase Freedom (Legacy)' };
+let feed = readJSON(FEED_KEY, null);
+let feedState = { reached: null, triedAt: 0, error: '' };
+let lastRenderDay = '';
+
+function todayLocal(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function fmtDenver(iso) {
+  const d = new Date(iso);
+  if (!iso || isNaN(d.getTime())) return '';
+  return d.toLocaleString('en-US', { timeZone: 'America/Denver', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }).replace(/ /g, ' ') + ' Denver';
+}
+function normMerchant(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
+function cardIdFor(name) { const c = appData && appData.cards.find(c => c.name === name); return c ? c.id : String(name || ''); }
+
+async function loadFeed() {
+  feedState.triedAt = Date.now();
+  const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+  const timer = ctl ? setTimeout(() => ctl.abort(), 8000) : null;
+  try {
+    const r = await fetch(FEED_URL + '?t=' + Date.now(), { cache: 'no-store', signal: ctl ? ctl.signal : undefined });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const f = await r.json();
+    if (!f || f.schema !== 1 || !Array.isArray(f.offers)) throw new Error('unexpected reply');
+    feed = f; feedState.reached = true; feedState.error = '';
+    writeJSON(FEED_KEY, f);
+  } catch (e) {
+    feedState.reached = false;
+    feedState.error = e && e.name === 'AbortError' ? 'timed out' : String((e && e.message) || e);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+  if (appData) { renderFreshness(); renderOffers(); renderToday(); }
+}
+
+function autoOffers() {
+  if (!feed || !Array.isArray(feed.offers)) return [];
+  const hidden = readJSON(HIDDEN_KEY, []);
+  return feed.offers
+    .filter(o => o && typeof o.id === 'string' && typeof o.merchant === 'string' && typeof o.discount === 'string' && !hidden.includes(o.id))
+    .map(o => ({ id: o.id, auto: true, cardId: o.cardId, card: FEED_CARDS[o.cardId] || String(o.cardId || ''), merchant: o.merchant, discount: o.discount,
+      expires: typeof o.expires === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(o.expires) ? o.expires : '' }));
+}
+// Feed and manual offers together. When both name the same merchant on the same card, the bank's copy wins and
+// keeps the manual end date if the bank listed none.
+function allOffers() {
+  const key = o => (o.cardId || cardIdFor(o.card)) + '|' + normMerchant(o.merchant);
+  const auto = autoOffers();
+  const manual = offers.filter(o => o && typeof o.merchant === 'string').map(o => Object.assign({}, o, { auto: false }));
+  const manualByKey = new Map(manual.map(o => [key(o), o]));
+  const autoKeys = new Set(auto.map(key));
+  const merged = auto.map(o => { const m = manualByKey.get(key(o)); return m && !o.expires && m.expires ? Object.assign({}, o, { expires: m.expires }) : o; });
+  return merged.concat(manual.filter(o => !autoKeys.has(key(o))));
+}
+function hideOffer(id) {
+  const hidden = readJSON(HIDDEN_KEY, []);
+  if (!hidden.includes(id)) hidden.push(id);
+  writeJSON(HIDDEN_KEY, hidden.slice(-500));
+  renderOffers(); renderToday();
+}
+
+// How fresh the offers are: ok, warn (over 30 hours), bad (over 72 hours or none yet), off (server not reachable)
+function feedFreshness() {
+  const gen = feed && Date.parse(feed.generatedAt);
+  const ageH = gen ? (Date.now() - gen) / 3600e3 : null;
+  const when = gen ? fmtDenver(feed.generatedAt) : '';
+  const n = feed && Array.isArray(feed.offers) ? feed.offers.length : 0;
+  const ago = ageH === null ? '' : ageH < 48 ? Math.max(1, Math.round(ageH)) + ' hours ago' : Math.round(ageH / 24) + ' days ago';
+  const failed = feed && feed.status === 'failed' && feed.checkedAt ? ` The tower's last check failed (${fmtDenver(feed.checkedAt)}).` : '';
+  if (feedState.reached === null) return { state: '', head: "Checking for today's Chase offers...", body: when ? `Showing the copy from <b>${when}</b> until the server answers.` : '' };
+  if (feedState.reached === false) return { state: 'off', head: 'Server not reachable',
+    body: when ? `Showing the copy from <b>${when}</b> (${ago}). Tap the title to try again.` : 'No saved copy yet. Tap the title to try again.' };
+  if (ageH === null) return { state: 'bad', head: 'No Chase offers from the tower yet', body: 'The tower sends them every morning around 7 AM.' + failed };
+  if (ageH > STALE_BAD_H) return { state: 'bad', head: `Offers are ${Math.round(ageH / 24)} days old`, body: `Offers updated <b>${when}</b>. The tower's daily job has not sent new ones; check that the tower is on.${failed}` };
+  if (ageH > STALE_WARN_H) return { state: 'warn', head: `Offers are ${Math.round(ageH)} hours old`, body: `Offers updated <b>${when}</b>. Today's update has not arrived yet.${failed}` };
+  return { state: 'ok', head: `Offers updated <b>${when}</b>`, body: `${n} Chase offers, ${ago}. The tower sends new ones every morning.${failed}` };
+}
+function renderFreshness() {
+  const f = feedFreshness();
+  const el = document.getElementById('offersFresh');
+  if (el) { el.dataset.state = f.state; el.innerHTML = `<span class="fresh-head">${f.head}</span>${f.body}`; }
+  const t = document.getElementById('todayFresh');
+  if (t) t.innerHTML = f.state === 'warn' || f.state === 'bad' || f.state === 'off'
+    ? `<div class="fresh" data-state="${f.state}"><span class="fresh-head">Chase offers: ${f.head}</span>${f.body}</div>` : '';
+  renderStamp();
+}
+// Masthead line and the UPDATED pill: the pill shows the newest of this page's deploy, the card data and the offers
+function renderStamp() {
+  if (!appData) return;
+  const card = fmtDenver(appData.lastUpdated) || String(appData.lastUpdated || 'unknown');
+  const off = feed && feed.generatedAt ? fmtDenver(feed.generatedAt) : '';
+  document.getElementById('lastUpdated').innerHTML = 'Version <b>' + escapeHtml(APP_VERSION) + '</b> &middot; card data <b>' + escapeHtml(card) + '</b>'
+    + (off ? ' &middot; offers <b>' + escapeHtml(off) + '</b>' : '');
+  const pill = document.getElementById('updPill');
+  if (!pill) return;
+  const times = [pill.dataset.deploy || pill.dataset.iso, appData.lastUpdated, feed && feed.generatedAt].map(x => [x, Date.parse(x)]).filter(x => x[1] && x[1] <= Date.now() + 3600e3);
+  if (!pill.dataset.deploy) pill.dataset.deploy = pill.dataset.iso;
+  if (!times.length) return;
+  const newest = times.sort((a, b) => b[1] - a[1])[0][0];
+  const stamp = fmtDenver(newest).replace(/ Denver$/, '');
+  if (stamp) { pill.dataset.iso = new Date(newest).toISOString(); pill.innerHTML = 'UPDATED <b>' + stamp + '</b> <i>Denver</i>'; }
+}
+// Coming back to the app (it can sit open for days): refetch the offers, and re-run the date math on a new day
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !appData) return;
+  if (todayLocal() !== lastRenderDay) { autoResetCredits(); renderAll(); }
+  if (Date.now() - feedState.triedAt > 10 * 60e3) loadFeed(); else renderFreshness();
+});
+window.addEventListener('pageshow', e => { if (e.persisted && appData) loadFeed(); });
+setInterval(() => { if (appData) renderFreshness(); }, 10 * 60e3);
+
 // ===== Init =====
 async function init() {
+  const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+  const timer = ctl ? setTimeout(() => ctl.abort(), 8000) : null;
   try {
-    const r = await fetch('data.json?t=' + Date.now());
+    const r = await fetch('data.json?t=' + Date.now(), { cache: 'no-store', signal: ctl ? ctl.signal : undefined });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
     appData = await r.json();
+    if (!appData || !Array.isArray(appData.cards) || !Array.isArray(appData.credits)) throw new Error('bad card data');
   } catch(e) {
-    const cached = localStorage.getItem('walletiq_data');
-    if (cached) appData = JSON.parse(cached);
+    appData = readJSON('walletiq_data', null);
+  } finally {
+    if (timer) clearTimeout(timer);
   }
   if (appData) {
-    localStorage.setItem('walletiq_data', JSON.stringify(appData));
+    writeJSON('walletiq_data', appData);
     // Restore enrollment state
-    const enrolled=JSON.parse(localStorage.getItem('walletiq_enrolled')||'{}');
-    appData.credits.forEach(c=>{if(enrolled[c.id])c.enrolled=true;});
-    if(appData.version) APP_VERSION = appData.version;
-    const relDate = new Date(appData.lastUpdated);
-    let relStr = appData.lastUpdated;
-    if(!isNaN(relDate.getTime())){
-      relStr = relDate.toLocaleString('en-US',{timeZone:'America/Denver',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}) + ' Denver';
-    }
-    document.getElementById('lastUpdated').innerHTML = 'Version <b>' + escapeHtml(String(APP_VERSION)) + '</b> &middot; card data <b>' + escapeHtml(String(relStr)) + '</b>';
+    const enrolled = readJSON('walletiq_enrolled', {});
+    appData.credits.forEach(c => { if (enrolled[c.id]) c.enrolled = true; });
+    autoResetCredits();
     renderAll();
+    renderFreshness();
     startBoostTimer();
+    wireOffers();
   } else {
     const msg = '<p class="empty">Could not load card data. Check your connection, then tap the title to reload.</p>';
     document.getElementById('todayCredits').innerHTML = msg;
     document.getElementById('feesList').innerHTML = msg;
   }
-  autoResetCredits();
+  loadFeed();
 }
 
 // ===== Auto-reset =====
