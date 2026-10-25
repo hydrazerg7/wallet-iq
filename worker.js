@@ -52,7 +52,7 @@ const EMPTY_FEED = { schema: 1, status: 'empty', generatedAt: null, checkedAt: n
 const ISO_Z = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 const CARD_ID = /^[a-z0-9-]{1,40}$/;
-const PRIVATE = /\.\.\.\d{4}|\(\.\.\.|\b\d{9,}\b/;
+const PRIVATE = /(?:\.\.\.|\u2026|[\u2022\u2219\u25cf\u00b7*x]{2,})\s*\d{4}|\(\s*(?:\.\.\.|\u2026)|ending\s+in\s+\d{4}|\d{7,}/i; // same shapes as the tower's capture and publisher
 const CARD_NAMES = { 'amazon-prime': 'Amazon Prime Visa', 'chase-freedom': 'Chase Freedom' };
 const DATA_URL = 'https://hydrazerg7.github.io/wallet-iq/data.json';
 const FUTURE_MS = 10 * 60000, MAX_AGE_MS = 7 * 86400000;
