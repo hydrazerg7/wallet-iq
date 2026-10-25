@@ -7,3 +7,10 @@ CARD_REFERENCE.md
 # Environment / secrets
 .env
 *.key
+
+# Restyle backups and screenshot temp pages stay local (public repo)
+*.bak_chrome_*
+__look_*.html
+
+# Local test kit (E2E harness, worker tests, screenshots); may hold captured offers, never public
+_toolkit/

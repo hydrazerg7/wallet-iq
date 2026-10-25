@@ -191,7 +191,7 @@ body #totop{bottom:calc(14px + var(--safe-bottom))}
 .fee-row:last-child{border-bottom:none}
 .fee-total{display:flex;justify-content:space-between;padding:10px 0 0;font-size:.9375rem;font-weight:700;border-top:2px solid var(--accent);margin-top:6px}
 </style>
-<style id="fleet-chrome" data-v="f229d321cf">
+<style id="fleet-chrome" data-v="b3c62bf82b">
 /* FLEET CHROME v2 (Sep 29, 2026; v1 Sep 28). Source of truth: Hub/_toolkit/chrome/chrome.css.
    Injected into every hub master by apply_chrome.py between the FLEET-CHROME markers; never edit a copy.
    Lifted from the Codes page (the newest page on the standard). Tokens (--bg, --card ...) stay site-owned. */
@@ -272,7 +272,7 @@ h2{font-family:Georgia,serif;font-weight:400;letter-spacing:-.01em;scroll-margin
 #totop:hover{color:var(--ink);border-color:var(--accent)}
 @media(prefers-reduced-motion:reduce){.pane.on{animation:none}html{scroll-behavior:auto}}
 </style>
-<script id="fleet-chrome-early" data-v="f229d321cf">
+<script id="fleet-chrome-early" data-v="b3c62bf82b">
 /* FLEET CHROME v2 early (unchanged since v1): runs in <head> so the saved theme and text size apply before first paint. */
 try{var fcTh=localStorage.getItem("hub-theme");if(fcTh)document.documentElement.setAttribute("data-theme",fcTh);}catch(_){}
 try{var fcFs=parseInt(localStorage.getItem("hub-fontsize"),10);if(fcFs>=13&&fcFs<=23)document.documentElement.style.fontSize=fcFs+"px";}catch(_){}
@@ -2129,7 +2129,7 @@ function nearMe() {
 init();
 </script>
 <button id="totop" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">&#8679; top</button>
-<script id="fleet-chrome-js" data-v="f229d321cf">
+<script id="fleet-chrome-js" data-v="b3c62bf82b">
 /* FLEET CHROME v2 (Sep 29, 2026; v1 Sep 28). Source of truth: Hub/_toolkit/chrome/chrome.js, injected by
    apply_chrome.py at the end of <body>. Owns: theme toggle (key hub-theme, label names the mode a click GIVES),
    A+/A- on the ROOT element (key hub-fontsize), back-to-top, ?fresh= strip, hash deep links that open closed
@@ -2196,7 +2196,10 @@ init();
     else y-=Math.max(barsFor(el)+8,parseFloat(getComputedStyle(el).scrollMarginTop)||0);
     return Math.max(0,Math.round(y));}
   /* "auto" (not "instant", which older Safari rejects) follows the page's own scroll-behavior */
-  window.landOn=function(el,smooth){if(el)window.scrollTo({top:landY(el),behavior:smooth?"smooth":"auto"});};
+  /* a page that re-renders on load (Rental Tasks goCard) can swap the target out before a timer lands it:
+     land its live replacement by id, and never measure a detached node (its top reads 0 = page top) */
+  window.landOn=function(el,smooth){if(el&&!el.isConnected)el=el.id?document.getElementById(el.id):null;
+    if(el)window.scrollTo({top:landY(el),behavior:smooth?"smooth":"auto"});};
 
   function paneOf(el){while(el&&el!==document.body){if(el.classList&&el.classList.contains("pane")&&el.id)return el;el=el.parentElement;}return null;}
   /* A tab group is one .tabs strip plus the panes its tabs name, so tabs can nest (Hot Tub has a strip
