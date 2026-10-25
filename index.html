@@ -11,6 +11,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Wallet IQ</title>
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <script>
 // FIRST THING: nuke any service workers and caches from old versions
 if('serviceWorker' in navigator){
@@ -592,7 +593,7 @@ function fmtDenver(iso) {
   if (!iso || isNaN(d.getTime())) return '';
   return d.toLocaleString('en-US', { timeZone: 'America/Denver', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }).replace(/ /g, ' ') + ' Denver';
 }
-function normMerchant(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
+function normMerchant(s) { return String(s || '').toLowerCase().replace(/['\u2019]/g, '').replace(/\.(com|net|org)\b/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
 function cardIdFor(name) { const c = appData && appData.cards.find(c => c.name === name); return c ? c.id : String(name || ''); }
 
 async function loadFeed() {
@@ -620,7 +621,7 @@ function autoOffers() {
   const hidden = readJSON(HIDDEN_KEY, []);
   return feed.offers
     .filter(o => o && typeof o.id === 'string' && typeof o.merchant === 'string' && typeof o.discount === 'string' && !hidden.includes(o.id))
-    .map(o => ({ id: o.id, auto: true, cardId: o.cardId, card: FEED_CARDS[o.cardId] || String(o.cardId || ''), merchant: o.merchant, discount: o.discount,
+    .map(o => ({ id: o.id, auto: true, cardId: o.cardId, card: ((appData && appData.cards.find(c => c.id === o.cardId)) || {}).name || FEED_CARDS[o.cardId] || String(o.cardId || ''), merchant: o.merchant, discount: o.discount,
       expires: typeof o.expires === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(o.expires) ? o.expires : '' }));
 }
 // Feed and manual offers together. When both name the same merchant on the same card, the bank's copy wins and
@@ -646,7 +647,9 @@ function feedFreshness() {
   const gen = feed && Date.parse(feed.generatedAt);
   const ageH = gen ? (Date.now() - gen) / 3600e3 : null;
   const when = gen ? fmtDenver(feed.generatedAt) : '';
-  const n = feed && Array.isArray(feed.offers) ? feed.offers.length : 0;
+  const t = todayLocal(), hidden = readJSON(HIDDEN_KEY, []);
+  const live = feed && Array.isArray(feed.offers) ? feed.offers.filter(o => o && (!o.expires || o.expires >= t)) : [];
+  const n = live.length, nHidden = live.filter(o => hidden.includes(o.id)).length;
   const ago = ageH === null ? '' : ageH < 48 ? Math.max(1, Math.round(ageH)) + ' hours ago' : Math.round(ageH / 24) + ' days ago';
   const failed = feed && feed.status === 'failed' && feed.checkedAt ? ` The tower's last check failed (${fmtDenver(feed.checkedAt)}).` : '';
   if (feedState.reached === null) return { state: '', head: "Checking for today's Chase offers...", body: when ? `Showing the copy from <b>${when}</b> until the server answers.` : '' };
@@ -655,7 +658,7 @@ function feedFreshness() {
   if (ageH === null) return { state: 'bad', head: 'No Chase offers from the tower yet', body: 'The tower sends them every morning around 7 AM.' + failed };
   if (ageH > STALE_BAD_H) return { state: 'bad', head: `Offers are ${Math.round(ageH / 24)} days old`, body: `Offers updated <b>${when}</b>. The tower's daily job has not sent new ones; check that the tower is on.${failed}` };
   if (ageH > STALE_WARN_H) return { state: 'warn', head: `Offers are ${Math.round(ageH)} hours old`, body: `Offers updated <b>${when}</b>. Today's update has not arrived yet.${failed}` };
-  return { state: 'ok', head: `Offers updated <b>${when}</b>`, body: `${n} Chase offers, ${ago}. The tower sends new ones every morning.${failed}` };
+  return { state: 'ok', head: `Offers updated <b>${when}</b>`, body: `${n} Chase offers${nHidden ? ` (${nHidden} hidden on this phone)` : ''}, ${ago}. The tower sends new ones every morning.${failed}` };
 }
 function renderFreshness() {
   const f = feedFreshness();
@@ -671,8 +674,9 @@ function renderStamp() {
   if (!appData) return;
   const card = fmtDenver(appData.lastUpdated) || String(appData.lastUpdated || 'unknown');
   const off = feed && feed.generatedAt ? fmtDenver(feed.generatedAt) : '';
-  document.getElementById('lastUpdated').innerHTML = 'Version <b>' + escapeHtml(APP_VERSION) + '</b> &middot; card data <b>' + escapeHtml(card) + '</b>'
-    + (off ? ' &middot; offers <b>' + escapeHtml(off) + '</b>' : '');
+  // Each label stays on one line with its time; the line breaks only between them
+  const pair = (label, v) => '<span style="white-space:nowrap">' + label + ' <b>' + escapeHtml(v) + '</b></span>';
+  document.getElementById('lastUpdated').innerHTML = [pair('Version', APP_VERSION), pair('card data', card)].concat(off ? [pair('offers', off)] : []).join(' &middot; ');
   const pill = document.getElementById('updPill');
   if (!pill) return;
   const times = [pill.dataset.deploy || pill.dataset.iso, appData.lastUpdated, feed && feed.generatedAt].map(x => [x, Date.parse(x)]).filter(x => x[1] && x[1] <= Date.now() + 3600e3);
@@ -760,6 +764,8 @@ function renderAll() { renderToday(); renderCardFilters(); setGuideSort(guideSor
 
 // ===== TODAY DASHBOARD =====
 function renderToday() {
+  if (!appData) return;
+  lastRenderDay = todayLocal();
   const now = new Date();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
   const daysLeft = daysInMonth - now.getDate();
@@ -771,7 +777,7 @@ function renderToday() {
     const remaining = getBoostTimeRemaining(boost);
     boostHtml = `<div class="today-card boost">
       <div class="today-label" style="color:var(--green)">ACTIVE MYSTERY BOX BOOST</div>
-      <div class="today-value">${boost.prize}</div>
+      <div class="today-value">${escapeHtml(boost.prize)}</div>
       <div class="boost-timer" id="boostCountdown">${remaining}</div>
       <div class="today-sub">Use your <strong>Robinhood Gold Card</strong> for all eligible purchases right now!</div>
       <div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="clearBoost()">Dismiss</button></div>
@@ -781,19 +787,18 @@ function renderToday() {
 
   // Credits expiring
   const monthTg = getTimeGradient('monthly');
-  let creditsHtml = `<div class="section-title" style="margin-top:${boost?'10':'0'}px">Credits This Month — <span style="color:${monthTg.color}">${daysLeft} days left (${Math.round(monthTg.pctElapsed)}% elapsed)</span></div>`;
+  let creditsHtml = `<div class="section-title" style="margin-top:${boost?'10':'0'}px">Credits This Month: <span style="color:${monthTg.color}">${daysLeft} days left (${Math.round(monthTg.pctElapsed)}% elapsed)</span></div>`;
   const urgentCredits = appData.credits.filter(c => !c.isCount && (c.period === 'monthly'));
   urgentCredits.forEach(c => {
     const used = getUsedAmount(c.id);
     const remaining = Math.max(0, c.amount - used);
-    const pct = Math.min(100, (used / c.amount) * 100);
     const isDone = remaining <= 0;
     const isUrgent = daysLeft <= 5 && !isDone;
     creditsHtml += `<div class="today-card ${isUrgent ? 'urgent' : ''}">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
-          <div class="today-value" style="font-size:.875rem;${isDone ? 'color:var(--green)' : ''}">${isDone ? '&#10003; ' : ''}${c.name}</div>
-          <div class="today-sub">${c.card}</div>
+          <div class="today-value" style="font-size:.875rem;${isDone ? 'color:var(--green)' : ''}">${isDone ? '&#10003; ' : ''}${escapeHtml(c.name)}</div>
+          <div class="today-sub">${escapeHtml(c.card)}</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:1.125rem;font-weight:700;${isDone ? 'color:var(--green)' : remaining === c.amount ? 'color:var(--amber)' : 'color:var(--accent)'}">${isDone ? 'Done' : '$'+remaining.toFixed(2)}</div>
@@ -808,49 +813,51 @@ function renderToday() {
   if (semiCredits.length > 0) {
     const semiDaysLeft = getDaysLeft('semi-annual');
     const semiTg = getTimeGradient('semi-annual');
-    creditsHtml += `<div class="section-title">Semi-Annual Credits — <span style="color:${semiTg.color}">${semiDaysLeft} days left (${Math.round(semiTg.pctElapsed)}% elapsed)</span></div>`;
+    creditsHtml += `<div class="section-title">Semi-Annual Credits: <span style="color:${semiTg.color}">${semiDaysLeft} days left (${Math.round(semiTg.pctElapsed)}% elapsed)</span></div>`;
     semiCredits.forEach(c => {
       const used = getUsedAmount(c.id);
       const remaining = Math.max(0, c.amount - used);
       const isDone = remaining <= 0;
       creditsHtml += `<div class="today-card">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><div class="today-value" style="font-size:.875rem;${isDone?'color:var(--green)':''}">${isDone?'&#10003; ':''}${c.name}</div><div class="today-sub">${c.card}</div></div>
+          <div><div class="today-value" style="font-size:.875rem;${isDone?'color:var(--green)':''}">${isDone?'&#10003; ':''}${escapeHtml(c.name)}</div><div class="today-sub">${escapeHtml(c.card)}</div></div>
           <div style="text-align:right"><div style="font-size:1.125rem;font-weight:700;${isDone?'color:var(--green)':'color:var(--accent)'}">${isDone?'Done':'$'+remaining.toFixed(2)}</div></div>
         </div>
       </div>`;
     });
   }
-  document.getElementById('todayCredits').innerHTML = creditsHtml;
+  // todayCredits is written once, at the end, after every section below is added (before Oct 24, 2026 it was
+  // written here, so the offer, Chase, setup and reminder sections never showed)
 
-  // Active offers expiring soon
-  const urgentOffers = getActiveOffers().filter(o => {
-    if (!o.expires) return false;
-    const daysLeft = Math.ceil((new Date(o.expires+'T23:59:59') - new Date()) / 86400000);
-    return daysLeft <= 7;
-  });
+  // Active offers expiring soon (feed and manual)
+  const msLeft = o => new Date(o.expires + 'T23:59:59') - new Date();
+  const urgentOffers = getActiveOffers().filter(o => o.expires && Math.ceil(msLeft(o) / 86400000) <= 7)
+    .sort((a, b) => a.expires < b.expires ? -1 : a.expires > b.expires ? 1 : 0);
   if (urgentOffers.length > 0) {
-    creditsHtml += '<div class="section-title">Offers Expiring Soon</div>';
-    urgentOffers.forEach(o => {
-      const daysLeft = Math.max(0, Math.ceil((new Date(o.expires+'T23:59:59') - new Date()) / 86400000));
+    creditsHtml += `<div class="section-title">Offers Expiring Soon (${urgentOffers.length})</div>`;
+    urgentOffers.slice(0, 8).forEach(o => {
+      const dl = Math.max(0, Math.ceil(msLeft(o) / 86400000));
       creditsHtml += `<div class="today-card" style="border-color:var(--amber)">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><div class="today-value" style="font-size:.875rem">${o.merchant}</div>
-          <div class="today-sub">${o.discount} &middot; ${o.card}</div></div>
-          <div style="color:${daysLeft<=3?'var(--red)':'var(--amber)'};font-weight:700;font-size:.875rem">${daysLeft}d</div>
+          <div><div class="today-value" style="font-size:.875rem">${escapeHtml(o.merchant)}</div>
+          <div class="today-sub">${escapeHtml(o.discount)} &middot; ${escapeHtml(o.card)}</div></div>
+          <div style="color:${dl<=3?'var(--red)':'var(--amber)'};font-weight:700;font-size:.875rem">${dl}d</div>
         </div>
       </div>`;
     });
+    if (urgentOffers.length > 8) creditsHtml += `<div class="today-sub" style="margin:-4px 0 10px">${urgentOffers.length - 8} more on the Offers tab.</div>`;
   }
 
   // Quarterly reminders
   const qMonth = now.getMonth(); // 0-indexed
+  const yearQuarters = appData.chaseQuarters[String(now.getFullYear())] || {};
+  const curQNum = Math.ceil((qMonth + 1) / 3);
+  const curQ = yearQuarters['Q' + curQNum];
   const reminderMonths = {2:'Q2 starts Apr 1',5:'Q3 starts Jul 1',8:'Q4 starts Oct 1',11:'Q1 starts Jan 1'};
   const activateMonths = {3:'Activate Q2 now!',6:'Activate Q3 now!',9:'Activate Q4 now!',0:'Activate Q1 now!'};
-  const chaseReminder = reminderMonths[qMonth] || activateMonths[qMonth] || null;
-  // Check if any quarter is still TBD
-  const quarters2026 = appData.chaseQuarters['2026'] || {};
-  const tbdQuarters = Object.entries(quarters2026).filter(([k,v]) => v.categories.some(c => c.includes('TBD')));
+  const chaseReminder = reminderMonths[qMonth] || (activateMonths[qMonth] && !(curQ && curQ.activated) ? activateMonths[qMonth] : null);
+  // Quarters still ahead this year whose categories are not announced yet
+  const tbdQuarters = Object.entries(yearQuarters).filter(([k,v]) => parseInt(k.slice(1)) >= curQNum && (v.categories || []).some(c => String(c).includes('TBD')));
 
   if (chaseReminder || tbdQuarters.length > 0) {
     creditsHtml += '<div class="section-title">Chase Freedom Reminders</div>';
@@ -859,14 +866,14 @@ function renderToday() {
       creditsHtml += `<div class="today-card" style="border-color:${isActivate?'var(--accent)':'var(--muted)'}">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div><div class="today-value" style="font-size:.875rem;color:${isActivate?'var(--accent)':'var(--muted)'}">${chaseReminder}</div>
-          <div class="today-sub">${isActivate?'Go to chase.com/freedom to activate 5% categories':'New quarter coming — check for updated categories'}</div></div>
+          <div class="today-sub">${isActivate?'Go to chase.com/freedom to activate 5% categories':'New quarter coming: check for updated categories'}</div></div>
         </div>
       </div>`;
     }
     if (tbdQuarters.length > 0) {
       creditsHtml += `<div class="today-card">
         <div class="today-value" style="font-size:.875rem;color:var(--muted)">${tbdQuarters.map(([k])=>k).join(', ')} categories not yet announced</div>
-        <div class="today-sub">Chase typically announces 1 month before the quarter. App auto-checks weekly.</div>
+        <div class="today-sub">Chase usually announces a few weeks before the quarter starts. The card data here is updated when they do.</div>
       </div>`;
     }
   }
@@ -878,8 +885,8 @@ function renderToday() {
     needSetup.forEach(c => {
       creditsHtml += `<div class="today-card" style="border-color:rgba(245,158,11,.3)">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><div class="today-value" style="font-size:.875rem;color:var(--amber)">${c.name}</div>
-          <div class="today-sub">${c.enrollAction||'Enrollment needed'}</div></div>
+          <div><div class="today-value" style="font-size:.875rem;color:var(--amber)">${escapeHtml(c.name)}</div>
+          <div class="today-sub">${escapeHtml(c.enrollAction||'Enrollment needed')}</div></div>
           <button class="btn btn-sm" style="background:var(--amber);color:var(--bg)" onclick="markEnrolled('${c.id}')">Done</button>
         </div>
       </div>`;
@@ -887,18 +894,19 @@ function renderToday() {
   }
 
   // Reminders
-  if (appData.reminders) {
-    const dismissed = JSON.parse(localStorage.getItem('walletiq_dismissed_reminders') || '[]');
-    const now_str = new Date().toISOString().split('T')[0];
+  if (Array.isArray(appData.reminders) && appData.reminders.length) {
+    const dismissed = readJSON('walletiq_dismissed_reminders', []);
+    const now_str = todayLocal();
     const activeReminders = appData.reminders.filter(r => !dismissed.includes(r.id) && r.date <= now_str);
     const upcomingReminders = appData.reminders.filter(r => !dismissed.includes(r.id) && r.date > now_str);
     if (activeReminders.length > 0) {
       creditsHtml += '<div class="section-title">Action Required</div>';
       activeReminders.forEach(r => {
-        creditsHtml += `<div class="today-card" style="border-color:${r.color}">
+        const color = r.color || '#C5A44E';
+        creditsHtml += `<div class="today-card" style="border-color:${color}">
           <div style="display:flex;justify-content:space-between;align-items:flex-start">
-            <div style="flex:1"><div class="today-value" style="font-size:.875rem;color:${inkFor(r.color)}">${r.title}</div>
-            <div class="today-sub">${r.note}</div></div>
+            <div style="flex:1"><div class="today-value" style="font-size:.875rem;color:${inkFor(color)}">${escapeHtml(r.title)}</div>
+            <div class="today-sub">${escapeHtml(r.note)}</div></div>
             <button class="btn btn-sm btn-outline" onclick="dismissReminder('${r.id}')" style="margin-left:8px;flex-shrink:0">Done</button>
           </div>
         </div>`;
@@ -911,14 +919,15 @@ function renderToday() {
         const daysUntil = Math.max(0, Math.ceil((rDate - new Date()) / 86400000));
         creditsHtml += `<div class="today-card">
           <div style="display:flex;justify-content:space-between;align-items:flex-start">
-            <div style="flex:1"><div class="today-value" style="font-size:.875rem">${r.title}</div>
-            <div class="today-sub">${r.note}</div></div>
+            <div style="flex:1"><div class="today-value" style="font-size:.875rem">${escapeHtml(r.title)}</div>
+            <div class="today-sub">${escapeHtml(r.note)}</div></div>
             <div style="font-size:.75rem;color:var(--muted);white-space:nowrap;margin-left:8px">${daysUntil}d away</div>
           </div>
         </div>`;
       });
     }
   }
+  document.getElementById('todayCredits').innerHTML = creditsHtml;
 
   // Quick app links
   let appsHtml = '<div class="section-title">Open Card Apps</div><div style="display:flex;gap:8px;flex-wrap:wrap">';
@@ -926,7 +935,7 @@ function renderToday() {
     if (c.appUrl) {
       appsHtml += `<a href="${c.appUrl}" style="flex:1;min-width:45%;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;text-decoration:none;text-align:center">
         <div class="card-dot" style="background:${c.color};margin:0 auto 6px;width:12px;height:12px;border-radius:50%"></div>
-        <div style="font-size:.75rem;font-weight:600;color:var(--ink)">${c.name}</div>
+        <div style="font-size:.75rem;font-weight:600;color:var(--ink)">${escapeHtml(c.name)}</div>
       </a>`;
     }
   });
@@ -994,17 +1003,20 @@ function clearBoost() {
 }
 
 // ===== GUIDE + CARDS =====
+// Search words that mean a guide row by another name (matched against the row's category, any case)
 const searchAliases = {
-  'grocery':'U.S. Supermarkets','groceries':'U.S. Supermarkets','supermarket':'U.S. Supermarkets',
-  'food':'Dining','eat':'Dining','restaurant':'Dining','dinner':'Dining','lunch':'Dining',
-  'flight':'Non-United Flights','flights':'Non-United Flights','plane':'Non-United Flights',
-  'stream':'Streaming','netflix':'Streaming','hulu':'Streaming','spotify':'Streaming','disney':'Streaming',
-  'fuel':'Gas','gasoline':'Gas','pump':'Gas',
-  'coffee':'Dining','starbucks':'Dining',
-  'uber':'Rideshare','lyft':'Rideshare','taxi':'Rideshare',
-  'target':'Everything Else','walmart':'Everything Else','costco':'Everything Else',
-  'bills':'Everything Else','utilities':'Everything Else','phone':'Everything Else',
-  'hotel':'Everything Else','airbnb':'Everything Else',
+  'grocery':['supermarkets','groceries','whole foods'],'groceries':['supermarkets','groceries','whole foods'],'supermarket':['supermarkets','groceries'],
+  'food':['dining','grubhub'],'eat':['dining'],'restaurant':['dining'],'dinner':['dining'],'lunch':['dining'],
+  'flight':['flights'],'plane':['flights'],'airline':['flights'],
+  'stream':['streaming'],'netflix':['streaming'],'hulu':['streaming'],'spotify':['streaming'],'disney':['streaming'],
+  'fuel':['gas'],'gasoline':['gas'],'pump':['gas'],
+  'coffee':['dining'],'starbucks':['dining'],
+  'uber':['rideshare'],'lyft':['rideshare'],'taxi':['rideshare'],
+  'bus':['transit'],'train':['transit'],
+  'target':['everything else'],'walmart':['everything else'],'costco':['everything else'],
+  'bills':['everything else'],'utilities':['everything else'],'phone':['everything else'],
+  'hotel':['hotels'],'airbnb':['hotels (booked elsewhere)'],
+  'abroad':['international'],'foreign':['international'],'travel':['flights','hotels','international'],
 };
 
 let activeCardFilter = null;
@@ -1019,7 +1031,7 @@ function setGuideSort(sort) {
 }
 
 function renderCardFilters() {
-  let html = `<button class="chip ${!activeCardFilter?'style="background:var(--accent);color:var(--bg);border-color:var(--accent)"':''}" onclick="setCardFilter(null)">All</button>`;
+  let html = `<button class="chip" style="${!activeCardFilter?'background:var(--accent);color:var(--bg);border-color:var(--accent)':''}" onclick="setCardFilter(null)">All</button>`;
   appData.cards.forEach(c => {
     const isActive = activeCardFilter === c.id;
     html += `<button class="chip" style="${isActive?'background:'+c.color+';color:'+textOn(c.color)+';border-color:'+c.color:''}" onclick="setCardFilter('${c.id}')">${c.name.replace(' (Legacy)','')}</button>`;
@@ -1040,12 +1052,15 @@ function setCardFilter(cardId) {
 
 function renderGuide(filter='') {
   const f = filter.toLowerCase().trim();
-  const aliasMatch = searchAliases[f];
+  const aliasMatch = searchAliases[f] || [];
+  const today = todayLocal();
   const items = appData.spendingGuide.filter(g => {
+    // Rows tied to a quarter carry an end date ("until") and drop off after it
+    if (g.until && g.until < today) return false;
     // Card filter
     if (activeCardFilter && g.cardId !== activeCardFilter) return false;
     if (!f) return true;
-    return g.category.toLowerCase().includes(f) || g.card.toLowerCase().includes(f) || (aliasMatch && g.category.includes(aliasMatch));
+    return g.category.toLowerCase().includes(f) || g.card.toLowerCase().includes(f) || aliasMatch.some(a => g.category.toLowerCase().includes(a));
   });
   // Sort
   const rateNum = r => { const m = r.match(/(\d+)/); return m ? parseInt(m[1]) : 0; };
@@ -1059,7 +1074,7 @@ function renderGuide(filter='') {
   } else {
     items.forEach(item => {
       const c = appData.cards.find(c => c.id === item.cardId);
-      html += `<div class="guide-row"><div class="card-dot" style="background:${c?c.color:'#888'}"></div><div style="flex:1"><div class="guide-cat">${item.category}</div><div class="guide-card">${item.card}</div></div><div class="guide-rate">${item.rate}</div></div>`;
+      html += `<div class="guide-row"><div class="card-dot" style="background:${c?c.color:'#888'}"></div><div style="flex:1"><div class="guide-cat">${escapeHtml(item.category)}</div><div class="guide-card">${escapeHtml(item.card)}</div></div><div class="guide-rate">${escapeHtml(item.rate)}</div></div>`;
     });
   }
   document.getElementById('guideList').innerHTML = html;
@@ -1111,7 +1126,7 @@ function renderCards() {
 
 // ===== PERKS TAB =====
 function renderPerks() {
-  const enrolled = JSON.parse(localStorage.getItem('walletiq_enrolled') || '{}');
+  const enrolled = readJSON('walletiq_enrolled', {});
   const feeVal = f => parseInt(f.replace(/[^0-9]/g,'')) || 0;
   const allSorted = [...appData.cards].sort((a,b) => feeVal(b.annualFee) - feeVal(a.annualFee));
   const sorted = activeCardFilter ? allSorted.filter(c => c.id === activeCardFilter) : allSorted;
@@ -1194,7 +1209,7 @@ function renderPerks() {
 
 // ===== FEES TAB =====
 function renderFees() {
-  const enrolled = JSON.parse(localStorage.getItem('walletiq_enrolled') || '{}');
+  const enrolled = readJSON('walletiq_enrolled', {});
   const feeVal = f => parseInt(f.replace(/[^0-9]/g,'')) || 0;
   const allSorted = [...appData.cards].sort((a,b) => feeVal(b.annualFee) - feeVal(a.annualFee));
   const sorted = activeCardFilter ? allSorted.filter(c => c.id === activeCardFilter) : allSorted;
@@ -1211,6 +1226,7 @@ function renderFees() {
       let annual = 0;
       if (credit.period === 'monthly') annual = credit.amount * 12;
       else if (credit.period === 'semi-annual') annual = credit.amount * 2;
+      else if (credit.period === 'quarterly') annual = credit.amount * 4;
       else annual = credit.amount;
       totalCredits += annual;
       creditRows += `<div class="fee-row">
@@ -1301,33 +1317,23 @@ function renderTracker() {
   document.getElementById('creditList').innerHTML = html;
 }
 
-// Time gradient: returns {pctElapsed, daysLeft, totalDays, color} for a period
+// Time gradient: returns {pctElapsed, daysLeft, totalDays, color} for a period. daysLeft counts the whole days
+// after today, so the last day of a period shows 0 everywhere (tracker badges, Today, the AI tips)
+function periodBounds(period, now) {
+  const y = now.getFullYear(), m = now.getMonth();
+  if (period === 'monthly') return [new Date(y, m, 1), new Date(y, m + 1, 1)];
+  if (period === 'quarterly') { const s = Math.floor(m / 3) * 3; return [new Date(y, s, 1), new Date(y, s + 3, 1)]; }
+  if (period === 'semi-annual') return m < 6 ? [new Date(y, 0, 1), new Date(y, 6, 1)] : [new Date(y, 6, 1), new Date(y + 1, 0, 1)];
+  if (period === 'annual') return [new Date(y, 0, 1), new Date(y + 1, 0, 1)];
+  return null;
+}
 function getTimeGradient(period) {
   const now = new Date();
-  let start, end, totalDays, daysLeft;
-  if (period === 'monthly') {
-    start = new Date(now.getFullYear(), now.getMonth(), 1);
-    end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    totalDays = end.getDate();
-    daysLeft = Math.max(0, end.getDate() - now.getDate());
-  } else if (period === 'semi-annual') {
-    if (now.getMonth() < 6) {
-      start = new Date(now.getFullYear(), 0, 1);
-      end = new Date(now.getFullYear(), 5, 30);
-    } else {
-      start = new Date(now.getFullYear(), 6, 1);
-      end = new Date(now.getFullYear(), 11, 31);
-    }
-    totalDays = Math.ceil((end - start) / 86400000);
-    daysLeft = Math.max(0, Math.ceil((end - now) / 86400000));
-  } else if (period === 'annual') {
-    start = new Date(now.getFullYear(), 0, 1);
-    end = new Date(now.getFullYear(), 11, 31);
-    totalDays = Math.ceil((end - start) / 86400000);
-    daysLeft = Math.max(0, Math.ceil((end - now) / 86400000));
-  } else {
-    return { pctElapsed: 0, daysLeft: 30, totalDays: 30, color: tiers()[0] };
-  }
+  const b = periodBounds(period, now);
+  if (!b) return { pctElapsed: 0, daysLeft: 30, totalDays: 30, color: tiers()[0] };
+  const totalDays = Math.round((b[1] - b[0]) / 86400000);
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const daysLeft = Math.max(0, Math.round((b[1] - tomorrow) / 86400000));
   const elapsed = totalDays - daysLeft;
   const pctElapsed = Math.min(100, (elapsed / totalDays) * 100);
   // 4-tier gradient at 25% intervals
@@ -1340,14 +1346,7 @@ function getTimeGradient(period) {
   return { pctElapsed, daysLeft, totalDays, color };
 }
 
-function getDaysLeft(period) {
-  const now=new Date();
-  if(period==='monthly'){const end=new Date(now.getFullYear(),now.getMonth()+1,0);return Math.max(0,end.getDate()-now.getDate());}
-  if(period==='semi-annual'){const mid=new Date(now.getFullYear(),6,1);const end=now<mid?mid:new Date(now.getFullYear()+1,0,1);return Math.max(0,Math.ceil((end-now)/86400000));}
-  if(period==='quarterly'){const qEnd=new Date(now.getFullYear(),Math.ceil((now.getMonth()+1)/3)*3,0);return Math.max(0,Math.ceil((qEnd-now)/86400000));}
-  if(period==='annual'){return Math.max(0,Math.ceil((new Date(now.getFullYear()+1,0,1)-now)/86400000));}
-  return 30;
-}
+function getDaysLeft(period) { return getTimeGradient(period).daysLeft; }
 
 function openLog(creditId) {
   const credit=appData.credits.find(c=>c.id===creditId);
@@ -1392,16 +1391,16 @@ function toggleSetup(id) {
 }
 
 function dismissReminder(id) {
-  const dismissed = JSON.parse(localStorage.getItem('walletiq_dismissed_reminders') || '[]');
+  const dismissed = readJSON('walletiq_dismissed_reminders', []);
   dismissed.push(id);
-  localStorage.setItem('walletiq_dismissed_reminders', JSON.stringify(dismissed));
+  writeJSON('walletiq_dismissed_reminders', dismissed);
   renderToday();
 }
 
 function markEnrolled(creditId){
-  const enrolled=JSON.parse(localStorage.getItem('walletiq_enrolled')||'{}');
+  const enrolled=readJSON('walletiq_enrolled', {});
   enrolled[creditId]=true;
-  localStorage.setItem('walletiq_enrolled',JSON.stringify(enrolled));
+  writeJSON('walletiq_enrolled', enrolled);
   const credit=appData.credits.find(c=>c.id===creditId);
   if(credit)credit.enrolled=true;
   renderTracker();renderToday();
@@ -1417,13 +1416,13 @@ function undoLast(creditId){
 let historyCardFilter = null;
 
 function renderHistoryFilters() {
-  let html = `<button class="chip ${!historyCardFilter?'style="background:var(--accent);color:var(--bg);border-color:var(--accent)"':''}" onclick="setHistoryFilter(null)">All</button>`;
+  let html = `<button class="chip" style="${!historyCardFilter?'background:var(--accent);color:var(--bg);border-color:var(--accent)':''}" onclick="setHistoryFilter(null)">All</button>`;
   const cardsUsed = [...new Set(logs.map(l => l.cardName))];
   cardsUsed.forEach(name => {
     const c = appData.cards.find(c => c.name === name);
     const color = c ? c.color : '#888';
     const isActive = historyCardFilter === name;
-    html += `<button class="chip" style="${isActive?'background:'+color+';color:'+textOn(color)+';border-color:'+color:''}" onclick="setHistoryFilter('${name}')">${name.replace(' (Legacy)','')}</button>`;
+    html += `<button class="chip" style="${isActive?'background:'+color+';color:'+textOn(color)+';border-color:'+color:''}" onclick="setHistoryFilter(${escapeHtml(JSON.stringify(String(name)))})">${escapeHtml(String(name).replace(' (Legacy)',''))}</button>`;
   });
   document.getElementById('historyFilters').innerHTML = html;
 }
@@ -1461,7 +1460,7 @@ function renderHistory(){
   sorted.forEach(log=>{
     const d=new Date(log.date);
     const ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    html+=`<div class="log-entry"><div class="log-dot" style="background:${log.color||'#888'}"></div><div class="log-info"><div class="log-credit">${log.desc}</div><div class="log-date">${ds} &middot; ${log.cardName}</div></div><div class="log-amount">$${log.amount.toFixed(2)}</div><button class="log-delete" onclick="deleteLog('${log.id}')">&times;</button></div>`;
+    html+=`<div class="log-entry"><div class="log-dot" style="background:${log.color||'#888'}"></div><div class="log-info"><div class="log-credit">${escapeHtml(log.desc)}</div><div class="log-date">${ds} &middot; ${escapeHtml(log.cardName)}</div></div><div class="log-amount">$${log.amount.toFixed(2)}</div><button class="log-delete" onclick="deleteLog('${log.id}')">&times;</button></div>`;
   });
   list.innerHTML=html;
 }
@@ -1475,18 +1474,20 @@ function exportData() {
     exportDate: new Date().toISOString(),
     logs: logs,
     offers: offers,
-    enrolled: JSON.parse(localStorage.getItem('walletiq_enrolled') || '{}'),
+    hiddenOffers: readJSON(HIDDEN_KEY, []),
+    enrolled: readJSON('walletiq_enrolled', {}),
     boost: localStorage.getItem('walletiq_boost')
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'wallet-iq-backup-' + new Date().toISOString().split('T')[0] + '.json';
+  a.download = 'wallet-iq-backup-' + todayLocal() + '.json';
   a.click();
   URL.revokeObjectURL(url);
 }
 
+// A backup is checked field by field; anything malformed is dropped, never rendered
 function importData(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -1494,17 +1495,23 @@ function importData(event) {
   reader.onload = function(e) {
     try {
       const data = JSON.parse(e.target.result);
-      if (!data.logs) { alert('Invalid backup file.'); return; }
+      if (!data || !Array.isArray(data.logs)) { alert('Invalid backup file.'); return; }
       if (!confirm('This will replace all current data. Continue?')) return;
-      logs = data.logs || [];
-      offers = data.offers || [];
+      const safeId = (v, i) => String(v == null ? Date.now() + '-' + i : v).replace(/[^0-9A-Za-z_-]/g, '').slice(0, 40) || String(Date.now() + i);
+      logs = data.logs.filter(l => l && typeof l.creditId === 'string' && typeof l.amount === 'number' && isFinite(l.amount))
+        .map((l, i) => ({ id: safeId(l.id, i), creditId: l.creditId, amount: l.amount, desc: String(l.desc || ''), date: String(l.date || new Date().toISOString()),
+          cardName: String(l.cardName || ''), color: /^#[0-9a-fA-F]{3,8}$/.test(l.color || '') ? l.color : '#888' }));
+      offers = (Array.isArray(data.offers) ? data.offers : []).filter(o => o && typeof o.merchant === 'string' && typeof o.discount === 'string')
+        .map((o, i) => ({ id: safeId(o.id, i), card: String(o.card || ''), cardId: String(o.cardId || cardIdFor(o.card)), merchant: o.merchant, discount: o.discount,
+          expires: /^\d{4}-\d{2}-\d{2}$/.test(o.expires || '') ? o.expires : '', added: String(o.added || '') }));
       saveLogs();
       saveOffers();
-      if (data.enrolled) localStorage.setItem('walletiq_enrolled', JSON.stringify(data.enrolled));
-      if (data.boost) localStorage.setItem('walletiq_boost', data.boost);
+      if (Array.isArray(data.hiddenOffers)) writeJSON(HIDDEN_KEY, data.hiddenOffers.filter(x => typeof x === 'string').slice(-500));
+      const enrolled = data.enrolled && typeof data.enrolled === 'object' && !Array.isArray(data.enrolled) ? data.enrolled : {};
+      writeJSON('walletiq_enrolled', enrolled);
+      if (typeof data.boost === 'string') localStorage.setItem('walletiq_boost', data.boost);
       // Restore enrollment state
-      const enrolled = data.enrolled || {};
-      appData.credits.forEach(c => { if(enrolled[c.id]) c.enrolled = true; });
+      appData.credits.forEach(c => { if(enrolled[c.id] === true) c.enrolled = true; });
       renderAll();
       alert('Backup restored successfully!');
     } catch(err) { alert('Error reading backup file.'); }
@@ -1515,16 +1522,26 @@ function importData(event) {
 
 // ===== CHASE =====
 function renderChase(){
-  const quarters=appData.chaseQuarters['2026'];let html='';const now=new Date();const currentQ=Math.ceil((now.getMonth()+1)/3);
+  const now = new Date();
+  const year = String(now.getFullYear());
+  const currentQ = Math.ceil((now.getMonth()+1)/3);
+  const quarters = appData.chaseQuarters[year] || {};
+  const title = document.getElementById('chaseTitle');
+  if (title) title.textContent = year + ' Quarterly Categories';
+  let html = '';
   Object.entries(quarters).forEach(([q,data])=>{
-    const qNum=parseInt(q.replace('Q',''));const isActive=qNum===currentQ;
-    const isUpcoming=qNum===currentQ+1;
-    const sc=isActive?'status-active':isUpcoming?'status-upcoming':'status-future';
-    const statusText=isActive?'Active Now':isUpcoming?'Up Next':'TBD';
-    const activateBy = data.activateBy ? `<div style="font-size:.6875rem;color:${isActive?'var(--green)':'var(--muted)'};margin-top:4px">Activate by: ${data.activateBy}</div>` : '';
-    html+=`<div class="quarter-card ${isActive?'active-q':''}"><div class="quarter-label">${q} 2026 &middot; ${data.dates}</div><div class="quarter-cats">${data.categories.join(', ')}</div>${activateBy}<span class="quarter-status ${sc}">${statusText}</span></div>`;
+    const qNum = parseInt(q.replace('Q',''));
+    const isActive = qNum === currentQ, isUpcoming = qNum === currentQ + 1, isPast = qNum < currentQ;
+    const cats = Array.isArray(data.categories) ? data.categories : [];
+    const tbd = cats.some(c => String(c).includes('TBD'));
+    const sc = isActive ? 'status-active' : isUpcoming ? 'status-upcoming' : 'status-future';
+    const statusText = isActive ? 'Active Now' : isPast ? 'Ended' : tbd ? 'Not announced' : isUpcoming ? 'Up Next' : 'Later';
+    const act = isActive && data.activated
+      ? `<div style="font-size:.6875rem;color:var(--green);margin-top:4px">&#10003; Activated</div>`
+      : data.activateBy && !isPast ? `<div style="font-size:.6875rem;color:${isActive?'var(--green)':'var(--muted)'};margin-top:4px">Activate by: ${escapeHtml(data.activateBy)}</div>` : '';
+    html += `<div class="quarter-card ${isActive?'active-q':''}${isPast?' past-q':''}"><div class="quarter-label">${q} ${year} &middot; ${escapeHtml(data.dates)}</div><div class="quarter-cats">${cats.map(escapeHtml).join(', ')}</div>${act}<span class="quarter-status ${sc}">${statusText}</span></div>`;
   });
-  document.getElementById('chaseList').innerHTML=html;
+  document.getElementById('chaseList').innerHTML = html || `<div class="empty">No quarterly categories for ${year} yet.</div>`;
 }
 
 // ===== MYSTERY BOX =====
@@ -1540,7 +1557,7 @@ function renderMystery(){
   const boost=getActiveBoost();
   let boostHtml='';
   if(boost){
-    boostHtml=`<div class="today-card boost" style="margin-bottom:16px"><div class="today-label" style="color:var(--green)">ACTIVE BOOST</div><div class="today-value">${boost.prize}</div><div class="boost-timer" id="boostCountdownMystery">${getBoostTimeRemaining(boost)}</div><button class="btn btn-outline btn-sm" onclick="clearBoost()" style="margin-top:6px">Dismiss</button></div>`;
+    boostHtml=`<div class="today-card boost" style="margin-bottom:16px"><div class="today-label" style="color:var(--green)">ACTIVE BOOST</div><div class="today-value">${escapeHtml(boost.prize)}</div><div class="boost-timer" id="boostCountdownMystery">${getBoostTimeRemaining(boost)}</div><button class="btn btn-outline btn-sm" onclick="clearBoost()" style="margin-top:6px">Dismiss</button></div>`;
   }
   document.getElementById('activeBoostSection').innerHTML=boostHtml;
   // Prize table
@@ -1582,18 +1599,11 @@ function renderSavings(){
 
   // Credits (annual values, divided by 12 for monthly)
   const creditLines = [
-    {name:'Dining Credit', card:'Amex Gold', annual:120, note:'Grubhub, Five Guys, etc.'},
+    {name:'Dining Credit', card:'Amex Gold', annual:120, note:'Grubhub, Five Guys, Cheesecake Factory, Buffalo Wild Wings, Wonder'},
     {name:'Uber Cash', card:'Amex Gold', annual:120, note:'Rides & Uber Eats'},
     {name:'Dunkin\' Credit', card:'Amex Gold', annual:84, note:'$7/mo'},
     {name:'Resy Credit', card:'Amex Gold', annual:100, note:'$50 per half-year'},
-    {name:'Hotel Collection', card:'Amex Gold', annual:100, note:'2+ night stays'},
-    {name:'Instacart+', card:'United Explorer', annual:120, note:'$10/mo'},
-    {name:'Rideshare Credit', card:'United Explorer', annual:60, note:'$5/mo'},
-    {name:'United Hotels', card:'United Explorer', annual:100, note:'$50 x 2 stays'},
-    {name:'JSX Credit', card:'United Explorer', annual:100, note:'Semi-private flights'},
-    {name:'Avis/Budget', card:'United Explorer', annual:50, note:'$25 x 2 rentals'},
-    {name:'TravelBank ($10K spend)', card:'United Explorer', annual:100, note:'After $10K annual spend'},
-    {name:'Global Entry/TSA Pre', card:'United Explorer', annual:30, note:'$120 every 4 years'},
+    {name:'Hotel Collection (one stay)', card:'Amex Gold', annual:100, note:'Up to $100 per 2+ night stay'},
     {name:'DashPass (6mo free)', card:'Chase Freedom', annual:60, note:'$9.99/mo value'},
     {name:'DoorDash Promo', card:'Chase Freedom', annual:40, note:'$10/quarter'},
   ];
@@ -1602,7 +1612,6 @@ function renderSavings(){
   // Fees (annual, divided by 12 for monthly)
   const feeLines = [
     {name:'Amex Gold', annual:325},
-    {name:'United Explorer', annual:150},
   ];
   const totalFees = feeLines.reduce((s,f) => s + f.annual, 0) * (m / 12);
 
@@ -1665,17 +1674,30 @@ function renderSavings(){
   html += '</div>';
   document.getElementById('savingsBreakdown').innerHTML = html;
 }
-document.querySelectorAll('.savings-field').forEach(el=>el.addEventListener('input',renderSavings));
+// Savings amounts are Grant's own spending: kept on this device only, never in the public page (Oct 24, 2026)
+const SAVINGS_KEY = 'walletiq_savings';
+(function loadSavingsInputs() {
+  const s = readJSON(SAVINGS_KEY, {});
+  document.querySelectorAll('.savings-field').forEach(el => { if (typeof s[el.id] === 'string' && s[el.id] !== '') el.value = s[el.id]; });
+})();
+document.querySelectorAll('.savings-field').forEach(el => el.addEventListener('input', () => {
+  const s = {};
+  document.querySelectorAll('.savings-field').forEach(f => { if (f.value !== '') s[f.id] = f.value; });
+  writeJSON(SAVINGS_KEY, s);
+  renderSavings();
+}));
 
 // ===== OFFERS =====
-function saveOffers() { localStorage.setItem('walletiq_offers', JSON.stringify(offers)); }
+function saveOffers() { writeJSON('walletiq_offers', offers); }
 
 function openOfferModal() {
+  document.getElementById('offerCard').innerHTML = (appData ? appData.cards : [])
+    .map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name.replace(' (Legacy)', ''))}</option>`).join('');
   document.getElementById('offerMerchant').value = '';
   document.getElementById('offerDiscount').value = '';
   // Default expiry to 30 days from now
   const d = new Date(); d.setDate(d.getDate() + 30);
-  document.getElementById('offerExpires').value = d.toISOString().split('T')[0];
+  document.getElementById('offerExpires').value = todayLocal(d);
   document.getElementById('offerModal').classList.add('show');
   setTimeout(() => document.getElementById('offerMerchant').focus(), 100);
 }
@@ -1687,82 +1709,97 @@ function submitOffer() {
   const discount = document.getElementById('offerDiscount').value.trim();
   const expires = document.getElementById('offerExpires').value;
   if (!merchant || !discount) { alert('Merchant and discount are required.'); return; }
-  if (expires && expires < new Date().toISOString().split('T')[0]) { alert('Expiration date cannot be in the past.'); return; }
-  offers.push({ id: Date.now().toString(), card, merchant, discount, expires, added: new Date().toISOString() });
+  if (expires && expires < todayLocal()) { alert('Expiration date cannot be in the past.'); return; }
+  offers.push({ id: Date.now().toString(), card, cardId: cardIdFor(card), merchant, discount, expires, added: new Date().toISOString() });
   saveOffers(); closeOfferModal(); renderOffers(); renderToday();
 }
 
 function deleteOffer(id) {
-  offers = offers.filter(o => o.id !== id);
+  offers = offers.filter(o => String(o.id) !== String(id));
   saveOffers(); renderOffers(); renderToday();
 }
 
-function getActiveOffers() {
-  const now = new Date().toISOString().split('T')[0];
-  return offers.filter(o => !o.expires || o.expires >= now);
-}
+function getActiveOffers() { const t = todayLocal(); return allOffers().filter(o => !o.expires || o.expires >= t); }
+// Only manual offers are listed as expired; feed offers drop off the list on their own
+function getExpiredOffers() { const t = todayLocal(); return offers.filter(o => o && o.expires && o.expires < t); }
 
-function getExpiredOffers() {
-  const now = new Date().toISOString().split('T')[0];
-  return offers.filter(o => o.expires && o.expires < now);
+function offerRow(o, now) {
+  const expDate = o.expires ? new Date(o.expires + 'T23:59:59') : null;
+  const daysLeft = expDate ? Math.max(0, Math.ceil((expDate - now) / 86400000)) : null;
+  const isUrgent = daysLeft !== null && daysLeft <= 5;
+  const cardData = appData.cards.find(c => c.id === o.cardId) || appData.cards.find(c => c.name === o.card);
+  const color = cardData ? cardData.color : '#888';
+  const cardName = cardData ? cardData.name : String(o.card || '');
+  const btn = o.auto
+    ? `<button class="offer-hide" data-hide="${escapeHtml(o.id)}" title="Hide this offer on this phone">Hide</button>`
+    : `<button class="offer-delete" data-del="${escapeHtml(o.id)}" title="Delete this offer">&times;</button>`;
+  return `<div class="offer-card${o.auto ? ' auto' : ''}${isUrgent ? ' expiring-soon' : ''}">
+    ${btn}
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <div class="card-dot" style="background:${escapeHtml(color)}"></div>
+      <div class="offer-merchant">${escapeHtml(o.merchant)}${o.auto ? '<span class="offer-src">Chase</span>' : ''}</div>
+    </div>
+    <div class="offer-discount">${escapeHtml(o.discount)}</div>
+    <div class="offer-meta">${escapeHtml(cardName)}${daysLeft !== null ? ' &middot; ' + (isUrgent ? '<span style="color:var(--red)">' + daysLeft + 'd left!</span>' : daysLeft + 'd left') : ' &middot; No end date listed'}</div>
+  </div>`;
 }
 
 function renderOffers() {
-  const active = getActiveOffers();
-  const expired = getExpiredOffers();
+  if (!appData) return;
   const now = new Date();
-
+  const byEnd = (a, b) => { const x = a.expires || '9999', y = b.expires || '9999'; return x < y ? -1 : x > y ? 1 : normMerchant(a.merchant) < normMerchant(b.merchant) ? -1 : 1; };
+  const active = getActiveOffers().sort(byEnd);
+  const search = document.getElementById('offerSearch');
+  const want = normMerchant(search ? search.value : '');
+  const shown = want ? active.filter(o => normMerchant(o.merchant).includes(want)) : active;
   let html = '';
-  if (active.length === 0) {
-    html = '<div class="empty">No active offers.<br>Tap "+ Add Offer" after checking your card apps.</div>';
-  } else {
-    active.forEach(o => {
-      const expDate = o.expires ? new Date(o.expires + 'T23:59:59') : null;
-      const daysLeft = expDate ? Math.max(0, Math.ceil((expDate - now) / 86400000)) : null;
-      const isUrgent = daysLeft !== null && daysLeft <= 5;
-      const cardData = appData.cards.find(c => c.name === o.card);
-      const color = cardData ? cardData.color : '#888';
-      html += `<div class="offer-card ${isUrgent ? 'expiring-soon' : ''}">
-        <button class="offer-delete" onclick="deleteOffer('${o.id}')">&times;</button>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          <div class="card-dot" style="background:${color}"></div>
-          <div class="offer-merchant">${o.merchant}</div>
-        </div>
-        <div class="offer-discount">${o.discount}</div>
-        <div class="offer-meta">${o.card}${daysLeft !== null ? ' &middot; ' + (isUrgent ? '<span style="color:var(--red)">' + daysLeft + 'd left!</span>' : daysLeft + 'd left') : ' &middot; No expiry'}</div>
-      </div>`;
-    });
-  }
+  if (!active.length) html = '<div class="empty">No active offers.<br>Chase offers appear here each morning; tap "+ Add Offer" for others.</div>';
+  else if (!shown.length) html = '<div class="empty">No offer matches that store.</div>';
+  else html = shown.map(o => offerRow(o, now)).join('');
   document.getElementById('offersList').innerHTML = html;
+  const count = document.getElementById('offerCount');
+  if (count) count.textContent = !active.length ? '' : want ? `${shown.length} of ${active.length}` : `${active.length} offers`;
 
   // Expired
+  const expired = getExpiredOffers();
   let expHtml = '';
   if (expired.length > 0) {
     expHtml = '<div class="section-title">Expired</div>';
     expired.forEach(o => {
       expHtml += `<div class="offer-card expired">
-        <button class="offer-delete" onclick="deleteOffer('${o.id}')">&times;</button>
-        <div class="offer-merchant" style="font-size:.875rem">${o.merchant}</div>
-        <div style="font-size:.75rem;color:var(--muted)">${o.discount} &middot; ${o.card} &middot; Expired ${o.expires}</div>
+        <button class="offer-delete" data-del="${escapeHtml(o.id)}" title="Delete this offer">&times;</button>
+        <div class="offer-merchant" style="font-size:.875rem">${escapeHtml(o.merchant)}</div>
+        <div style="font-size:.75rem;color:var(--muted)">${escapeHtml(o.discount)} &middot; ${escapeHtml(o.card)} &middot; Expired ${escapeHtml(o.expires)}</div>
       </div>`;
     });
     expHtml += '<button class="btn btn-outline btn-sm" onclick="clearExpiredOffers()" style="margin-top:8px">Clear Expired</button>';
   }
   document.getElementById('expiredOffersList').innerHTML = expHtml;
 }
+// Hide and delete buttons carry their offer id in a data attribute (never inside an onclick string)
+function wireOffers() {
+  const click = e => {
+    const h = e.target.closest('[data-hide]');
+    if (h) { hideOffer(h.dataset.hide); return; }
+    const d = e.target.closest('[data-del]');
+    if (d) deleteOffer(d.dataset.del);
+  };
+  document.getElementById('offersList').addEventListener('click', click);
+  document.getElementById('expiredOffersList').addEventListener('click', click);
+}
 
 function clearExpiredOffers() {
-  const now = new Date().toISOString().split('T')[0];
-  offers = offers.filter(o => !o.expires || o.expires >= now);
+  const t = todayLocal();
+  offers = offers.filter(o => !o.expires || o.expires >= t);
   saveOffers(); renderOffers();
 }
 
-// Get offer for a merchant (used by AI)
+// Get offer for a merchant (used by AI); whole words only, so "Target" never matches "Targeted"
 function findMatchingOffer(query) {
-  const q = query.toLowerCase();
-  const active = getActiveOffers();
-  for (const o of active) {
-    if (q.includes(o.merchant.toLowerCase())) {
+  const q = ' ' + normMerchant(query) + ' ';
+  for (const o of getActiveOffers()) {
+    const m = normMerchant(o.merchant);
+    if (m && q.includes(' ' + m + ' ')) {
       const expDate = o.expires ? new Date(o.expires + 'T23:59:59') : null;
       const daysLeft = expDate ? Math.max(0, Math.ceil((expDate - new Date()) / 86400000)) : null;
       return { card: o.card, discount: o.discount, merchant: o.merchant, daysLeft };
@@ -1778,27 +1815,43 @@ function getActiveChaseCategories() {
   const year = String(now.getFullYear());
   const quarters = appData.chaseQuarters[year];
   if (!quarters || !quarters[q]) return [];
-  return quarters[q].categories.map(c => c.toLowerCase());
+  return (quarters[q].categories || []).map(c => String(c).toLowerCase());
 }
 
 // Map Chase category names to spending keywords
 const chaseKeywordMap = {
-  'dining': ['restaurant','dining','dinner','lunch','brunch','food','sandwich','burger','pizza','taco','burrito','sushi','wings','salad','cafeteria','cafe','deli','bakery','coffee','starbucks','dutch bros','five guys','5 guys','fiveguys','grubhub','chipotle','doordash','postmates','takeout','food delivery','dunkin','resy','date night','meal','snack','noodle','ramen','pho','panera','subway','mcdonalds','wendys','chick-fil-a','popeyes','taco bell','kfc','wingstop','canes','jersey mike','firehouse','jimmy john','qdoba','olive garden','outback','ihop','waffle house','denny','bbq','buffet','diner','bistro','grill'],
+  'dining': ['restaurant','dining','dinner','lunch','brunch','food','sandwich','burger','pizza','taco','burrito','sushi','wings','salad','cafeteria','cafe','deli','bakery','coffee','starbucks','dutch bros','five guys','5 guys','fiveguys','grubhub','seamless','cheesecake factory','buffalo wild wings','uber eats','ubereats','chipotle','doordash','postmates','takeout','food delivery','dunkin','resy','date night','meal','snack','noodle','ramen','pho','panera','subway','mcdonalds','wendys','chick-fil-a','popeyes','taco bell','kfc','wingstop','canes','jersey mike','firehouse','jimmy john','qdoba','olive garden','outback','ihop','waffle house','denny','bbq','buffet','diner','bistro','grill'],
   'amazon': ['amazon'],
   'whole foods': ['whole foods','wholefoods'],
   'gas stations': ['gas','gas station','fuel','shell','chevron','exxon','mobil','bp','conoco','pump','fill up','fillup','gasoline','petrol'],
   'grocery stores': ['grocery','groceries','supermarket','safeway','king soopers','kroger','trader joe','aldi','sprouts'],
   'select streaming': ['netflix','hulu','spotify','disney','hbo','streaming','subscription'],
   'paypal': ['paypal'],
+  'american red cross': ['red cross'],
 };
 
+// Keywords of 4 letters or fewer match whole words only (a plural s is fine), so "pho" never matches "phone", "deli"
+// never matches "delivery" and "food" never matches "seafood"; longer keywords match anywhere in the question
+function hasKey(q, k) {
+  if (k.length > 4) return q.includes(k);
+  return new RegExp('(^|[^a-z0-9])' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + 's?($|[^a-z0-9])').test(q);
+}
+
+// Is this purchase in this quarter's Chase Freedom 5%? A category is matched by the name it contains ("grocery stores
+// (not walmart or target)" contains "grocery stores"), and the exclusions Chase prints in the name are honored
 function isChaseQuarterMatch(query) {
-  const activeCategories = getActiveChaseCategories();
+  const now = new Date();
+  const quarter = ((appData.chaseQuarters || {})[String(now.getFullYear())] || {})['Q' + Math.ceil((now.getMonth() + 1) / 3)] || null;
   const q = query.toLowerCase();
-  for (const cat of activeCategories) {
-    const keywords = chaseKeywordMap[cat];
-    if (keywords && keywords.some(k => q.includes(k))) {
-      return { matched: true, category: cat, rate: '5%' };
+  for (const cat of getActiveChaseCategories()) {
+    const not = (cat.match(/\(not ([^)]*)\)/) || [])[1];
+    if (not && not.split(/,| or | and /).map(s => s.trim()).filter(Boolean).some(x => q.includes(x))) continue;
+    // Warehouse clubs and big box stores code as their own type, never as grocery or dining
+    if (/grocery|dining/.test(cat) && ['target', 'walmart', 'costco', 'sams club', "sam's club", 'ikea'].some(s => q.includes(s))) continue;
+    for (const key of Object.keys(chaseKeywordMap)) {
+      if (cat.includes(key) && chaseKeywordMap[key].some(k => hasKey(q, k))) {
+        return { matched: true, category: cat.replace(/\s*\(.*\)\s*$/, ''), rate: '5%', quarter };
+      }
     }
   }
   return { matched: false };
@@ -1820,17 +1873,19 @@ const aiRules=[
     card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Food/groceries at retail stores (Target, Walmart, IKEA) codes under the store category, NOT as supermarket or dining. Amex Gold 4x will NOT apply. Use Robinhood 3%.'},
   // Streaming/subscriptions — must be BEFORE dining rules (or 'subscription' matches 'sub' in dining)
   {keys:['netflix','hulu','spotify','disney','hbo','max','youtube','apple tv','peacock','paramount','streaming','subscription','subscriptions','crunchyroll','audible','sling'],
-    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Streaming/digital subscriptions earn 3% on Robinhood Gold. Beats United Explorer 2x miles (~2.4 cents) since 3% cash is guaranteed value.'},
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Streaming/digital subscriptions earn 3% on Robinhood Gold. No other card in your wallet pays more on them.'},
+  // Amazon, Whole Foods and Instacart before the dining rule ("whole foods" contains "food")
+  {keys:['whole foods','wholefoods'],card:'Amazon Prime Visa',rate:'5%',color:'#232F3E',tip:'Whole Foods codes separately. Amazon card beats Amex Gold here.'},
+  {keys:['amazon'],card:'Amazon Prime Visa',rate:'5%',color:'#232F3E',tip:'Also covers Amazon Fresh and Subscribe & Save.'},
+  {keys:['instacart'],card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Instacart earns Robinhood Gold\'s flat 3%.'},
   // Named dining merchants
   {keys:['five guys','5 guys','fiveguys'],card:'Amex Gold',rate:'4x + $10/mo credit',color:'#C5A44E',tip:'Five Guys is one of the $10/mo dining credit merchants. Check Tracker for remaining credit.'},
   // Generic dining (only matches if no store override matched first)
-  {keys:['grubhub','goldbelly','shake shack','chipotle','restaurant','dining','dinner','lunch','brunch','bar','pub','eat out','takeout','take out','food delivery','doordash','postmates',
+  {keys:['grubhub','seamless','uber eats','ubereats','cheesecake factory','buffalo wild wings','shake shack','chipotle','restaurant','dining','dinner','lunch','brunch','bar','pub','eat out','takeout','take out','food delivery','doordash','postmates',
     'sandwich','burger','pizza','taco','burrito','sushi','wings','salad','soup','wrap','sub sandwich','hoagie','meal','food','snack','cafeteria','cafe','deli','bakery','noodle','ramen','pho','thai','chinese','mexican','italian','indian','korean','bbq','barbecue','buffet','diner','bistro','grill','kitchen','eatery','food truck','food court','panera','subway','mcdonalds','wendys','chick-fil-a','chickfila','popeyes','panda express','taco bell','kfc','arbys','sonic','jack in the box','in-n-out','whataburger','noodles','wingstop','canes','raising cane','zaxby','jersey mike','firehouse','jimmy john','qdoba','moe','chili','applebee','olive garden','outback','red lobster','ihop','waffle house','denny'],
-    card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Food purchases almost always code as dining. Note: the $10/mo dining credit only works at Grubhub, Cheesecake Factory, Goldbelly, Wine.com, and Five Guys — not all restaurants.'},
+    card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Food purchases almost always code as dining. Note: the $10/mo dining credit works only at Grubhub (and Seamless), Five Guys, Cheesecake Factory, Buffalo Wild Wings and Wonder, not at all restaurants.'},
   {keys:['grocery','groceries','supermarket','safeway','king soopers','kroger','trader joe','aldi','sprouts','hmart'],
     card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Must be a U.S. supermarket (King Soopers, Safeway, etc.). NOT Target, Walmart, Costco, or Sam\'s Club — those code as retail, not grocery. Capped at $25K/yr.'},
-  {keys:['whole foods','wholefoods'],card:'Amazon Prime Visa',rate:'5%',color:'#232F3E',tip:'Whole Foods codes separately. Amazon card beats Amex Gold here.'},
-  {keys:['amazon'],card:'Amazon Prime Visa',rate:'5%',color:'#232F3E',tip:'Also covers Amazon Fresh and Subscribe & Save.'},
   {keys:['food at gas','snack at gas','gas station food','gas station snack','food at shell','food at chevron','food at exxon','food at bp','food at circle k','7-eleven food','7 eleven food','convenience store food','convenience store snack'],
     card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Food at a gas station or convenience store codes under the store, NOT dining. Use Robinhood 3%.'},
   {keys:['food at sam','food at costco','costco food','sams food','costco food court','sams food court','costco hot dog','sams club food','warehouse food'],
@@ -1840,13 +1895,14 @@ const aiRules=[
   {keys:['gas','gas station','fuel','shell','chevron','exxon','mobil','bp','conoco','circle k','costco gas','sams gas','pump','fill up','fillup','gasoline','petrol'],
     card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Amazon card only gets 2%. Robinhood Gold wins. Check Mystery Box for a boost before filling up!'},
   // streaming moved earlier in rules
-  {keys:['ride'],card:'United Explorer',rate:'2x',color:'#0033A0',tip:'United Explorer earns 2x on rideshare. Check for $5/mo rideshare credit and Uber Cash first.'},
-  {keys:['united','united airlines','united flight'],card:'United Explorer',rate:'2x (9x Apr 2)',color:'#0033A0',tip:'Must pay with Explorer for free checked bag + priority boarding. Currently 2x, jumps to 9x on April 2, 2026.'},
-  {keys:['instacart'],card:'United Explorer',rate:'$10/mo credit',color:'#0033A0',tip:'Use the $10/mo credit first (expires monthly, through 12/31/27).'},
-  {keys:['flight','airline','plane','travel','vacation','trip','booking','delta','southwest','american airlines','jetblue','spirit','frontier','alaska airlines'],
-    card:'Amex Gold',rate:'3x',color:'#C5A44E',tip:'Book direct or via AmexTravel. For United, use Explorer for 7x + free bag.'},
-  {keys:['hotel','hilton','marriott','hyatt','airbnb','resort','motel','lodging','stay'],card:'Amex Gold',rate:'2x (AmexTravel)',color:'#C5A44E',tip:'2x ONLY when booked via AmexTravel.com. Hotels booked elsewhere earn 1x — Robinhood Gold 3% beats that. Check Robinhood travel portal for 5%. For United Hotels, use Explorer ($50 credit).'},
-  {keys:['international','abroad','foreign','overseas','europe','mexico','canada','japan','uk'],card:'Amex Gold',rate:'varies',color:'#C5A44E',tip:'Both Amex Gold and United Explorer have no foreign transaction fees.'},
+  {keys:['transit','light rail','bus fare','bus ticket','train ticket','commuter'],card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Amazon Prime Visa pays 2% on local transit. Robinhood Gold\'s flat 3% is higher.'},
+  {keys:['united airlines','united flight','fly united','united ticket'],card:'Amex Gold',rate:'3x',color:'#C5A44E',tip:'No United card in your wallet now (the Explorer closed Oct 19, 2026), so no free checked bag. Book United direct with Amex Gold for 3x.'},
+  {keys:['rental car','car rental','rent a car','avis','hertz','enterprise rent','budget rental','budget car','national car','turo'],
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Car rentals earn Robinhood Gold\'s flat 3%. Amex Gold gives 2x only when prepaid on AmexTravel.com.'},
+  {keys:['flight','airline','plane','jsx','travel','vacation','trip','booking','delta','southwest','american airlines','jetblue','spirit','frontier','alaska airlines'],
+    card:'Amex Gold',rate:'3x',color:'#C5A44E',tip:'Amex Gold earns 3x on flights booked direct with the airline or on AmexTravel.com.'},
+  {keys:['hotel','hilton','marriott','hyatt','resort','motel','lodging'],card:'Amex Gold',rate:'5x (prepaid on AmexTravel)',color:'#C5A44E',tip:'5x ONLY when prepaid on AmexTravel.com. Hotels booked anywhere else earn 1x on Amex Gold, so use Robinhood Gold for 3% there.'},
+  {keys:['international','abroad','foreign','overseas','europe','mexico','canada','japan','uk'],card:'Robinhood Gold Card',rate:'3%, no foreign fee',color:'#00C805',tip:'Robinhood Gold earns 3% abroad with no foreign transaction fee (cards opened before Jul 1, 2026, like yours). Amex Gold also has no foreign fee and earns 4x at restaurants abroad. Leave the Chase Freedom home: it charges a 3% foreign fee.'},
   {keys:['dunkin','donuts'],card:'Amex Gold',rate:'4x + $7/mo credit',color:'#C5A44E',tip:'You have a $7/mo Dunkin credit! Enroll on Amex site.'},
   {keys:['resy','nice dinner','fancy dinner','date night'],card:'Amex Gold',rate:'4x + $50 Resy credit',color:'#C5A44E',tip:'$50 Resy credit per half-year (resets Jun 30 & Dec 31).'},
   {keys:['concert','tickets','event','show','sports','ball arena','game','venue','ticketmaster','axs','vivid seats','stubhub'],
@@ -1868,16 +1924,14 @@ function getAIResponse(query){
 
   // ===== PRIORITY 0: Informational "what is" questions =====
   const infoDb = {
-    'rideshare': {what:'Rideshare services like Uber, Lyft, and taxi apps where you book a ride through your phone. The driver picks you up and takes you to your destination.',cards:'United Explorer: 2x + $5/mo credit | Amazon Prime Visa: 2% | Robinhood Gold: 3% flat | Chase Freedom: 2% on Lyft only (expires 9/27)'},
-    'instacart': {what:'Instacart is a grocery delivery service. You order groceries through the app from stores like King Soopers, Costco, Safeway, etc. A shopper picks and delivers them to your door. No paid subscription needed — just a free account.',cards:'United Explorer: $10/mo statement credit | Robinhood Gold: 3% after credit used'},
+    'rideshare': {what:'Rideshare services like Uber, Lyft, and taxi apps where you book a ride through your phone. The driver picks you up and takes you to your destination.',cards:'Robinhood Gold: 3% flat | Amazon Prime Visa: 2% | Amex Gold: $10/mo Uber Cash (Uber and Uber Eats only)'},
+    'instacart': {what:'Instacart is a grocery delivery service. You order groceries through the app from stores like King Soopers, Costco, Safeway, etc. A shopper picks and delivers them to your door. No paid subscription needed — just a free account.',cards:'Robinhood Gold: 3%'},
     'dashpass': {what:'DashPass is DoorDash\'s subscription for $0 delivery fees and lower service fees on food/grocery delivery orders. Your Chase Freedom card gives you 6 months free — but it auto-charges $9.99/mo after that, so set a cancel reminder.',cards:'Chase Freedom: 6mo free ($60 value) + $10/qtr non-restaurant promo'},
     'resy': {what:'Resy is a restaurant reservation app (like OpenTable). Your Amex Gold gives you $50 in statement credits per half-year when you dine at any U.S. Resy-affiliated restaurant. No reservation required — just pay with your Gold card. Download the Resy app to find restaurants near you.',cards:'Amex Gold: $50/half-year credit + 4x points on dining'},
     'doordash': {what:'DoorDash is a food and grocery delivery app. You order from restaurants, convenience stores, or grocery stores and a dasher delivers to your door. Your Chase Freedom gives you free DashPass (6mo) + $10/quarter off non-restaurant orders.',cards:'Chase Freedom: DashPass + $10/qtr promo | Amex Gold: 4x on restaurant orders'},
     'uber cash': {what:'Uber Cash is a monthly $10 credit loaded to your Uber account when you have your Amex Gold card linked. Use it on Uber rides or Uber Eats orders. It does NOT roll over — use it each month or lose it.',cards:'Amex Gold: $10/mo auto-loaded'},
     'mystery box': {what:'The Robinhood Gold Card Mystery Box costs 1,000 points (~$33 in spending) and gives you a random prize — usually a temporary cash back boost like 10% on your next restaurant order or 4-5% for 24 hours. Spin before a big purchase for best value.',cards:'Robinhood Gold Card only'},
-    'travelbank': {what:'United TravelBank is a cash balance you can use toward United and United Express flights. Your United Explorer card gives you $100 in TravelBank cash after spending $10K on the card in a calendar year. Not worth chasing — Robinhood 3% on that same $10K earns $300.',cards:'United Explorer: $100 after $10K annual spend'},
-    'jsx': {what:'JSX is a semi-private air carrier — small jets (30 seats), private terminals, no TSA security lines. Flies between select cities mostly on the West Coast, Vegas, and Dallas. Your United Explorer gives $100/yr credit, but if you don\'t fly JSX routes, this credit is unusable.',cards:'United Explorer: $100/yr credit'},
-    'global entry': {what:'Global Entry ($120) is a U.S. Customs program that lets you skip the customs line when returning from international flights. Includes TSA PreCheck ($78) which lets you keep shoes/belt on at security. Your United Explorer reimburses the application fee every 4 years.',cards:'United Explorer: up to $120 reimbursement every 4 years'},
+    'global entry': {what:'Global Entry ($120) is a U.S. Customs program that lets you skip the customs line when returning from international flights. Includes TSA PreCheck, which lets you keep shoes and belt on at security. None of your current cards pays the fee back.',cards:'No credit on your current cards. Pay with Robinhood Gold for 3%.'},
   };
 
   // Check if this is a "what is" question
@@ -1891,162 +1945,69 @@ function getAIResponse(query){
   }
 
   // ===== PRIORITY 1: Card-specific credits/free money =====
-  // Always recommend using free credits before earning rates
+  // Free credits come before earning rates. When a credit is used up, fall through so the offers, the Chase 5% quarter
+  // and the earning rules below decide (the United credits ended with that card, Oct 19, 2026)
 
-  // Avis/Budget → United Explorer $50/yr TravelBank credit
-  if(q.match(/avis|budget|rental car|car rental|rent a car/)){
-    const c=checkCredit('united-avis');
-    if(c&&c.remaining>0){
-      let tip=`Use your United Explorer $50/yr Avis/Budget TravelBank credit first! ($${c.remaining.toFixed(2)} remaining). After credit is used, United Explorer earns 2x on travel, or Robinhood Gold for 3% flat.`;
-      if(boostNote)tip+=boostNote;
-      return{card:'United Explorer',rate:'$50/yr credit',color:'#0033A0',tip};
-    }
-    // Credit exhausted — Robinhood 3% beats United 2x miles (~2.4-3 cents)
-    let tip='Avis/Budget credit already used this year. Robinhood Gold 3% cash beats United Explorer 2x miles (~2.4-3 cents/dollar with uncertain redemption).';
-    if(boostNote)tip+=boostNote;
-    return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip};
-  }
-
-  // JSX → United Explorer $100/yr credit
-  if(q.match(/jsx|semi.?private|private flight/)){
-    const c=checkCredit('united-jsx');
-    if(c&&c.remaining>0){
-      let tip=`Use your United Explorer $100/yr JSX credit! ($${c.remaining.toFixed(2)} remaining).`;
-      if(boostNote)tip+=boostNote;
-      return{card:'United Explorer',rate:'$100/yr credit',color:'#0033A0',tip};
-    }
-    let tip='JSX credit already used this year. Amex Gold 3x for flights, or Robinhood Gold for 3%.';
-    if(boostNote)tip+=boostNote;
-    return{card:'Amex Gold',rate:'3x',color:'#C5A44E',tip};
-  }
-
-  // Instacart → United Explorer $10/mo credit first
-  if(q.match(/instacart/)){
-    const c=checkCredit('united-instacart');
-    if(c&&c.remaining>0){
-      let tip=`Use your United Explorer $10/mo Instacart credit first! ($${c.remaining.toFixed(2)} remaining, ${c.daysLeft}d left this month, expires monthly). For the remaining balance after the credit, use Robinhood Gold for 3%.`;
-      if(boostNote)tip+=boostNote;
-      return{card:'United Explorer',rate:'$10/mo credit',color:'#0033A0',tip};
-    }
-    let tip='Instacart credit already used this month. Use Robinhood Gold for 3% on the rest.';
-    if(boostNote)tip+=boostNote;
-    return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip};
-  }
-
-  // Uber specifically → Amex $10/mo Uber Cash first, then United $5/mo rideshare
+  // Uber → Amex Gold $10/mo Uber Cash first (rides and Uber Eats)
   if(q.match(/uber/)){
     const uberCash=checkCredit('amex-uber');
     if(uberCash&&uberCash.remaining>0){
-      let tip=`Use your Amex Gold $10/mo Uber Cash first! ($${uberCash.remaining.toFixed(2)} remaining, ${uberCash.daysLeft}d left). This is free money — use it before anything else.`;
-      const rideshare=checkCredit('united-rideshare');
-      if(rideshare&&rideshare.remaining>0) tip+=` You also have a $${rideshare.remaining.toFixed(2)} United Explorer rideshare credit this month.`;
+      let tip=`Use your Amex Gold $10/mo Uber Cash first ($${uberCash.remaining.toFixed(2)} left, ${uberCash.daysLeft}d left this month). It is free money for rides and Uber Eats. Add the Gold card to your Uber app's wallet once so the $10 loads each month.`;
       if(boostNote)tip+=boostNote;
       return{card:'Amex Gold',rate:'$10/mo Uber Cash',color:'#C5A44E',tip};
     }
-    const rideshare=checkCredit('united-rideshare');
-    if(rideshare&&rideshare.remaining>0){
-      let tip=`Uber Cash used. Use your United Explorer $5/mo rideshare credit! ($${rideshare.remaining.toFixed(2)} remaining, ${rideshare.daysLeft}d left). United also earns 2x on rideshare.`;
-      if(boostNote)tip+=boostNote;
-      return{card:'United Explorer',rate:'2x + $5/mo credit',color:'#0033A0',tip};
-    }
-    let tip='Uber Cash and rideshare credits both used this month. United Explorer earns 2x on rideshare, or Amazon Prime Visa also earns 2%.';
-    if(boostNote)tip+=boostNote;
-    return{card:'United Explorer',rate:'2x',color:'#0033A0',tip};
   }
 
-  // Lyft/rideshare → United Explorer $5/mo rideshare credit first (Uber Cash is Uber-only)
-  if(q.match(/lyft|rideshare|ride share|taxi|cab/)){
-    const rideshare=checkCredit('united-rideshare');
-    if(rideshare&&rideshare.remaining>0){
-      let tip=`Rideshare = services like Uber, Lyft, taxi apps. Use your United Explorer $5/mo rideshare credit first! ($${rideshare.remaining.toFixed(2)} remaining, ${rideshare.daysLeft}d left). United also earns 2x on top.`;
-      if(boostNote)tip+=boostNote;
-      return{card:'United Explorer',rate:'2x + $5/mo credit',color:'#0033A0',tip,alts:[{card:'Amazon Prime Visa',rate:'2%',color:'#232F3E',why:'Same 2% but no credit'},{card:'Robinhood Gold',rate:'3%',color:'#00C805',why:'Higher rate but no rideshare credit'}]};
-    }
-    let tip='Rideshare = services like Uber, Lyft, taxi apps. Credits used this month. Robinhood Gold 3% beats United/Amazon 2%.';
+  // Rides (Uber after the Uber Cash, Lyft, taxis) → Robinhood 3% beats Prime Visa 2%
+  if(q.match(/uber|lyft|rideshare|ride share|taxi|\bcab\b/) && !q.match(/uber ?eats/)){
+    let tip='Rideshare means Uber, Lyft and taxi apps. Robinhood Gold\'s 3% beats Amazon Prime Visa\'s 2% on rides.';
+    if(q.match(/uber/)) tip='Uber Cash is used up this month. '+tip;
     if(boostNote)tip+=boostNote;
-    return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip,alts:[{card:'United Explorer',rate:'2x',color:'#0033A0',why:'2x miles (~2.4 cents)'},{card:'Amazon Prime Visa',rate:'2%',color:'#232F3E',why:'Same 2% rate'}]};
+    return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip,alts:[{card:'Amazon Prime Visa',rate:'2%',color:'#232F3E',why:'2% on rideshare and transit'}]};
   }
 
   // Dunkin → Amex $7/mo credit first
   if(q.match(/dunkin|donuts/)){
     const c=checkCredit('amex-dunkin');
     if(c&&c.remaining>0){
-      let tip=`Use your Amex Gold $7/mo Dunkin credit first! ($${c.remaining.toFixed(2)} remaining, ${c.daysLeft}d left). Enrollment required via Amex app. Plus you earn 4x on top.`;
+      let tip=`Use your Amex Gold $7/mo Dunkin credit first ($${c.remaining.toFixed(2)} left, ${c.daysLeft}d left). Enroll once in the Amex app. Plus you earn 4x on top.`;
       if(boostNote)tip+=boostNote;
       return{card:'Amex Gold',rate:'4x + $7/mo credit',color:'#C5A44E',tip};
     }
-    let tip='Dunkin credit used this month. Still use Amex Gold for 4x on dining.';
-    if(boostNote)tip+=boostNote;
-    return{card:'Amex Gold',rate:'4x',color:'#C5A44E',tip};
   }
 
-  // Resy / nice dinner → Amex $50/semi credit first
+  // Resy / nice dinner → Amex $50 per half year credit first
   if(q.match(/resy|nice dinner|fancy dinner|date night|special dinner|anniversary dinner/)){
     const c=checkCredit('amex-resy');
     if(c&&c.remaining>0){
-      let tip=`Use your Amex Gold $50 Resy credit! ($${c.remaining.toFixed(2)} remaining this half-year, ${c.daysLeft}d left). Dine at any U.S. Resy restaurant. Plus you earn 4x on top.`;
+      let tip=`Use your Amex Gold $50 Resy credit ($${c.remaining.toFixed(2)} left this half year, ${c.daysLeft}d left). Pay with Gold at any U.S. Resy restaurant; enroll once in the Amex app. Plus you earn 4x on top.`;
       if(boostNote)tip+=boostNote;
       return{card:'Amex Gold',rate:'4x + Resy credit',color:'#C5A44E',tip};
     }
-    let tip='Resy credit used this half-year. Still use Amex Gold for 4x on dining.';
-    if(boostNote)tip+=boostNote;
-    return{card:'Amex Gold',rate:'4x',color:'#C5A44E',tip};
   }
 
-  // Five Guys → Amex $10/mo dining credit first
-  if(q.match(/five guys|5 guys|fiveguys/)){
+  // Dining credit merchants since Jul 1, 2026: Grubhub/Seamless, Five Guys, Cheesecake Factory, Buffalo Wild Wings, Wonder
+  if(q.match(/five guys|5 guys|fiveguys|grubhub|seamless|cheesecake factory|buffalo wild wings|\bbww\b|^wonder\b|\bat wonder\b|\bfrom wonder\b|\bwonder (order|delivery|food)\b/)){
     const c=checkCredit('amex-dining');
     if(c&&c.remaining>0){
-      let tip=`Use your Amex Gold $10/mo dining credit at Five Guys! ($${c.remaining.toFixed(2)} remaining, ${c.daysLeft}d left). Plus you earn 4x on top.`;
+      let tip=`Use your Amex Gold $10/mo dining credit here ($${c.remaining.toFixed(2)} left, ${c.daysLeft}d left). Plus 4x points.`;
       if(boostNote)tip+=boostNote;
       return{card:'Amex Gold',rate:'4x + $10/mo credit',color:'#C5A44E',tip};
     }
-    let tip='Dining credit used this month. Still use Amex Gold for 4x.';
+  }
+
+  // Airbnb and Vrbo are not AmexTravel hotels
+  if(q.match(/airbnb|vrbo/)){
+    let tip='Airbnb and Vrbo are not hotels on AmexTravel, so Amex Gold earns only 1x. Robinhood Gold\'s 3% wins.';
     if(boostNote)tip+=boostNote;
-    return{card:'Amex Gold',rate:'4x',color:'#C5A44E',tip};
+    return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip};
   }
 
-  // Grubhub / Cheesecake Factory / Goldbelly / Wine.com → Amex $10/mo dining credit first
-  if(q.match(/grubhub|cheesecake factory|goldbelly|wine\.com|wine.com/)){
-    const c=checkCredit('amex-dining');
-    if(c&&c.remaining>0){
-      let tip=`Use your Amex Gold $10/mo dining credit here! ($${c.remaining.toFixed(2)} remaining, ${c.daysLeft}d left). Plus 4x points.`;
-      if(boostNote)tip+=boostNote;
-      return{card:'Amex Gold',rate:'4x + $10/mo credit',color:'#C5A44E',tip};
-    }
-    let tip='Dining credit used this month. Still use Amex Gold for 4x.';
+  // Hotels → Amex Gold 5x when prepaid on AmexTravel; Hotel Collection credit per 2+ night stay
+  if(q.match(/hotel|hilton|marriott|hyatt|resort|motel|lodging|\bstay\b/)){
+    let tip='Prepay on AmexTravel.com with Amex Gold for 5x. A Hotel Collection property booked there for 2 or more nights also gives up to a $100 credit to spend at the hotel, per stay. Booked anywhere else (the hotel\'s own site, Expedia), use Robinhood Gold for 3%; Amex Gold gives only 1x there.';
     if(boostNote)tip+=boostNote;
-    return{card:'Amex Gold',rate:'4x',color:'#C5A44E',tip};
-  }
-
-  // Hotel → Amex $100/yr Hotel Collection credit first
-  if(q.match(/hotel|hilton|marriott|hyatt|resort|motel|lodging|stay|airbnb/)){
-    const c=checkCredit('amex-hotel');
-    if(c&&c.remaining>0){
-      let tip=`Check if this is a Hotel Collection property — you have a $100/yr experience credit ($${c.remaining.toFixed(2)} remaining). Requires 2+ night stay. Book via AmexTravel for Hotel Collection properties. Otherwise, Amex Gold earns 3x on hotels, or check Robinhood travel portal for 5%.`;
-      if(boostNote)tip+=boostNote;
-      return{card:'Amex Gold',rate:'2x + $100 Hotel credit',color:'#C5A44E',tip};
-    }
-    let tip='Hotel Collection credit used this year. Book via AmexTravel for 2x, Robinhood travel portal for 5%, or Robinhood Gold 3% for hotels booked elsewhere.';
-    if(boostNote)tip+=boostNote;
-    return{card:'Robinhood Gold Card',rate:'3% (or 5% portal)',color:'#00C805',tip};
-  }
-
-  // United Club / airport lounge → free passes first
-  if(q.match(/united club|airport lounge|lounge pass|layover|lounge/)){
-    const c=checkCountCredit('united-lounge');
-    if(c&&c.remaining>0){
-      let tip=`You have ${c.remaining} of ${c.total} United Club passes remaining this year! Just show your United Explorer card at the lounge entrance. Cardholder must be present.`;
-      return{card:'United Explorer',rate:c.remaining+' passes left',color:'#0033A0',tip};
-    }
-    let tip='United Club passes used this year. You can redeem 5,000 Robinhood points for a lounge pass in the Robinhood app.';
-    return{card:'Robinhood Gold Card',rate:'5,000 pts/pass',color:'#00C805',tip};
-  }
-
-  // Global Entry / TSA Pre → United Explorer credit
-  if(q.match(/global entry|tsa pre|nexus|trusted traveler/)){
-    let tip='Charge the application fee to your United Explorer card — you get up to $120 statement credit every 4 years. Automatic, no enrollment needed.';
-    return{card:'United Explorer',rate:'$120 credit',color:'#0033A0',tip};
+    return{card:'Amex Gold',rate:'5x (prepaid on AmexTravel)',color:'#C5A44E',tip,alts:[{card:'Robinhood Gold',rate:'3%',color:'#00C805',why:'hotels booked anywhere else'}]};
   }
 
   // ===== PRIORITY 2: Active card offers =====
@@ -2063,15 +2024,14 @@ function getAIResponse(query){
 
   // ===== PRIORITY 3: Chase Freedom quarterly 5% =====
   const chaseCheck = isChaseQuarterMatch(q);
-  const skipChaseFor = ['food at gas','gas station food','food at sam','costco food','food at ikea','food at target','food at walmart','store food','ikea food','walmart food','amazon','whole foods','wholefoods'];
+  const skipChaseFor = ['food at gas','gas station food','food at sam','costco food','food at ikea','food at target','food at walmart','store food','ikea food','walmart food','amazon','whole foods','wholefoods','instacart'];
   const shouldSkipChase = skipChaseFor.some(k => q.includes(k));
 
   if (chaseCheck.matched && !shouldSkipChase) {
-    const now = new Date();
-    const endOfQ = new Date(now.getFullYear(), Math.ceil((now.getMonth()+1)/3)*3, 0);
-    const daysLeftQ = Math.max(0, Math.ceil((endOfQ - now) / 86400000));
-    let tip = `Chase Freedom 5% beats your other cards on "${chaseCheck.category}" this quarter (${daysLeftQ} days left, $1,500 cap). After the quarter ends or cap is hit, switch back to your usual card.`;
-    if(q.match(/five guys|5 guys|dining|grubhub|restaurant|dinner|lunch|cafeteria|food|sandwich|burger|pizza/)){const c=checkCredit('amex-dining');if(c&&c.remaining>0)tip+=` (But use Amex at Five Guys/Grubhub/Cheesecake Factory to capture the $${c.remaining.toFixed(2)} dining credit first!)`;}
+    const qd = chaseCheck.quarter || {};
+    let tip = `Chase Freedom 5% beats your other cards on ${chaseCheck.category} this quarter (${getDaysLeft('quarterly')} days left, first $1,500 of spending across the 5% categories). After the quarter ends or you pass $1,500, switch back to your usual card.`;
+    if (!qd.activated) tip += ` Activate the 5% first at chase.com/freedom${qd.activateBy ? ' (by ' + qd.activateBy + ')' : ''}.`;
+    if(q.match(/five guys|5 guys|grubhub|seamless|cheesecake factory|buffalo wild wings|dining|restaurant|dinner|lunch|cafeteria|food|sandwich|burger|pizza/)){const c=checkCredit('amex-dining');if(c&&c.remaining>0)tip+=` (At Grubhub, Five Guys, Cheesecake Factory, Buffalo Wild Wings or Wonder, use Amex Gold first to spend the $${c.remaining.toFixed(2)} dining credit.)`;}
     if(boostNote)tip+=boostNote;
     return{card:'Chase Freedom (Legacy)',rate:'5%',color:'#1A73E8',tip};
   }
@@ -2083,17 +2043,17 @@ function getAIResponse(query){
     // If query has a store name, skip generic food/grocery/dining rules
     if(hasStoreOverride && (rule.tip||'').includes('almost always code as dining')) continue;
     if(hasStoreOverride && (rule.tip||'').includes('Must be a U.S. supermarket')) continue;
-    if(rule.keys.some(k=>q.includes(k))){
+    if(rule.keys.some(k=>hasKey(q,k))){
       let tip=rule.tip;
       // Append remaining credit info where relevant
-      if(q.match(/dining|restaurant|dinner|lunch|cafeteria|food|sandwich|burger|pizza/)){const c=checkCredit('amex-dining');if(c)tip+=` (Dining credit: $${c.remaining.toFixed(2)} left, ${c.daysLeft}d — only at Five Guys, Grubhub, Cheesecake Factory, Goldbelly, Wine.com)`;}
+      if(q.match(/dining|restaurant|dinner|lunch|cafeteria|food|sandwich|burger|pizza/)){const c=checkCredit('amex-dining');if(c)tip+=` (Dining credit: $${c.remaining.toFixed(2)} left, ${c.daysLeft}d. It works only at Grubhub, Five Guys, Cheesecake Factory, Buffalo Wild Wings and Wonder.)`;}
       if(boostNote)tip+=boostNote;
       return{card:rule.card,rate:rule.rate,color:rule.color,tip};
     }
   }
 
   // ===== PRIORITY 5: Default fallback =====
-  return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'No specific bonus category matched. Robinhood Gold\'s flat 3% cash back is your best option for uncategorized purchases.'+boostNote,alts:[{card:'Amazon Prime Visa',rate:'1%',color:'#232F3E',why:'Only 1% on misc'},{card:'United Explorer',rate:'1x',color:'#0033A0',why:'1x miles (~1.2 cents)'}]};
+  return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'No specific bonus category matched. Robinhood Gold\'s flat 3% cash back is your best option for uncategorized purchases.'+boostNote,alts:[{card:'Amazon Prime Visa',rate:'1%',color:'#232F3E',why:'Only 1% on misc'},{card:'Amex Gold',rate:'1x',color:'#C5A44E',why:'1x points outside its bonus categories'}]};
 }
 
 function renderAI(){
@@ -2124,15 +2084,24 @@ async function askAI(query){
   if (chatEl) chatEl.scrollTop = chatEl.scrollHeight;
   document.getElementById('aiInput').value='';
 
+  // Gemini through the worker, 12 seconds at most; a 503 (no model answered) or a timeout uses the rules engine below
+  const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+  const timer = ctl ? setTimeout(() => ctl.abort(), 12000) : null;
   try {
     const resp = await fetch(WORKER_URL, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({question: query})
+      body: JSON.stringify({question: query}),
+      signal: ctl ? ctl.signal : undefined
     });
-    const data = await resp.json();
-    if (data.answer) {
-      const newHtml = `<div class="ai-tip" style="white-space:pre-line">${escapeHtml(data.answer)}</div>`;
+    const data = resp.ok ? await resp.json() : null;
+    if (data && typeof data.answer === 'string' && data.answer.trim()) {
+      let answer = data.answer.trim();
+      // A Chase Offer for the named store always shows, even when the model leaves it out
+      const om = findMatchingOffer(query);
+      if (om && !answer.toLowerCase().includes(String(om.merchant).toLowerCase()))
+        answer += `\n\nChase Offer: ${om.discount} at ${om.merchant} on your ${String(om.card).replace(' (Legacy)','')}${om.daysLeft !== null ? ` (${om.daysLeft} days left)` : ''}.`;
+      const newHtml = `<div class="ai-tip" style="white-space:pre-line">${escapeHtml(answer)}</div>`;
       const el = document.getElementById(msgId);
       if (el) el.innerHTML = newHtml;
       // Update stored message so re-renders don't revert to Thinking
@@ -2142,29 +2111,31 @@ async function askAI(query){
       return;
     }
   } catch(e) {
-    // Gemini failed — fall back to rules engine
+    // Gemini failed or timed out: fall back to the rules engine
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 
   // Fallback to local rules engine
   const result = getAIResponse(query);
   const el = document.getElementById(msgId);
-  if (!el) return;
+  if (!el) { aiPending = false; return; }
 
   let altsHtml='';
   if(result.alts&&result.alts.length>0){
     altsHtml='<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:.6875rem;color:var(--muted);margin-bottom:6px">Other options:</div>';
     result.alts.forEach(a=>{
-      altsHtml+=`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:.75rem"><div class="card-dot" style="background:${a.color};width:8px;height:8px"></div><span style="font-weight:600">${a.card}</span><span style="color:var(--accent)">${a.rate}</span><span style="color:var(--muted)">— ${a.why}</span></div>`;
+      altsHtml+=`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:.75rem"><div class="card-dot" style="background:${escapeHtml(a.color)};width:8px;height:8px"></div><span style="font-weight:600">${escapeHtml(a.card)}</span><span style="color:var(--accent)">${escapeHtml(a.rate)}</span><span style="color:var(--muted)">${escapeHtml(a.why)}</span></div>`;
     });
     altsHtml+='</div>';
   }
   let fallbackHtml;
   if(result.isInfo){
-    fallbackHtml=`<div class="ai-tip" style="white-space:pre-line">${result.tip}</div>`;
+    fallbackHtml=`<div class="ai-tip" style="white-space:pre-line">${escapeHtml(result.tip)}</div>`;
   } else {
-    fallbackHtml=`<div style="margin-bottom:4px;font-size:.75rem;color:var(--muted)">Best card:</div><div class="card-rec"><div class="rec-dot" style="background:${result.color}"></div><div class="rec-name">${result.card}</div><div class="rec-rate">${result.rate}</div></div><div class="ai-tip" style="white-space:pre-line">${result.tip}</div>${altsHtml}`;
+    fallbackHtml=`<div style="margin-bottom:4px;font-size:.75rem;color:var(--muted)">Best card:</div><div class="card-rec"><div class="rec-dot" style="background:${escapeHtml(result.color)}"></div><div class="rec-name">${escapeHtml(String(result.card).replace(' (Legacy)',''))}</div><div class="rec-rate">${escapeHtml(result.rate)}</div></div><div class="ai-tip" style="white-space:pre-line">${escapeHtml(result.tip)}</div>${altsHtml}`;
   }
-  if (el) el.innerHTML = fallbackHtml;
+  el.innerHTML = fallbackHtml;
   const msg = aiMessages[aiMessages.length-1];
   if (msg) msg.html = `<div class="ai-msg user">${escapeHtml(query)}</div><div class="ai-msg bot">${fallbackHtml}</div>`;
   aiPending = false;
@@ -2172,7 +2143,7 @@ async function askAI(query){
 function sendAI(){const q=document.getElementById('aiInput').value.trim();if(q)askAI(q);}
 function clearAI(){aiMessages=[];renderAI();}
 document.getElementById('aiInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendAI();});
-function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escapeHtml(s){return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
 // ===== NEAR ME — GPS Card Recommender =====
 function nearMe() {
@@ -2217,7 +2188,6 @@ function nearMe() {
           {match: ['starbucks','dutch bros','coffee'], card: 'Amex Gold', rate: '4x', tip: 'Coffee shop codes as dining — use Amex Gold for 4x.'},
           {match: ['mcdonald','wendy','chick-fil','taco bell','chipotle','subway','panera','panda express','popeyes','kfc','arby','sonic','whataburger','wingstop','cane\'s','jersey mike','firehouse','jimmy john','qdoba'], card: 'Amex Gold', rate: '4x', tip: 'Fast food/restaurant — use Amex Gold for 4x dining.'},
           {match: ['restaurant','grill','bistro','cafe','diner','bar ','pub ','kitchen','eatery','sushi','thai','chinese','mexican','indian','korean','italian','pizza','burger','bbq','barbecue','buffet','ramen','pho','noodle','bakery','deli'], card: 'Amex Gold', rate: '4x', tip: 'Restaurant — use Amex Gold for 4x dining.'},
-          {match: ['united club','united airlines'], card: 'United Explorer', rate: '2x + perks', tip: 'United — use Explorer for free bag + priority boarding.'},
           {match: ['airport','terminal','concourse'], card: 'Robinhood Gold Card', rate: '3%', tip: 'Airport purchases — use Robinhood Gold for 3% unless dining (Amex Gold 4x).'},
           {match: ['nordstrom','best buy','apple store','nike','foot locker','old navy','gap','ross','tjmaxx','marshalls','burlington'], card: 'Robinhood Gold Card', rate: '3%', tip: 'Retail store — use Robinhood Gold for 3%.'},
         ];
@@ -2229,21 +2199,22 @@ function nearMe() {
             break;
           }
         }
+        // Same order as Ask AI: a Chase Offer at this place first, then this quarter's Chase 5%
+        const placeQ = (place + ' ' + (data.address?.shop || '') + ' ' + (data.address?.amenity || '')).trim();
+        const om = place ? findMatchingOffer(place) : null;
+        const cq = placeQ && !(matched && matched.card === 'Amazon Prime Visa') ? isChaseQuarterMatch(placeQ) : { matched: false };
+        if (om) matched = { card: om.card, rate: om.discount, tip: `Chase Offer: ${om.discount} at ${om.merchant} on your ${String(om.card).replace(' (Legacy)', '')}${om.daysLeft !== null ? ` (${om.daysLeft} days left)` : ''}.` };
+        else if (cq.matched) matched = { card: 'Chase Freedom (Legacy)', rate: '5%', tip: `Chase Freedom pays 5% on ${cq.category} this quarter (first $1,500 across the 5% categories).` };
 
         // Update the loading message with result
         const el = document.getElementById('nearme-loading');
         if (el) {
-          const cardData = matched ? appData.cards.find(c => c.name === matched.card) : null;
+          const pick = matched || { card: 'Robinhood Gold Card', rate: '3%', tip: 'No specific store match found. Robinhood Gold\'s flat 3% is your safest bet for any purchase here.' };
+          const cardData = appData.cards.find(c => c.name === pick.card);
           const color = cardData ? cardData.color : '#00C805';
-          if (matched) {
-            el.outerHTML = `<div style="font-size:.75rem;color:var(--muted);margin-bottom:6px">You're near: ${escapeHtml(display || 'Unknown')}</div>
-              <div class="card-rec"><div class="rec-dot" style="background:${color}"></div><div class="rec-name">${matched.card}</div><div class="rec-rate">${matched.rate}</div></div>
-              <div class="ai-tip">${matched.tip}</div>`;
-          } else {
-            el.outerHTML = `<div style="font-size:.75rem;color:var(--muted);margin-bottom:6px">You're near: ${escapeHtml(display || 'Unknown')}</div>
-              <div class="card-rec"><div class="rec-dot" style="background:#00C805"></div><div class="rec-name">Robinhood Gold Card</div><div class="rec-rate">3%</div></div>
-              <div class="ai-tip">No specific store match found. Robinhood Gold's flat 3% is your safest bet for any purchase here.</div>`;
-          }
+          el.outerHTML = `<div style="font-size:.75rem;color:var(--muted);margin-bottom:6px">You're near: ${escapeHtml(display || 'Unknown')}</div>
+            <div class="card-rec"><div class="rec-dot" style="background:${escapeHtml(color)}"></div><div class="rec-name">${escapeHtml(String(pick.card).replace(' (Legacy)', ''))}</div><div class="rec-rate">${escapeHtml(pick.rate)}</div></div>
+            <div class="ai-tip">${escapeHtml(pick.tip)}</div>`;
         }
       } catch(err) {
         const el = document.getElementById('nearme-loading');
