@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2026-10-25T01:49:37Z",
-  "dataVersion": "2026-10-24",
+  "lastUpdated": "2026-11-16T23:34:01Z",
+  "dataVersion": "2026-11-16",
   "cards": [
     {
       "id": "amex-gold",
@@ -123,8 +123,37 @@
         "Trip cancellation & interruption insurance",
         "Zero liability protection"
       ]
+    },
+    {
+      "id": "united-explorer",
+      "name": "United Explorer",
+      "color": "#6CACE4",
+      "annualFee": "$0 first year, then $150/yr",
+      "appUrl": "https://apps.apple.com/app/id298867247",
+      "opened": "2026-11-14",
+      "categories": [
+        { "name": "United purchases", "rate": "3x", "note": "Flights, seats, bags and other United charges. About 3.6% back at 1.2 cents a mile" },
+        { "name": "Dining (incl. eligible delivery)", "rate": "2x", "note": "About 2.4% back" },
+        { "name": "Hotels booked direct", "rate": "2x", "note": "Booked directly with the hotel" },
+        { "name": "Everything Else", "rate": "1x", "note": "No foreign transaction fees" }
+      ],
+      "benefits": [
+        "Sign up bonus: 70,000 miles after $3,000 of purchases in the first 3 months (by about Feb 14, 2027; the Chase app shows the exact date and your progress), plus bonus miles for adding Gray as an authorized user in those 3 months",
+        "Free first checked bag for you and one companion on the same United reservation when you buy the ticket with this card (no purchase needed for flights in the first 90 days)",
+        "No foreign transaction fees"
+      ],
+      "protections": []
     }
   ],
+  "signupBonus": {
+    "cardId": "united-explorer",
+    "card": "United Explorer",
+    "spend": 3000,
+    "reward": "70,000 miles",
+    "opened": "2026-11-14",
+    "ends": "2027-02-14",
+    "note": "Every purchase goes on the United Explorer until $3,000 is spent. Never buy extra to reach it. After that, spending goes back to the usual picks."
+  },
   "chaseQuarters": {
     "2026": {
       "Q1": { "dates": "Jan 1 to Mar 31", "activateBy": "Mar 14", "categories": ["Dining", "Norwegian Cruise Line", "American Heart Assoc."], "status": "ended" },
