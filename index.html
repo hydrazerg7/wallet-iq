@@ -174,6 +174,7 @@ body #totop{bottom:calc(14px + var(--safe-bottom))}
 .ai-msg .card-rec .rec-rate{margin-left:auto;font-weight:700;color:var(--accent);font-size:1rem}
 .ai-msg .ai-tip{font-size:.75rem;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
 .ai-clear-wrap{display:flex;justify-content:flex-end;padding:4px 0}
+.ai-bonus{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.75rem;color:var(--muted);padding:6px 8px;margin-bottom:6px;border:1px solid #6CACE4;border-radius:8px}
 .ai-clear{font-size:.6875rem;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 /* Today */
@@ -348,6 +349,7 @@ try{var fcFs=parseInt(localStorage.getItem("hub-fontsize"),10);if(fcFs>=13&&fcFs
       </div>
     </div>
     <div class="ai-bottom">
+      <div class="ai-bonus" id="aiBonus" style="display:none"></div>
       <div class="ai-clear-wrap" id="aiClearWrap" style="display:none">
         <button class="ai-clear" onclick="clearAI()">Clear Chat</button>
       </div>
@@ -784,6 +786,7 @@ async function init() {
     appData.credits.forEach(c => { if (enrolled[c.id]) c.enrolled = true; });
     autoResetCredits();
     renderAll();
+    renderBonusBar();
     renderFreshness();
     startBoostTimer();
     wireOffers();
@@ -2029,7 +2032,9 @@ const chaseVetoWords = {
     'kum & go','kum and go','shell','chevron','exxon','mobil','conoco','phillips 66','sinclair','bp','gas','fuel','fill up','fillup',
     'pump','gasoline','petrol','walgreens','cvs','rite aid','pharmacy','drugstore','drug store','dollar general','dollar tree',
     'family dollar','petco','petsmart','chewy','room service','hotel','resort','motel','school','shipt','gopuff','gift card','giftcard',
-    'arena','stadium','ballpark','concert','venue','game'],
+    'arena','stadium','ballpark','concert','venue','game','coors field','empower field','theme park','amusement park','elitch',
+    'disney world','disneyland','six flags','water park','zoo','museum','movie theater','movie theatre','cinema','theater','theatre',
+    'casino','bakery','bakeries','caterer','catering','meal kit','hellofresh','blue apron','home chef'],
   thing: ['dog food','cat food','pet food','maker','machine','table','chair','furniture','processor','scale','oven','appliance',
     'container','lunch box','lunchbox','bag','supply','supplies','kit','cookware','utensil','mug','pan','blender','toaster','fridge',
     'freezer','dishwasher','patio','charcoal','propane','new grill','gas grill','grill for'],
@@ -2102,7 +2107,7 @@ const aiRules=[
   {keys:['five guys','5 guys','fiveguys'],card:'Amex Gold',rate:'4x + $10/mo credit',color:'#C5A44E',tip:'Five Guys is one of the $10/mo dining credit merchants. Check Tracker for remaining credit.'},
   // Generic dining (only matches if no store override matched first)
   {keys:['grubhub','seamless','uber eats','ubereats','cheesecake factory','buffalo wild wings','shake shack','chipotle','restaurant','dining','dinner','lunch','brunch','bar','pub','eat out','takeout','take out','food delivery','doordash','postmates',
-    'sandwich','burger','pizza','taco','burrito','sushi','wings','salad','soup','wrap','sub sandwich','hoagie','meal','food','snack','cafeteria','cafe','deli','bakery','noodle','ramen','pho','thai','chinese','mexican','italian','indian','korean','bbq','barbecue','buffet','diner','bistro','grill','kitchen','eatery','food truck','food court','panera','subway','mcdonalds','wendys','chick-fil-a','chickfila','popeyes','panda express','taco bell','kfc','arbys','sonic','jack in the box','in-n-out','whataburger','noodles','wingstop','canes','raising cane','zaxby','jersey mike','firehouse','jimmy john','qdoba','moe','chili','applebee','olive garden','outback','red lobster','ihop','waffle house','denny'],
+    'sandwich','burger','pizza','taco','burrito','sushi','wings','salad','soup','wrap','sub sandwich','hoagie','meal','food','snack','cafeteria','cafe','deli','noodle','ramen','pho','thai','chinese','mexican','italian','indian','korean','bbq','barbecue','buffet','diner','bistro','grill','kitchen','eatery','food truck','food court','panera','subway','mcdonalds','wendys','chick-fil-a','chickfila','popeyes','panda express','taco bell','kfc','arbys','sonic','jack in the box','in-n-out','whataburger','noodles','wingstop','canes','raising cane','zaxby','jersey mike','firehouse','jimmy john','qdoba','moe','chili','applebee','olive garden','outback','red lobster','ihop','waffle house','denny'],
     card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Food purchases almost always code as dining. Note: the $10/mo dining credit works only at Grubhub (and Seamless), Five Guys, Cheesecake Factory, Buffalo Wild Wings and Wonder, not at all restaurants.'},
   {keys:['grocery','groceries','supermarket','safeway','king soopers','kroger','trader joe','aldi','sprouts','hmart'],
     card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Must be a U.S. supermarket (King Soopers, Safeway, etc.). NOT Target, Walmart, Costco, or Sam\'s Club — those code as retail, not grocery. Capped at $25K/yr.'},
@@ -2116,7 +2121,7 @@ const aiRules=[
     card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Amazon card only gets 2%. Robinhood Gold wins. Check Mystery Box for a boost before filling up!'},
   // streaming moved earlier in rules
   {keys:['transit','light rail','bus fare','bus ticket','train ticket','commuter'],card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Amazon Prime Visa pays 2% on local transit. Robinhood Gold\'s flat 3% is higher.'},
-  {keys:['united airlines','united flight','fly united','united ticket'],card:'Amex Gold',rate:'3x',color:'#C5A44E',tip:'No United card in your wallet now (the Explorer closed Oct 19, 2026), so no free checked bag. Book United direct with Amex Gold for 3x.'},
+  {keys:['united airlines','united flight','fly united','united ticket','unted','united bag','united seat'],card:'United Explorer',rate:'3x + free bag',color:'#6CACE4',tip:'Buy United tickets with the United Explorer: 3x miles (about 3.6% back at 1.2 cents a mile) and a free first checked bag for you and one companion on the same reservation.'},
   {keys:['rental car','car rental','rent a car','avis','hertz','enterprise rent','budget rental','budget car','national car','turo'],
     card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Car rentals earn Robinhood Gold\'s flat 3%. Amex Gold gives 2x only when prepaid on AmexTravel.com.'},
   {keys:['flight','airline','plane','jsx','travel','vacation','trip','booking','delta','southwest','american airlines','jetblue','spirit','frontier','alaska airlines'],
@@ -2125,8 +2130,9 @@ const aiRules=[
   {keys:['international','abroad','foreign','overseas','europe','mexico','canada','japan','uk'],card:'Robinhood Gold Card',rate:'3%, no foreign fee',color:'#00C805',tip:'Robinhood Gold earns 3% abroad with no foreign transaction fee (cards opened before Jul 1, 2026, like yours). Amex Gold also has no foreign fee and earns 4x at restaurants abroad. Leave the Chase Freedom home: it charges a 3% foreign fee.'},
   {keys:['dunkin','donuts'],card:'Amex Gold',rate:'4x + $7/mo credit',color:'#C5A44E',tip:'You have a $7/mo Dunkin credit! Enroll on Amex site.'},
   {keys:['resy','nice dinner','fancy dinner','date night'],card:'Amex Gold',rate:'4x + $50 Resy credit',color:'#C5A44E',tip:'$50 Resy credit per half-year (resets Jun 30 & Dec 31).'},
-  {keys:['concert','tickets','event','show','sports','ball arena','game','venue','ticketmaster','axs','vivid seats','stubhub'],
-    card:'Amex Gold',rate:'1x + Presale',color:'#C5A44E',tip:'Use Amex Gold for ticket purchases to unlock Amex Presale & Reserved Tickets — early access before general public. Visit americanexpress.com/experiences. The card only earns 1x on tickets, but the early access is the real value.'},
+  {keys:['concert','tickets','event','show','sports','ball arena','game','venue','ticketmaster','axs','vivid seats','stubhub',
+    'theme park','amusement park','elitch','disney world','disneyland','six flags','water park','season pass','admission','zoo','museum','movie','cinema','theater','theatre'],
+    card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Tickets and admission (concerts, games, theme parks, movies) code as entertainment, never dining, so Robinhood Gold\'s flat 3% wins. Amex Gold earns only 1x on tickets; use it only when you need Amex Presale early access (americanexpress.com/experiences).'},
   {keys:['phone','cell','t-mobile','verizon','att','at&t','internet','cable','utility','utilities','electric','water','sewer','insurance','rent','mortgage'],
     card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip:'Bills and utilities earn 1% on most cards. Robinhood Gold gives you 3%.'},
   {keys:['coffee','starbucks','dutch bros'],card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Coffee shops code as dining. If Dunkin\', you also have a $7/mo credit!'},
@@ -2166,7 +2172,7 @@ function getAIResponse(query, noOffers){
 
   // ===== PRIORITY 1: Card-specific credits/free money =====
   // Free credits come before earning rates. When a credit is used up, fall through so the offers, the Chase 5% quarter
-  // and the earning rules below decide (the United credits ended with that card, Oct 19, 2026)
+  // and the earning rules below decide (the United Explorer, opened Nov 14, 2026, has no credits)
 
   // Uber → Amex Gold $10/mo Uber Cash first (rides and Uber Eats)
   if(q.match(/uber/)){
@@ -2306,6 +2312,60 @@ function renderAI(){
 }
 
 const WORKER_URL = 'https://wallet-iq-ai.grant-h-lange.workers.dev';
+
+// United Explorer sign up bonus (Nov 16, 2026). From the day the card opened until data.json's end date, and until Grant
+// taps "I hit it" in the Ask tab, purchase answers lead with the United Explorer so the spend is reached; the usual pick
+// follows as "After the bonus". Free credits and offers stay first (the bonus line goes under them), and questions about
+// his cards are left alone. bonusLead() is plain on purpose: _toolkit/ai_eval.mjs runs this same function on AI answers.
+const BONUS_DONE_KEY = 'wiq-bonus-done';
+function bonusInfo() {
+  const B = appData && appData.signupBonus;
+  if (!B || !/^\d{4}-\d{2}-\d{2}$/.test(String(B.ends))) return null;
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
+  if (today > B.ends || (/^\d{4}-\d{2}-\d{2}$/.test(String(B.opened)) && today < B.opened)) return null;
+  let done = false;
+  try { done = localStorage.getItem(BONUS_DONE_KEY) === B.ends; } catch (e) { done = false; }
+  return Object.assign({}, B, { done });
+}
+function bonusNow() { const b = bonusInfo(); return b && !b.done ? b : null; }
+function bonusWords(B) {
+  const [y, m, d] = String(B.ends).split('-').map(Number);
+  const until = new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return { card: B.card || 'United Explorer', spend: '$' + Number(B.spend || 0).toLocaleString('en-US'), until };
+}
+function bonusLead(text, B) {
+  const t = String(text || '').trim();
+  if (!B) return t;
+  const m = t.match(/^(?:(?:yes|no)[.,!]\s+)?(amex gold|amazon prime visa|prime visa|robinhood gold card|robinhood gold|chase freedom|united explorer)\b([^:\n]{0,80}):\s*/i);
+  if (!m || /^united explorer$/i.test(m[1])) return t;     // a question about his cards, or already the United card
+  const w = bonusWords(B);
+  if (/credit|uber cash/i.test(m[1] + m[2])) return t + `\n\nAnything the credit does not cover: ${w.card}, while the ${w.spend} sign up bonus is open (until ${w.until}).`;
+  return `${w.card} first: this purchase counts toward the ${w.spend} sign up bonus (until ${w.until}).\nAfter the bonus: ` + t.replace(/^(?:yes|no)[.,!]\s+/i, '');
+}
+function bonusLocal(r, B) {
+  if (!B || !r || r.isInfo || /United Explorer/.test(String(r.card))) return r;
+  const w = bonusWords(B);
+  if (r.fromOffer || /credit|uber cash/i.test(String(r.rate))) return Object.assign({}, r, { tip: r.tip + ` Anything the ${r.fromOffer ? 'offer' : 'credit'} does not cover: ${w.card}, while the ${w.spend} sign up bonus is open (until ${w.until}).` });
+  return Object.assign({}, r, { card: w.card, rate: 'bonus first', color: '#6CACE4',
+    tip: `Every purchase counts toward the ${w.spend} sign up bonus (until ${w.until}). After the bonus: ${r.card}, ${r.rate}. ${r.tip}` });
+}
+function renderBonusBar() {
+  const el = document.getElementById('aiBonus');
+  if (!el) return;
+  const b = bonusInfo();
+  if (!b) { el.style.display = 'none'; return; }
+  const w = bonusWords(b);
+  el.style.display = '';
+  el.innerHTML = b.done
+    ? `<span>${escapeHtml(w.card)} bonus: done. Answers show your usual cards.</span> <button class="ai-clear" onclick="setBonusDone(false)">Turn back on</button>`
+    : `<span>${escapeHtml(w.card)} first until you spend ${escapeHtml(w.spend)} (by ${escapeHtml(w.until)}).</span> <button class="ai-clear" onclick="setBonusDone(true)">I hit it</button>`;
+}
+function setBonusDone(on) {
+  const b = bonusInfo();
+  if (!b) return;
+  try { if (on) localStorage.setItem(BONUS_DONE_KEY, b.ends); else localStorage.removeItem(BONUS_DONE_KEY); } catch (e) { /* private mode */ }
+  renderBonusBar();
+}
 let aiPending = false;
 
 async function askAI(query){
@@ -2338,12 +2398,12 @@ async function askAI(query){
     const resp = await fetch(WORKER_URL, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({question: query}),
+      body: JSON.stringify({question: query, bonus: !!bonusNow()}),
       signal: ctl ? ctl.signal : undefined
     });
     const data = resp.ok ? await resp.json() : null;
     if (data && typeof data.answer === 'string' && data.answer.trim()) {
-      let answer = data.answer.trim();
+      let answer = bonusLead(data.answer.trim(), bonusNow());
       // A Chase or Amex Offer for the named store always shows, even when the model names the store but not the offer
       // (an Uber question answered by a credit rule first still reaches here)
       const lines = findMatchingOffers(query).filter(om => !answer.toLowerCase().includes(String(om.discount).toLowerCase())).map(offerLine);
@@ -2364,7 +2424,7 @@ async function askAI(query){
   }
 
   // Fallback to local rules engine (or the sure Chase 5% answer from above)
-  const result = ruled || getAIResponse(query);
+  const result = bonusLocal(ruled || getAIResponse(query), bonusNow());
   const el = document.getElementById(msgId);
   if (!el) { aiPending = false; return; }
 
