@@ -2333,21 +2333,32 @@ function bonusWords(B) {
   const until = new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   return { card: B.card || 'United Explorer', spend: '$' + Number(B.spend || 0).toLocaleString('en-US'), until };
 }
-function bonusLead(text, B) {
+// A question about his cards themselves (what one earns, fees, credits, the bonus), not a purchase: no bonus line.
+// Measured on the 180 golden questions (Nov 16, 2026): 0 purchases and 0 card questions put on the wrong side.
+function cardQuestion(q) {
+  const s = String(q || '');
+  const card = /\b(amex|gold|robinhood|prime visa|chase|freedom|united card|united explorer|explorer|my cards?|uber cash|resy|dining credit|credits?|miles?|points|sign ?up bonus|signup bonus|bonus|5%|1500|quarter|foreign (transaction )?fees?|annual fee|checked bag|as a user|authorized user)(?![a-z])/i;
+  const ask = /^(what|whats|what's|how|when|where|which|why|is|are|does|do|can|should|keep|after)\b|\?\s*$|\b(earn|earns|rewards?|worth|worht|good for|annual fee|cost|per year|a year|reset|deadline|cancel|close|how (does|do))\b/i;
+  const buy = /\b(at|buy|buying|bought|order|ordering|booking|tickets?|on uber eats|doordash|instacart)\b|\bgood for \w|\b(use|put)\b.{0,40}\b(for|on)\s+\w|\b(or|vs|versus)\b.{0,30}\bfor\s+\w/i;
+  const bonusPlan = /\b(hit|reach|meet) the (united )?bonus\b/i;
+  return card.test(s) && ask.test(s) && (!buy.test(s) || bonusPlan.test(s));
+}
+function bonusLead(text, B, q) {
   const t = String(text || '').trim();
-  if (!B) return t;
+  if (!B || cardQuestion(q)) return t;
   const m = t.match(/^(?:(?:yes|no)[.,!]\s+)?(amex gold|amazon prime visa|prime visa|robinhood gold card|robinhood gold|chase freedom|united explorer)\b([^:\n]{0,80}):\s*/i);
   if (!m || /^united explorer$/i.test(m[1])) return t;     // a question about his cards, or already the United card
   const w = bonusWords(B);
   if (/credit|uber cash/i.test(m[1] + m[2])) return t + `\n\nAnything the credit does not cover: ${w.card}, while the ${w.spend} sign up bonus is open (until ${w.until}).`;
   return `${w.card} first: this purchase counts toward the ${w.spend} sign up bonus (until ${w.until}).\nAfter the bonus: ` + t.replace(/^(?:yes|no)[.,!]\s+/i, '');
 }
-function bonusLocal(r, B) {
+function bonusLocal(r, B, q) {
   if (!B || !r || r.isInfo || /United Explorer/.test(String(r.card))) return r;
+  if (cardQuestion(q)) return r;     // a question about his cards, not a purchase
   const w = bonusWords(B);
   if (r.fromOffer || /credit|uber cash/i.test(String(r.rate))) return Object.assign({}, r, { tip: r.tip + ` Anything the ${r.fromOffer ? 'offer' : 'credit'} does not cover: ${w.card}, while the ${w.spend} sign up bonus is open (until ${w.until}).` });
   return Object.assign({}, r, { card: w.card, rate: 'bonus first', color: '#6CACE4',
-    tip: `Every purchase counts toward the ${w.spend} sign up bonus (until ${w.until}). After the bonus: ${r.card}, ${r.rate}. ${r.tip}` });
+    tip: `Every purchase counts toward the ${w.spend} sign up bonus (until ${w.until}). After the bonus: ${String(r.card).replace(' (Legacy)', '')}, ${r.rate}. ${r.tip}` });
 }
 function renderBonusBar() {
   const el = document.getElementById('aiBonus');
@@ -2403,7 +2414,7 @@ async function askAI(query){
     });
     const data = resp.ok ? await resp.json() : null;
     if (data && typeof data.answer === 'string' && data.answer.trim()) {
-      let answer = bonusLead(data.answer.trim(), bonusNow());
+      let answer = bonusLead(data.answer.trim(), bonusNow(), query);
       // A Chase or Amex Offer for the named store always shows, even when the model names the store but not the offer
       // (an Uber question answered by a credit rule first still reaches here)
       const lines = findMatchingOffers(query).filter(om => !answer.toLowerCase().includes(String(om.discount).toLowerCase())).map(offerLine);
@@ -2424,7 +2435,7 @@ async function askAI(query){
   }
 
   // Fallback to local rules engine (or the sure Chase 5% answer from above)
-  const result = bonusLocal(ruled || getAIResponse(query), bonusNow());
+  const result = bonusLocal(ruled || getAIResponse(query), bonusNow(), query);
   const el = document.getElementById(msgId);
   if (!el) { aiPending = false; return; }
 
