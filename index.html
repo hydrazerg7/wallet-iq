@@ -1877,13 +1877,18 @@ const OFFER_NAME_SKIP = new Set(('a an the on in at to for of and or my me i it 
   'apparel jewelry watch watches art photo print prints flowers plants seeds spirits dutch aura rails tonal faire forme ' +
   'embark official nfl nba mlb nhl delivery grocery groceries supplies express fragrance giftcards carparts chess quest optimum ' +
   'antler sans theory moo mulberry cos splendid whisker greenlight grasshopper gourmetgiftbaskets worldhotels').split(' '));
+// "Disney+" reads as "disney plus", so "disney world" never takes it; a spaced "DXL Big + Tall" just drops the "+"
+const plusWord = s => String(s || '').replace(/([a-z0-9])\+/gi, '$1 plus');
+// Each name comes back as {name, everyday}; an everyday one word name only counts when typed as the whole question
+// ("Express", "Theory") or with its .com ("wine.com", "chess.com"), never inside a longer question
 function offerNames(merchant) {
-  const raw = String(merchant || '').replace(/\+(?=\s|$)/g, ' plus');
+  const raw = plusWord(merchant);
   const full = normMerchant(raw);
   const brand = normMerchant(raw.split(/\s[-–—|:]\s|\s?\(|:/)[0]);
-  const names = [full];
-  if (brand && brand !== full && brand.replace(/ /g, '').length >= 4) names.push(brand);
-  return names.filter(n => n && !(n.indexOf(' ') === -1 && OFFER_NAME_SKIP.has(n)));
+  const out = full ? [{name: full, everyday: full.indexOf(' ') === -1 && OFFER_NAME_SKIP.has(full)}] : [];
+  // a brand under 4 letters ("HP" from "HP.com - Tech for Work", "AG1", "BBC") counts only as the whole question
+  if (brand && brand !== full) out.push({name: brand, everyday: brand.replace(/ /g, '').length < 4 || (brand.indexOf(' ') === -1 && OFFER_NAME_SKIP.has(brand))});
+  return out;
 }
 // True when the question names the store as whole words, spaced or run together, so "plush beds", "plushbeds" and
 // "PlushBeds mattress" all find PlushBeds (Nov 16, 2026: "Plush beds" missed both PlushBeds offers), while
@@ -1957,10 +1962,14 @@ function offerShort(d) {
 // Every active offer for the store the question names, best first; two offers of the same size keep the feed's order
 // (Chase before Amex)
 function findMatchingOffers(query) {
-  const qWords = normMerchant(query).split(' ').filter(Boolean);
+  const qWords = normMerchant(plusWord(query)).split(' ').filter(Boolean);
+  const whole = qWords.join(''), low = String(query || '').toLowerCase();
   const hits = [];
   getActiveOffers().forEach((o, i) => {
-    if (!offerNames(o.merchant).some(n => namesStore(qWords, n))) return;
+    const dotCom = /\.com\b/i.test(o.merchant);
+    if (!offerNames(o.merchant).some(n => n.everyday
+        ? low.includes(n.name + '.com') || (!dotCom && whole === n.name)
+        : namesStore(qWords, n.name))) return;
     const expDate = o.expires ? new Date(o.expires + 'T23:59:59') : null;
     const daysLeft = expDate ? Math.max(0, Math.ceil((expDate - new Date()) / 86400000)) : null;
     hits.push({ card: o.card, cardId: o.cardId || cardIdFor(o.card), discount: o.discount, merchant: o.merchant, daysLeft,
