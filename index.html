@@ -1875,9 +1875,10 @@ const OFFER_NAME_SKIP = new Set(('a an the on in at to for of and or my me i it 
   'health care plan box kit club life love style sport sports outdoor outdoors garden kitchen bed beds bath sleep paint ' +
   'tools tool parts oil tires glasses contacts vitamins wellness fitness gym yoga golf ski bike run running walk wear ' +
   'apparel jewelry watch watches art photo print prints flowers plants seeds spirits dutch aura rails tonal faire forme ' +
-  'embark official nfl nba mlb nhl delivery grocery groceries supplies').split(' '));
+  'embark official nfl nba mlb nhl delivery grocery groceries supplies express fragrance giftcards carparts chess quest optimum ' +
+  'antler sans theory moo mulberry cos splendid whisker greenlight grasshopper gourmetgiftbaskets worldhotels').split(' '));
 function offerNames(merchant) {
-  const raw = String(merchant || '');
+  const raw = String(merchant || '').replace(/\+(?=\s|$)/g, ' plus');
   const full = normMerchant(raw);
   const brand = normMerchant(raw.split(/\s[-–—|:]\s|\s?\(|:/)[0]);
   const names = [full];
@@ -1919,8 +1920,26 @@ function rateValue(r) {
   const s = String(r || '');
   let m = /(\d+(?:\.\d+)?)\s*%/.exec(s);
   if (m) return +m[1];
-  m = /(\d+(?:\.\d+)?)\s*x/i.exec(s);
+  m = /(\d+(?:\.\d+)?)\s*x\b/i.exec(s);
   return m ? +m[1] * 0.6 : 0;
+}
+// For a "Spend $X, earn $Y (or N points)" offer: the minimum spend and the money it pays back, else null
+function offerSpend(d) {
+  const s = String(d || '').replace(/,/g, '');
+  let m = /spend \$(\d+(?:\.\d+)?)[^$]*?\$(\d+(?:\.\d+)?)/i.exec(s);
+  if (m) return {min: +m[1], back: +m[2]};
+  m = /spend \$(\d+(?:\.\d+)?)\D*?earn (\d+)\s+(?:membership rewards\S*\s+)?points?/i.exec(s);
+  return m ? {min: +m[1], back: 0.006 * m[2]} : null;
+}
+// Why the usual card still matters: for a spend $X offer, the purchases where it pays more (under the minimum, or so
+// big that its rate beats the fixed payback plus the offer card's own 1x or 1%); for any other offer, when it is not used
+function usualWhy(best, usualRate) {
+  const sp = offerSpend(best.discount);
+  if (!sp) return 'your usual card here, when the offer does not apply';
+  const own = best.cardId === 'amex-gold' ? 0.6 : 1;
+  const top = usualRate > own ? Math.round(sp.back * 100 / (usualRate - own)) : 0;
+  const fmt = n => '$' + n.toLocaleString('en-US');
+  return 'your usual card here, for a purchase under ' + fmt(sp.min) + (top > sp.min ? ' or over about ' + fmt(top) : '');
 }
 // The short reward for the card line: "10%", "$75 back", "+10 points a dollar", else the bank's own words
 function offerShort(d) {
@@ -2196,13 +2215,14 @@ function getAIResponse(query, noOffers){
     const best = offerHits[0];
     const asAlt = o => ({card: plain(o.card), rate: offerShort(o.discount), color: colorOf(o.card),
       why: offerLine(o).replace(/ on your .*?(\(\d+ days left\))?\.$/, (m, left) => left ? ' ' + left : '')});
-    if (usual && best.value && best.value < rateValue(usual.rate))
+    const usualRate = usual ? rateValue(usual.rate) : 0;
+    if (usual && (best.value ? best.value < usualRate : usualRate >= 5))
       return Object.assign({}, usual, {alts: (usual.alts || []).concat(offerHits.map(asAlt))});
     let tip = offerLine(best);
     if(boostNote)tip+=boostNote;
     const alts = offerHits.slice(1).map(asAlt);
     if (usual && !offerHits.some(o => plain(o.card) === plain(usual.card)))
-      alts.push({card: plain(usual.card), rate: usual.rate, color: usual.color || colorOf(usual.card), why: 'your usual card here, when the offer does not apply'});
+      alts.push({card: plain(usual.card), rate: usual.rate, color: usual.color || colorOf(usual.card), why: usualWhy(best, usualRate)});
     return{card:best.card,rate:offerShort(best.discount),color:colorOf(best.card),tip,alts,fromOffer:true};
   }
 
