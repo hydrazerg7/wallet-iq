@@ -339,7 +339,7 @@ try{var fcFs=parseInt(localStorage.getItem("hub-fontsize"),10);if(fcFs>=13&&fcFs
   </div>
 
   <!-- ASK AI -->
-  <div class="pane" id="ask">
+  <div class="pane on" id="ask">
     <div class="ai-chat" id="aiChat">
       <div class="ai-welcome">
         <div style="font-size:1.75rem;margin-bottom:8px">&#127183;</div>
@@ -549,7 +549,7 @@ try{var fcFs=parseInt(localStorage.getItem("hub-fontsize"),10);if(fcFs>=13&&fcFs
 </div>
 
 <script>
-let APP_VERSION = '0.1.0';
+let APP_VERSION = '0.2.0';
 let appData = null;
 // Storage reads never throw: a bad or missing value gives the fallback, of the fallback's type
 function readJSON(key, fallback) {
@@ -1862,23 +1862,99 @@ function clearExpiredOffers() {
   saveOffers(); renderOffers();
 }
 
-// Get offer for a merchant (used by AI); whole words only, so "Target" never matches "Targeted"
-function findMatchingOffer(query) {
-  const q = ' ' + normMerchant(query) + ' ';
-  for (const o of getActiveOffers()) {
-    const m = normMerchant(o.merchant);
-    if (m && q.includes(' ' + m + ' ')) {
-      const expDate = o.expires ? new Date(o.expires + 'T23:59:59') : null;
-      const daysLeft = expDate ? Math.max(0, Math.ceil((expDate - new Date()) / 86400000)) : null;
-      return { card: o.card, discount: o.discount, merchant: o.merchant, daysLeft, bank: o.auto ? offerBank(o.id) || 'Chase' : '' };
+// Names a person might type for an offer's store: the full name, plus the brand before a descriptor
+// ("MANSCAPED - Men's Grooming" also answers to "manscaped"). A one word name that is also an everyday word is left
+// out, so the shoe brand "On" never claims "gas on the way home", "Dutch" (a vet app) never claims "Dutch Bros" and
+// "Home - Decor" never claims "home depot". Those stores still reach the AI, which sees every offer.
+const OFFER_NAME_SKIP = new Set(('a an the on in at to for of and or my me i it is be by up out off new old big get go buy pay use with ' +
+  'from this that some more most best good top one two all any day night week today now home away back next last near ' +
+  'gas fuel food foods wine beer coffee tea snack snacks nuts candy water juice drink drinks lunch dinner breakfast pizza ' +
+  'burger shoes hats lids shirt shirts pants jeans dress bag bags toy toys book books game games music movie movies tv ' +
+  'phone ring nest bark hint glow native purple simple fresh pure true bright clear pet pets dog dogs cat cats baby kids ' +
+  'house car cars auto travel trip hotel hotels flight gift gifts card cards store shop shops market outlet online beauty ' +
+  'health care plan box kit club life love style sport sports outdoor outdoors garden kitchen bed beds bath sleep paint ' +
+  'tools tool parts oil tires glasses contacts vitamins wellness fitness gym yoga golf ski bike run running walk wear ' +
+  'apparel jewelry watch watches art photo print prints flowers plants seeds spirits dutch aura rails tonal faire forme ' +
+  'embark official nfl nba mlb nhl delivery grocery groceries supplies').split(' '));
+function offerNames(merchant) {
+  const raw = String(merchant || '');
+  const full = normMerchant(raw);
+  const brand = normMerchant(raw.split(/\s[-–—|:]\s|\s?\(|:/)[0]);
+  const names = [full];
+  if (brand && brand !== full && brand.replace(/ /g, '').length >= 4) names.push(brand);
+  return names.filter(n => n && !(n.indexOf(' ') === -1 && OFFER_NAME_SKIP.has(n)));
+}
+// True when the question names the store as whole words, spaced or run together, so "plush beds", "plushbeds" and
+// "PlushBeds mattress" all find PlushBeds (Nov 16, 2026: "Plush beds" missed both PlushBeds offers), while
+// "Target" still never matches "Targeted"
+function namesStore(qWords, name) {
+  const want = name.replace(/ /g, '');
+  if (!want) return false;
+  for (let i = 0; i < qWords.length; i++) {
+    let s = '';
+    for (let j = i; j < qWords.length && s.length < want.length; j++) {
+      s += qWords[j];
+      if (s === want) return true;
     }
   }
-  return null;
+  return false;
 }
+// Rough cents back per dollar, only to rank two offers for the same store: "10% cash back" = 10, "Spend $100 or more,
+// earn $20 back" = 20 (at the smallest spend that counts), "+10 Membership Rewards points per dollar" = 10 x 0.6 cents
+// (Grant cashes points at 0.6 cents). Wording it cannot read = 0, listed last.
+function offerValue(d) {
+  const s = String(d || '').replace(/,/g, '');
+  let m = /(\d+(?:\.\d+)?)\s*%/.exec(s);
+  if (m) return +m[1];
+  m = /spend \$(\d+(?:\.\d+)?)[^$]*?\$(\d+(?:\.\d+)?)/i.exec(s);
+  if (m && +m[1] > 0) return 100 * m[2] / m[1];
+  m = /spend \$(\d+(?:\.\d+)?)\D*?earn (\d+)\s+(?:membership rewards\S*\s+)?points?/i.exec(s);
+  if (m && +m[1] > 0) return 0.6 * m[2] / m[1];
+  m = /\+?(\d+(?:\.\d+)?)\s+(?:membership rewards\S*\s+)?points? per/i.exec(s);
+  if (m) return +m[1] * 0.6;
+  return 0;
+}
+// The same rough cents per dollar for a rule's rate: "5%" = 5, "4x + $7/mo credit" = 4 x 0.6, a credit alone = 0
+function rateValue(r) {
+  const s = String(r || '');
+  let m = /(\d+(?:\.\d+)?)\s*%/.exec(s);
+  if (m) return +m[1];
+  m = /(\d+(?:\.\d+)?)\s*x/i.exec(s);
+  return m ? +m[1] * 0.6 : 0;
+}
+// The short reward for the card line: "10%", "$75 back", "+10 points a dollar", else the bank's own words
+function offerShort(d) {
+  const s = String(d || '').replace(/,/g, '');
+  let m = /(\d+(?:\.\d+)?)\s*%/.exec(s);
+  if (m) return m[1] + '%';
+  m = /spend \$\d+(?:\.\d+)?[^$]*?(\$\d+(?:\.\d+)?)/i.exec(s);
+  if (m) return m[1] + ' back';
+  m = /spend \$\d+(?:\.\d+)?\D*?earn (\d+)\s+(?:membership rewards\S*\s+)?points?/i.exec(s);
+  if (m) return (+m[1]).toLocaleString('en-US') + ' points';
+  m = /\+?(\d+(?:\.\d+)?)\s+(?:membership rewards\S*\s+)?points? per/i.exec(s);
+  if (m) return '+' + m[1] + ' points a dollar';
+  return String(d || '').slice(0, 30);
+}
+// Every active offer for the store the question names, best first; two offers of the same size keep the feed's order
+// (Chase before Amex)
+function findMatchingOffers(query) {
+  const qWords = normMerchant(query).split(' ').filter(Boolean);
+  const hits = [];
+  getActiveOffers().forEach((o, i) => {
+    if (!offerNames(o.merchant).some(n => namesStore(qWords, n))) return;
+    const expDate = o.expires ? new Date(o.expires + 'T23:59:59') : null;
+    const daysLeft = expDate ? Math.max(0, Math.ceil((expDate - new Date()) / 86400000)) : null;
+    hits.push({ card: o.card, cardId: o.cardId || cardIdFor(o.card), discount: o.discount, merchant: o.merchant, daysLeft,
+      bank: o.auto ? offerBank(o.id) || 'Chase' : '', value: offerValue(o.discount), order: i });
+  });
+  return hits.sort((a, b) => (b.value - a.value) || (a.order - b.order));
+}
+// The best offer for the store the question names, or null
+function findMatchingOffer(query) { return findMatchingOffers(query)[0] || null; }
 // The line an answer adds for a matched offer: "Chase Offer" or "Amex Offer" from the feed id, "Card offer" for
 // one typed in by hand
 function offerLine(om) {
-  return `${om.bank ? om.bank + ' Offer' : 'Card offer'}: ${om.discount} at ${om.merchant} on your ${String(om.card).replace(' (Legacy)', '')}${om.daysLeft !== null ? ` (${om.daysLeft} days left)` : ''}.`;
+  return `${om.bank ? om.bank + ' Offer' : 'Card offer'}: ${String(om.discount).replace(/\.\s*$/, '')} at ${om.merchant} on your ${String(om.card).replace(' (Legacy)', '')}${om.daysLeft !== null ? ` (${om.daysLeft} days left)` : ''}.`;
 }
 
 // ===== CHASE QUARTER AWARENESS =====
@@ -2028,7 +2104,7 @@ const aiRules=[
   {keys:['coffee','starbucks','dutch bros'],card:'Amex Gold',rate:'4x',color:'#C5A44E',tip:'Coffee shops code as dining. If Dunkin\', you also have a $7/mo credit!'},
 ];
 
-function getAIResponse(query){
+function getAIResponse(query, noOffers){
   const q=query.toLowerCase().trim().replace(/[\u2018\u2019\u02bc]/g,"'");
   const checkCredit=(id)=>{if(!appData)return null;const c=appData.credits.find(c=>c.id===id);if(!c||c.isCount)return null;return{remaining:Math.max(0,c.amount-getUsedAmount(id)),daysLeft:getDaysLeft(c.period)};};
   const checkCountCredit=(id)=>{if(!appData)return null;const c=appData.credits.find(c=>c.id===id);if(!c||!c.isCount)return null;const used=logs.filter(l=>l.creditId===id).length;return{remaining:Math.max(0,c.amount-used),total:c.amount};};
@@ -2074,14 +2150,6 @@ function getAIResponse(query){
     }
   }
 
-  // Rides (Uber after the Uber Cash, Lyft, taxis) → Robinhood 3% beats Prime Visa 2%
-  if(q.match(/uber|lyft|rideshare|ride share|taxi|\bcab\b/) && !q.match(/uber ?eats/)){
-    let tip='Rideshare means Uber, Lyft and taxi apps. Robinhood Gold\'s 3% beats Amazon Prime Visa\'s 2% on rides.';
-    if(q.match(/uber/)) tip='Uber Cash is used up this month. '+tip;
-    if(boostNote)tip+=boostNote;
-    return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip,alts:[{card:'Amazon Prime Visa',rate:'2%',color:'#232F3E',why:'2% on rideshare and transit'}]};
-  }
-
   // Dunkin → Amex $7/mo credit first
   if(q.match(/dunkin|donuts/)){
     const c=checkCredit('amex-dunkin');
@@ -2112,6 +2180,40 @@ function getAIResponse(query){
     }
   }
 
+  // ===== PRIORITY 2: Active card offers =====
+  // Every offer for the store shows: the best one as the pick, the others under Other options (PlushBeds had a
+  // Chase Offer on the Prime Visa and an Amex Offer on the Gold, Nov 16, 2026). Offers sit below the free credits
+  // above and above the earning rules below, so a 10% Lyft offer beats the 3% ride rule. The card these rules pick
+  // with no offer shows last, for a purchase under the offer's minimum spend. An offer worth less than that card
+  // (2% back at Amazon against the Prime Visa's 5%) loses and shows under Other options.
+  const offerHits = noOffers ? [] : findMatchingOffers(q);
+  if (offerHits.length) {
+    const colorOf = name => { const c = appData.cards.find(c => c.name === name); return c ? c.color : '#888'; };
+    const plain = name => String(name).replace(' (Legacy)', '');
+    let usual = null;
+    try { usual = getAIResponse(query, true); } catch (e) { usual = null; }
+    if (usual && (usual.isInfo || !usual.card)) usual = null;
+    const best = offerHits[0];
+    const asAlt = o => ({card: plain(o.card), rate: offerShort(o.discount), color: colorOf(o.card),
+      why: offerLine(o).replace(/ on your .*?(\(\d+ days left\))?\.$/, (m, left) => left ? ' ' + left : '')});
+    if (usual && best.value && best.value < rateValue(usual.rate))
+      return Object.assign({}, usual, {alts: (usual.alts || []).concat(offerHits.map(asAlt))});
+    let tip = offerLine(best);
+    if(boostNote)tip+=boostNote;
+    const alts = offerHits.slice(1).map(asAlt);
+    if (usual && !offerHits.some(o => plain(o.card) === plain(usual.card)))
+      alts.push({card: plain(usual.card), rate: usual.rate, color: usual.color || colorOf(usual.card), why: 'your usual card here, when the offer does not apply'});
+    return{card:best.card,rate:offerShort(best.discount),color:colorOf(best.card),tip,alts,fromOffer:true};
+  }
+
+  // Rides (Uber after the Uber Cash, Lyft, taxis) → Robinhood 3% beats Prime Visa 2%
+  if(q.match(/uber|lyft|rideshare|ride share|taxi|\bcab\b/) && !q.match(/uber ?eats/)){
+    let tip='Rideshare means Uber, Lyft and taxi apps. Robinhood Gold\'s 3% beats Amazon Prime Visa\'s 2% on rides.';
+    if(q.match(/uber/)) tip='Uber Cash is used up this month. '+tip;
+    if(boostNote)tip+=boostNote;
+    return{card:'Robinhood Gold Card',rate:'3%',color:'#00C805',tip,alts:[{card:'Amazon Prime Visa',rate:'2%',color:'#232F3E',why:'2% on rideshare and transit'}]};
+  }
+
   // Airbnb and Vrbo are not AmexTravel hotels
   if(q.match(/airbnb|vrbo/)){
     let tip='Airbnb and Vrbo are not hotels on AmexTravel, so Amex Gold earns only 1x. Robinhood Gold\'s 3% wins.';
@@ -2124,18 +2226,6 @@ function getAIResponse(query){
     let tip='Prepay on AmexTravel.com with Amex Gold for 5x. A Hotel Collection property booked there for 2 or more nights also gives up to a $100 credit to spend at the hotel, per stay. Booked anywhere else (the hotel\'s own site, Expedia), use Robinhood Gold for 3%; Amex Gold gives only 1x there.';
     if(boostNote)tip+=boostNote;
     return{card:'Amex Gold',rate:'5x (prepaid on AmexTravel)',color:'#C5A44E',tip,alts:[{card:'Robinhood Gold',rate:'3%',color:'#00C805',why:'hotels booked anywhere else'}]};
-  }
-
-  // ===== PRIORITY 2: Active card offers =====
-  const offerMatch = findMatchingOffer(q);
-  if (offerMatch) {
-    const cardData = appData.cards.find(c => c.name === offerMatch.card);
-    const color = cardData ? cardData.color : '#888';
-    let tip = `You have an active offer: ${offerMatch.discount} at ${offerMatch.merchant} on your ${offerMatch.card}!`;
-    if (offerMatch.daysLeft !== null) tip += ` (${offerMatch.daysLeft} days left)`;
-    tip += ' This likely beats your standard card rate for this purchase.';
-    if(boostNote)tip+=boostNote;
-    return{card:offerMatch.card,rate:offerMatch.discount,color,tip};
   }
 
   // ===== PRIORITY 3: Chase Freedom quarterly 5% =====
@@ -2207,11 +2297,15 @@ async function askAI(query){
   let ruled = null;
   try { ruled = getAIResponse(query); } catch (e) { ruled = null; }
   const chaseSure = !!(ruled && !ruled.isInfo && /^Chase Freedom/.test(String(ruled.card)));
+  // A Chase or Amex Offer for the store the question names is answered here too, never by the AI. On Nov 16, 2026
+  // "Plush beds" got "Robinhood Gold 3%" from the AI while both cards had a 10% PlushBeds offer.
+  const offerSure = !!(ruled && ruled.fromOffer);
+  const localSure = chaseSure || offerSure;
 
   // Gemini through the worker, 12 seconds at most; a 503 (no model answered) or a timeout uses the rules engine below
-  const ctl = !chaseSure && typeof AbortController === 'function' ? new AbortController() : null;
+  const ctl = !localSure && typeof AbortController === 'function' ? new AbortController() : null;
   const timer = ctl ? setTimeout(() => ctl.abort(), 12000) : null;
-  if (!chaseSure) try {
+  if (!localSure) try {
     const resp = await fetch(WORKER_URL, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -2221,10 +2315,10 @@ async function askAI(query){
     const data = resp.ok ? await resp.json() : null;
     if (data && typeof data.answer === 'string' && data.answer.trim()) {
       let answer = data.answer.trim();
-      // A Chase or Amex Offer for the named store always shows, even when the model leaves it out
-      const om = findMatchingOffer(query);
-      if (om && !answer.toLowerCase().includes(String(om.merchant).toLowerCase()))
-        answer += '\n\n' + offerLine(om);
+      // A Chase or Amex Offer for the named store always shows, even when the model names the store but not the offer
+      // (an Uber question answered by a credit rule first still reaches here)
+      const lines = findMatchingOffers(query).filter(om => !answer.toLowerCase().includes(String(om.discount).toLowerCase())).map(offerLine);
+      if (lines.length) answer += '\n\n' + lines.join('\n');
       const newHtml = `<div class="ai-tip" style="white-space:pre-line">${escapeHtml(answer)}</div>`;
       const el = document.getElementById(msgId);
       if (el) el.innerHTML = newHtml;
