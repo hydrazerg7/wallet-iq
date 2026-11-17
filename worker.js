@@ -329,7 +329,7 @@ async function liveFacts(question, env, offersOk = true, bonusAsk = true) {
       // A fact only: the app puts "United Explorer first" on purchase answers itself, so the picks stay the usual ones
       current.push(bonusAsk === false
         ? `${clip(B.card)} sign up bonus: Grant has finished the $${Number(B.spend) || 0} of purchases.`
-        : `${clip(B.card)} sign up bonus: ${clip(B.reward)} after $${Number(B.spend) || 0} of purchases by ${B.ends} (progress shows in the Chase app). Grant is putting purchases on the ${clip(B.card)} until then; the app adds that advice to purchase answers itself, so answer with the usual picks.`);
+        : `${clip(B.card)} sign up bonus: ${clip(B.reward)} after $${Number(B.spend) || 0} of purchases by ${B.ends} (progress shows in the Chase app).`);
     }
   } catch (e) { /* the prompt still works without it */ }
   return { cards, current };
@@ -337,7 +337,7 @@ async function liveFacts(question, env, offersOk = true, bonusAsk = true) {
 
 // Models: pinned stable ids, first that answers wins (gemini-2.0-flash shut down Jun 1, 2026; 2.5-flash-lite is closed
 // to new projects). Worker vars AI_MODELS (comma list), AI_THINKING and AI_TEMPERATURE override for tests.
-const AI_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite'];
+const AI_MODELS = ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite', 'gemini-2.5-flash-lite'];   // 3.1 scored best on the 180 golden questions, Nov 16, 2026
 function aiSettings(env) {
   const models = String(env.AI_MODELS || '').split(',').map(x => x.trim()).filter(x => /^gemini-[a-z0-9.-]+$/.test(x));
   const t = String(env.AI_TEMPERATURE ?? '').trim();

@@ -2335,28 +2335,33 @@ function bonusWords(B) {
 }
 // A question about his cards themselves (what one earns, fees, credits, the bonus), not a purchase: no bonus line.
 // Measured on the 180 golden questions (Nov 16, 2026): 0 purchases and 0 card questions put on the wrong side.
+// Places outside the U.S. (Uber Cash and the Resy credit are U.S. only), for the app's own credit answers
+const ABROAD = /\b(abroad|overseas|international|mexico|cancun|cabo|canada|toronto|vancouver|montreal|europe|london|paris|rome|italy|france|spain|madrid|barcelona|germany|berlin|amsterdam|japan|tokyo|england|ireland|dublin|iceland|costa rica|bahamas|jamaica|caribbean|aruba|puerto vallarta)\b/i;
 function cardQuestion(q) {
   const s = String(q || '');
   const card = /\b(amex|gold|robinhood|prime visa|chase|freedom|united card|united explorer|explorer|my cards?|uber cash|resy|dining credit|credits?|miles?|points|sign ?up bonus|signup bonus|bonus|5%|1500|quarter|foreign (transaction )?fees?|annual fee|checked bag|as a user|authorized user)(?![a-z])/i;
   const ask = /^(what|whats|what's|how|when|where|which|why|is|are|does|do|can|should|keep|after)\b|\?\s*$|\b(earn|earns|rewards?|worth|worht|good for|annual fee|cost|per year|a year|reset|deadline|cancel|close|how (does|do))\b/i;
-  const buy = /\b(at|buy|buying|bought|order|ordering|booking|tickets?|on uber eats|doordash|instacart)\b|\bgood for \w|\b(use|put)\b.{0,40}\b(for|on)\s+\w|\b(or|vs|versus)\b.{0,30}\bfor\s+\w/i;
+  const buy = /\b(at|buy|buying|bought|order|ordering|booking|tickets?|on uber eats|doordash|instacart)\b|\bgood for \w|\b(use|using|put|putting)\b.{0,40}\b(for|on)\s+\w|\b(or|vs|versus)\b.{0,30}\bfor\s+\w/i;
   const bonusPlan = /\b(hit|reach|meet) the (united )?bonus\b/i;
   return card.test(s) && ask.test(s) && (!buy.test(s) || bonusPlan.test(s));
 }
 function bonusLead(text, B, q) {
   const t = String(text || '').trim();
   if (!B || cardQuestion(q)) return t;
-  const m = t.match(/^(?:(?:yes|no)[.,!]\s+)?(amex gold|amazon prime visa|prime visa|robinhood gold card|robinhood gold|chase freedom|united explorer)\b([^:\n]{0,80}):\s*/i);
+  const m = t.match(/^(?:[^:\n]{1,40}:\s+)?(?:(?:yes|no)[.,!]\s+)?(amex gold|amazon prime visa|prime visa|robinhood gold card|robinhood gold|chase freedom|united explorer)\b([^:\n]{0,80}):\s*/i);
   if (!m || /^united explorer$/i.test(m[1])) return t;     // a question about his cards, or already the United card
   const w = bonusWords(B);
-  if (/credit|uber cash/i.test(m[1] + m[2])) return t + `\n\nAnything the credit does not cover: ${w.card}, while the ${w.spend} sign up bonus is open (until ${w.until}).`;
+  // The app answers the credits it tracks itself (creditSure in askAI); a credit the AI names on its own is kept first
+  // only for the Hotel Collection credit, which needs the stay prepaid on Amex Gold (the critic, Nov 16, 2026)
+  const lead = t.split(/\n|(?<=\.)\s/)[0];
+  if (/hotel collection/i.test(lead + ' ' + String(q || ''))) return t + `\n\nAnything the credit does not cover: ${w.card}, while the ${w.spend} sign up bonus is open (until ${w.until}).`;
   return `${w.card} first: this purchase counts toward the ${w.spend} sign up bonus (until ${w.until}).\nAfter the bonus: ` + t.replace(/^(?:yes|no)[.,!]\s+/i, '');
 }
 function bonusLocal(r, B, q) {
   if (!B || !r || r.isInfo || /United Explorer/.test(String(r.card))) return r;
   if (cardQuestion(q)) return r;     // a question about his cards, not a purchase
   const w = bonusWords(B);
-  if (r.fromOffer || /credit|uber cash/i.test(String(r.rate))) return Object.assign({}, r, { tip: r.tip + ` Anything the ${r.fromOffer ? 'offer' : 'credit'} does not cover: ${w.card}, while the ${w.spend} sign up bonus is open (until ${w.until}).` });
+  if (r.fromOffer || /credit|uber cash/i.test(String(r.rate)) || /hotel collection/i.test(String(q || ''))) return Object.assign({}, r, { tip: r.tip + ` Anything the ${r.fromOffer ? 'offer' : 'credit'} does not cover: ${w.card}, while the ${w.spend} sign up bonus is open (until ${w.until}).` });
   return Object.assign({}, r, { card: w.card, rate: 'bonus first', color: '#6CACE4',
     tip: `Every purchase counts toward the ${w.spend} sign up bonus (until ${w.until}). After the bonus: ${String(r.card).replace(' (Legacy)', '')}, ${r.rate}. ${r.tip}` });
 }
@@ -2400,7 +2405,12 @@ async function askAI(query){
   // A Chase or Amex Offer for the store the question names is answered here too, never by the AI. On Nov 16, 2026
   // "Plush beds" got "Robinhood Gold 3%" from the AI while both cards had a 10% PlushBeds offer.
   const offerSure = !!(ruled && ruled.fromOffer);
-  const localSure = chaseSure || offerSure;
+  // A free credit the app tracks (Uber Cash, Dunkin, Resy, the dining credit places) with money left this month is
+  // answered here too: the AI cannot see what is left and picked Robinhood 3% for "uber to dia" in all 6 golden runs
+  // (Nov 16, 2026). Not abroad (Uber Cash and Resy are U.S. only), not a question about the cards, Resy only by name.
+  const creditSure = !!(ruled && !ruled.isInfo && /credit|uber cash/i.test(String(ruled.rate)) && !cardQuestion(query)
+    && !ABROAD.test(query) && (!/resy/i.test(String(ruled.rate)) || /\bresy\b/i.test(query)));
+  const localSure = chaseSure || offerSure || creditSure;
 
   // Gemini through the worker, 12 seconds at most; a 503 (no model answered) or a timeout uses the rules engine below
   const ctl = !localSure && typeof AbortController === 'function' ? new AbortController() : null;
